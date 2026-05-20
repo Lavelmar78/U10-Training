@@ -1,87 +1,173 @@
-import { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U10 Coaching Session</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { background: #0d1117; color: #f0f0f0; font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; min-height: 100vh; }
 
+  /* HOME */
+  .home-header { background: #161b22; padding: 20px 16px 14px; border-bottom: 2px solid #21262d; }
+  .session-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: #4ade80; text-transform: uppercase; margin-bottom: 4px; }
+  .session-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.15; }
+  .session-sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
+  .overall-bar { height: 4px; background: #21262d; border-radius: 2px; margin-top: 12px; }
+  .overall-fill { height: 100%; background: #4ade80; border-radius: 2px; width: 0%; transition: width 0.5s; }
+
+  .phase-list { padding: 10px 0 100px; }
+  .phase-card { margin: 8px 12px; background: #161b22; border-radius: 10px; border: 1px solid #21262d; border-left-width: 3px; display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+  .phase-card:active { opacity: 0.75; }
+  .phase-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; flex-shrink: 0; }
+  .phase-info { flex: 1; }
+  .phase-title { font-size: 14px; font-weight: 700; color: #fff; }
+  .phase-cat { font-size: 11px; color: #8b949e; margin-top: 2px; }
+  .phase-mins { font-size: 12px; font-weight: 700; color: #8b949e; }
+  .phase-arrow { color: #8b949e; font-size: 16px; margin-left: 2px; }
+
+  .home-footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px 12px; background: #0d1117; border-top: 1px solid #21262d; display: flex; gap: 8px; }
+  .btn-start { flex: 1; background: rgba(74,222,128,0.13); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); border-radius: 8px; padding: 11px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-cues-home { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+  /* DRILL */
+  .drill-screen { display: none; flex-direction: column; min-height: 100vh; }
+  .drill-header { background: #161b22; border-bottom: 1px solid #21262d; }
+  .back-btn { background: none; border: none; color: #8b949e; font-size: 13px; cursor: pointer; padding: 12px 14px 6px; display: flex; align-items: center; gap: 4px; }
+  .drill-cat { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 14px 4px; }
+  .drill-title { font-size: 19px; font-weight: 900; text-transform: uppercase; padding: 0 14px 12px; }
+
+  .drill-body { padding-bottom: 80px; overflow-y: auto; }
+  .timer-box { margin: 12px 12px 0; background: #161b22; border-radius: 12px; padding: 16px; border: 1px solid #21262d; text-align: center; }
+  .timer-btns { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+  .btn-play { border: none; border-radius: 8px; padding: 9px 22px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-reset { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 8px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-cues-drill { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 8px; padding: 9px 14px; font-weight: 700; font-size: 11px; cursor: pointer; }
+
+  .section-head { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8b949e; padding: 14px 14px 6px; }
+  .diagram-wrap { margin: 0 12px; background: #161b22; border-radius: 10px; padding: 12px; border: 1px solid #21262d; }
+  .setup-box { margin: 0 12px 4px; background: #161b22; border-radius: 10px; padding: 12px 14px; border: 1px solid #21262d; font-size: 13px; line-height: 1.6; color: #c9d1d9; }
+  .point-row { display: flex; gap: 8px; padding: 4px 14px; }
+  .point-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+  .point-text { font-size: 13px; line-height: 1.55; color: #c9d1d9; }
+  .prog-box { margin: 8px 12px; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #93c5fd; line-height: 1.55; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.2); }
+
+  .drill-footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; display: flex; gap: 8px; padding: 10px 12px; background: #0d1117; border-top: 1px solid #21262d; }
+  .btn-prev { flex: 1; background: #21262d; color: #c9d1d9; border: none; border-radius: 8px; padding: 11px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-prev:disabled { opacity: 0.35; cursor: default; }
+  .btn-next { flex: 1; border: none; border-radius: 8px; padding: 11px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-next:disabled { opacity: 0.35; cursor: default; }
+
+  /* CUES */
+  .cues-screen { display: none; min-height: 100vh; }
+  .cue-card { margin: 8px 12px; background: #161b22; border-radius: 10px; border: 1px solid #21262d; padding: 14px; display: flex; align-items: center; gap: 10px; }
+  .cue-num { width: 28px; height: 28px; border-radius: 6px; background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color: #4ade80; flex-shrink: 0; }
+  .cue-text { font-size: 14px; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <div class="home-header">
+    <div class="session-label">U10 Coaching Session</div>
+    <h1 class="session-title">Closing Down &<br>Defensive Awareness</h1>
+    <div class="session-sub">55 min · 8–12 players · Age 10</div>
+    <div class="overall-bar"><div class="overall-fill" id="overall-fill"></div></div>
+  </div>
+  <div class="phase-list" id="phase-list"></div>
+  <div class="home-footer">
+    <button class="btn-start" onclick="goToPhase(0)">▶ Start Session</button>
+    <button class="btn-cues-home" onclick="showCues()">Cues</button>
+  </div>
+</div>
+
+<!-- DRILL SCREEN -->
+<div id="drill-screen" class="drill-screen">
+  <div class="drill-header">
+    <button class="back-btn" onclick="showHome()">← All Phases</button>
+    <div class="drill-cat" id="drill-cat"></div>
+    <div class="drill-title" id="drill-title"></div>
+  </div>
+  <div class="drill-body">
+    <div class="timer-box">
+      <svg id="timer-svg" width="110" height="110" viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="48" fill="none" stroke="#21262d" stroke-width="7"/>
+        <circle id="timer-ring" cx="55" cy="55" r="48" fill="none" stroke="#4ade80" stroke-width="7"
+          stroke-dasharray="301.6" stroke-dashoffset="0" stroke-linecap="round"
+          transform="rotate(-90 55 55)" style="transition:stroke-dashoffset 1s linear,stroke 0.5s"/>
+        <text id="timer-num" x="55" y="50" text-anchor="middle" fill="#4ade80" font-size="22" font-weight="900">8:00</text>
+        <text id="timer-label" x="55" y="68" text-anchor="middle" fill="#8b949e" font-size="10">remaining</text>
+      </svg>
+      <div class="timer-btns">
+        <button class="btn-play" id="btn-play" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn-reset" onclick="resetTimer()">↺ Reset</button>
+        <button class="btn-cues-drill" onclick="showCues()">Cues</button>
+      </div>
+    </div>
+    <div class="section-head">Pitch Diagram</div>
+    <div class="diagram-wrap"><svg id="diagram-svg" width="100%" viewBox="0 0 300 180"></svg></div>
+    <div class="section-head">Setup</div>
+    <div class="setup-box" id="setup-text"></div>
+    <div class="section-head">Coaching Points</div>
+    <div id="points-list"></div>
+    <div id="prog-section" style="display:none">
+      <div class="section-head">Progression</div>
+      <div class="prog-box" id="prog-text"></div>
+    </div>
+  </div>
+  <div class="drill-footer">
+    <button class="btn-prev" id="btn-prev" onclick="prevPhase()">← Prev</button>
+    <button class="btn-next" id="btn-next" onclick="nextPhase()"></button>
+  </div>
+</div>
+
+<!-- CUES SCREEN -->
+<div id="cues-screen" class="cues-screen">
+  <div class="drill-header">
+    <button class="back-btn" id="cues-back" onclick="backFromCues()">← Back</button>
+    <div class="drill-title" style="padding-bottom:12px">Key Coaching Cues</div>
+  </div>
+  <div id="cues-list" style="padding:4px 0 20px"></div>
+</div>
+
+<script>
 const PHASES = [
   {
-    id: 0,
-    num: "1",
-    title: "Freeze Tag Defenders",
-    category: "Warm-Up",
-    duration: 480,
-    color: "#4ade80",
-    setup: "20×15m grid. 2–3 defenders (bibs). Attackers each have a ball and move freely. Defenders freeze attackers by touching their ball. Frozen players stand with feet apart — a free attacker can nutmeg them to unfreeze.",
-    points: [
-      "Sprint to close, then SLOW as you get near",
-      "Check over your shoulder — where are the other attackers?",
-      "Rotate defenders every 90 seconds"
-    ],
-    diagram: "freeze",
+    num:"1", title:"Freeze Tag Defenders", category:"Warm-Up", duration:480, color:"#4ade80",
+    setup:"Mark a 20×15m grid. 2–3 players are defenders (bibs). Everyone else moves freely with a ball each. Defenders freeze attackers by touching their ball. Frozen players stand with feet apart — a free attacker can nutmeg them to unfreeze. Rotate defenders every 90 seconds.",
+    points:["Sprint to close, then SLOW as you get near — don't dive in","Check over your shoulder — where are the other attackers?","Try to touch 2 balls before attackers can unfreeze each other"],
+    progression:null,
+    diagram:"freeze"
   },
   {
-    id: 1,
-    num: "2",
-    title: "Sprint & Slow Drill",
-    category: "Technique",
-    duration: 720,
-    color: "#facc15",
-    setup: "Pairs. Attacker stands still at a cone 12m away. On your call, defender sprints toward them, slows at 2–3m, drops into side-on shape. 5 reps then swap.",
-    points: [
-      '"Fast approach, slow arrival"',
-      "Side-on stance: one foot forward, low & balanced",
-      "Force attacker to weaker foot or touchline",
-      "Don't lunge — wait for the ball to move away"
-    ],
-    progression: "Attacker dribbles slowly — live jockeying. Add a cone as a goal to protect.",
-    diagram: "sprintslow",
+    num:"2", title:"Sprint & Slow Drill", category:"Technique", duration:720, color:"#facc15",
+    setup:"Pairs. Attacker stands still at a cone 12m away with a ball. On your call, defender sprints toward them, slows at 2–3m, drops into side-on defensive shape. 5 reps then swap.",
+    points:['"Fast approach, slow arrival" — close space quickly but arrive in control',"Side-on stance: one foot forward, low & balanced, weight on balls of feet","Force the attacker to their weaker foot or towards the touchline","Don't lunge — wait for the ball to move away from them"],
+    progression:"Attacker now dribbles slowly — defender practises live jockeying. Add a cone as a goal to protect.",
+    diagram:"sprintslow"
   },
   {
-    id: 2,
-    num: "3",
-    title: "Heads-Up Defending",
-    category: "Awareness",
-    duration: 720,
-    color: "#60a5fa",
-    setup: "20×20m grid with small goal. 1 defender, 1 live attacker with ball, 1 SHADOW attacker near edge without ball. You shout 'Pass!' — ball goes to shadow who becomes live immediately.",
-    points: [
-      "Scan constantly — quick glances for the second attacker",
-      "Position to see BOTH the ball and the threat",
-      "Shout 'Man on! Second runner!'",
-      "Don't fully commit until you know where both attackers are"
-    ],
-    progression: "Add a second defender — who closes? Who covers? They must talk.",
-    diagram: "awareness",
+    num:"3", title:"Heads-Up Defending", category:"Awareness", duration:720, color:"#60a5fa",
+    setup:"20×20m grid with a small goal. 1 defender, 1 live attacker with ball, 1 SHADOW attacker near the edge without a ball. You shout 'Pass!' at any moment — ball goes to the shadow who immediately becomes live. Defender must react fast.",
+    points:["Scan constantly — quick glances to check where the second attacker is","Position to see BOTH the ball and the threat at the same time","Shout 'Man on! Second runner!' — build the habit of communicating","Don't fully commit until you know where both attackers are"],
+    progression:"Add a second defender — who closes the ball? Who covers the runner? They must talk to each other.",
+    diagram:"awareness"
   },
   {
-    id: 3,
-    num: "4",
-    title: "3v2 Conditioned Game",
-    category: "Game",
-    duration: 1080,
-    color: "#f97316",
-    setup: "3 attackers vs 2 defenders, 30×20m, with a goal. Attackers score normally. Defenders score by winning ball and dribbling over halfway. CONDITION: nearest defender must close within 3 seconds or attackers get a free shot.",
-    points: [
-      "Nearest defender: press immediately",
-      "Second defender: hold back, scan, call positions",
-      '"I\'ve got him — cover the middle!"',
-      "Delay — don't both chase the ball"
-    ],
-    progression: "Move to 4v3 or free small-sided game.",
-    diagram: "game",
+    num:"4", title:"3v2 Conditioned Game", category:"Game", duration:1080, color:"#f97316",
+    setup:"3 attackers vs 2 defenders in a 30×20m area with a goal. Attackers score normally. Defenders score by winning the ball and dribbling over halfway. CONDITION: the defender nearest the ball must close it within 3 seconds or attackers get a free shot on goal.",
+    points:["Nearest defender: press immediately — apply pressure","Second defender: hold back, scan, call out where the other attackers are","Communicate! 'I've got him — cover the middle!'","Delay the attack until help arrives — don't both chase the ball"],
+    progression:"Move to 4v3 or a free small-sided game. Praise moments where defenders close quickly AND communicate.",
+    diagram:"game"
   },
   {
-    id: 4,
-    num: "5",
-    title: "Cool Down & Reflection",
-    category: "Reflection",
-    duration: 300,
-    color: "#a78bfa",
-    setup: "Gentle stretch in a circle. Ask questions to consolidate learning and celebrate specific great moments you spotted.",
-    points: [
-      '"When closing down — what do you do as you get close?"',
-      '"What else should you be thinking about when closing the ball?"',
-      '"What did a teammate shout that really helped today?"'
-    ],
-    diagram: "cooldown",
-  },
+    num:"5", title:"Cool Down & Reflection", category:"Reflection", duration:300, color:"#a78bfa",
+    setup:"Bring the group in for gentle stretching in a circle. Ask questions to help them recall and consolidate what they learned. Be specific with praise — name the players and the moments you spotted.",
+    points:['"When closing down — what do you do as you get close to the attacker?"','"If you\'re closing down the ball, what else should you be thinking about?"','"What did a teammate shout that really helped you today?"'],
+    progression:"Be specific: 'I really liked how Jamie scanned before he closed down in that last game.'",
+    diagram:"cooldown"
+  }
 ];
 
 const CUES = [
@@ -91,407 +177,296 @@ const CUES = [
   "Don't dive in!",
   "Force them wide",
   "Talk to your partner!",
+  "Make yourself big"
 ];
 
-// SVG Pitch Diagrams
-function DiagramFreeze() {
-  return (
-    <svg viewBox="0 0 300 180" style={{width:"100%",maxWidth:320,display:"block",margin:"0 auto"}}>
-      <rect width="300" height="180" rx="8" fill="#166534"/>
-      <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-      {/* Grid lines */}
-      <line x1="100" y1="8" x2="100" y2="172" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
-      <line x1="200" y1="8" x2="200" y2="172" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
-      <line x1="8" y1="90" x2="292" y2="90" stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
-      {/* Attackers with balls */}
-      {[[50,50],[150,40],[240,60],[60,130],[200,130],[130,100]].map(([x,y],i)=>(
-        <g key={i}>
-          <circle cx={x} cy={y} r="12" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-          <text x={x} y={y+4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">A</text>
-          <circle cx={x+10} cy={y+10} r="5" fill="white" stroke="#166534" strokeWidth="1"/>
-        </g>
-      ))}
-      {/* Defenders */}
-      {[[100,90],[180,70]].map(([x,y],i)=>(
-        <g key={i}>
-          <circle cx={x} cy={y} r="13" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="2"/>
-          <text x={x} y={y+4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">D</text>
-        </g>
-      ))}
-      <text x="150" y="170" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Red=Attacker  Blue=Defender  ●=Ball</text>
-    </svg>
-  );
+const DIAGRAMS = {
+  freeze:`<rect width="300" height="180" rx="8" fill="#166534"/>
+    <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+    <line x1="100" y1="8" x2="100" y2="172" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <line x1="200" y1="8" x2="200" y2="172" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <line x1="8" y1="90" x2="292" y2="90" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <g><circle cx="50" cy="50" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="50" y="54" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="60" cy="60" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <g><circle cx="150" cy="40" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="150" y="44" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="160" cy="50" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <g><circle cx="240" cy="60" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="240" y="64" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="250" cy="70" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <g><circle cx="60" cy="130" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="60" y="134" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="70" cy="140" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <g><circle cx="200" cy="130" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="200" y="134" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="210" cy="140" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <g><circle cx="130" cy="100" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/><text x="130" y="104" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text><circle cx="140" cy="110" r="5" fill="white" stroke="#166534" stroke-width="1"/></g>
+    <circle cx="100" cy="90" r="13" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/><text x="100" y="94" text-anchor="middle" fill="white" font-size="10" font-weight="bold">D</text>
+    <circle cx="180" cy="70" r="13" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/><text x="180" y="74" text-anchor="middle" fill="white" font-size="10" font-weight="bold">D</text>
+    <text x="150" y="170" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Red=Attacker  Blue=Defender  ●=Ball</text>`,
+
+  sprintslow:`<rect width="300" height="140" rx="8" fill="#166534"/>
+    <line x1="30" y1="20" x2="30" y2="118" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="30" y="132" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Start</text>
+    <rect x="185" y="35" width="50" height="50" rx="4" fill="rgba(250,204,21,0.2)" stroke="#facc15" stroke-width="1.5"/>
+    <text x="210" y="58" text-anchor="middle" fill="#facc15" font-size="9" font-weight="bold">SLOW</text>
+    <text x="210" y="70" text-anchor="middle" fill="#facc15" font-size="8">2-3m</text>
+    <line x1="50" y1="70" x2="182" y2="70" stroke="#4ade80" stroke-width="2.5"/>
+    <polygon points="182,65 192,70 182,75" fill="#4ade80"/>
+    <text x="116" y="62" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="bold">SPRINT</text>
+    <line x1="238" y1="70" x2="260" y2="70" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 3"/>
+    <polygon points="260,65 270,70 260,75" fill="#60a5fa"/>
+    <text x="249" y="62" text-anchor="middle" fill="#60a5fa" font-size="8">JOCKEY</text>
+    <circle cx="30" cy="70" r="13" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/>
+    <text x="30" y="74" text-anchor="middle" fill="white" font-size="10" font-weight="bold">D</text>
+    <circle cx="275" cy="70" r="13" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <text x="275" y="74" text-anchor="middle" fill="white" font-size="10" font-weight="bold">A</text>
+    <text x="210" y="102" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="8">Side-on shape on arrival</text>`,
+
+  awareness:`<rect width="300" height="180" rx="8" fill="#166534"/>
+    <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+    <rect x="125" y="8" width="50" height="14" fill="none" stroke="white" stroke-width="2"/>
+    <text x="150" y="19" text-anchor="middle" fill="white" font-size="8">GOAL</text>
+    <circle cx="150" cy="100" r="14" fill="#ef4444" stroke="white" stroke-width="2"/>
+    <text x="150" y="104" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A1</text>
+    <circle cx="163" cy="113" r="5" fill="white" stroke="#166534" stroke-width="1"/>
+    <circle cx="258" cy="80" r="14" fill="#ef4444" stroke="#facc15" stroke-width="2" stroke-dasharray="4 2"/>
+    <text x="258" y="84" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A2</text>
+    <text x="258" y="104" text-anchor="middle" fill="#facc15" font-size="8">SHADOW</text>
+    <circle cx="150" cy="55" r="14" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/>
+    <text x="150" y="59" text-anchor="middle" fill="white" font-size="9" font-weight="bold">D</text>
+    <path d="M 150 55 L 130 90 A 30 30 0 0 1 170 90 Z" fill="rgba(96,165,250,0.15)" stroke="rgba(96,165,250,0.4)" stroke-width="1"/>
+    <path d="M 165 53 Q 210 35 246 68" fill="none" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <polygon points="246,68 253,61 252,72" fill="#facc15"/>
+    <text x="205" y="42" fill="#facc15" font-size="9" font-weight="bold">SCAN!</text>
+    <text x="150" y="172" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">D must close A1 AND scan for A2</text>`,
+
+  game:`<rect width="300" height="180" rx="8" fill="#166534"/>
+    <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+    <rect x="115" y="8" width="70" height="12" fill="none" stroke="white" stroke-width="2"/>
+    <text x="150" y="18" text-anchor="middle" fill="white" font-size="8">GOAL</text>
+    <line x1="8" y1="140" x2="292" y2="140" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="150" y="155" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="8">— Halfway (Defenders score here) —</text>
+    <circle cx="80" cy="85" r="13" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <text x="80" y="89" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A1</text>
+    <circle cx="150" cy="65" r="13" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <text x="150" y="69" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A2</text>
+    <circle cx="220" cy="85" r="13" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <text x="220" y="89" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A3</text>
+    <circle cx="100" cy="40" r="13" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/>
+    <text x="100" y="44" text-anchor="middle" fill="white" font-size="9" font-weight="bold">D1</text>
+    <circle cx="195" cy="40" r="13" fill="#1d4ed8" stroke="#60a5fa" stroke-width="2"/>
+    <text x="195" y="44" text-anchor="middle" fill="white" font-size="9" font-weight="bold">D2</text>
+    <line x1="92" y1="53" x2="84" y2="72" stroke="#4ade80" stroke-width="2"/>
+    <polygon points="81,72 86,82 91,72" fill="#4ade80"/>
+    <text x="62" y="66" fill="#4ade80" font-size="8" font-weight="bold">PRESS</text>
+    <line x1="192" y1="53" x2="178" y2="66" stroke="#facc15" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="202" y="60" fill="#facc15" font-size="8">COVER</text>`,
+
+  cooldown:`<rect width="300" height="160" rx="8" fill="#1e1b4b"/>
+    <circle cx="50" cy="90" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <circle cx="95" cy="42" r="12" fill="#60a5fa" stroke="white" stroke-width="1.5"/>
+    <circle cx="155" cy="28" r="12" fill="#4ade80" stroke="white" stroke-width="1.5"/>
+    <circle cx="210" cy="42" r="12" fill="#facc15" stroke="white" stroke-width="1.5"/>
+    <circle cx="250" cy="90" r="12" fill="#f97316" stroke="white" stroke-width="1.5"/>
+    <circle cx="210" cy="135" r="12" fill="#a78bfa" stroke="white" stroke-width="1.5"/>
+    <circle cx="155" cy="148" r="12" fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <circle cx="95" cy="135" r="12" fill="#60a5fa" stroke="white" stroke-width="1.5"/>
+    <line x1="62" y1="88" x2="132" y2="88" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="107" y1="54" x2="132" y2="78" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="155" y1="40" x2="155" y2="72" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="198" y1="54" x2="175" y2="78" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="238" y1="88" x2="170" y2="88" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="198" y1="123" x2="175" y2="100" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="155" y1="136" x2="155" y2="103" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <line x1="107" y1="123" x2="132" y2="100" stroke="rgba(167,139,250,0.25)" stroke-width="1"/>
+    <circle cx="155" cy="88" r="16" fill="#7c3aed" stroke="#a78bfa" stroke-width="2"/>
+    <text x="155" y="92" text-anchor="middle" fill="white" font-size="9" font-weight="bold">COACH</text>
+    <text x="150" y="152" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9">Circle discussion &amp; reflection</text>`
+};
+
+let currentPhase = 0;
+let timeLeft = 0;
+let running = false;
+let timerInterval = null;
+let prevScreen = "home";
+
+function init() {
+  const list = document.getElementById("phase-list");
+  list.innerHTML = "";
+  PHASES.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "phase-card";
+    card.style.borderLeftColor = p.color;
+    card.innerHTML = `
+      <div class="phase-num" style="background:${p.color}22;color:${p.color}">${p.num}</div>
+      <div class="phase-info">
+        <div class="phase-title">${p.title}</div>
+        <div class="phase-cat">${p.category}</div>
+      </div>
+      <div class="phase-mins">${Math.round(p.duration/60)} min</div>
+      <div class="phase-arrow">›</div>`;
+    card.onclick = () => goToPhase(i);
+    list.appendChild(card);
+  });
+
+  const cuesList = document.getElementById("cues-list");
+  cuesList.innerHTML = "";
+  CUES.forEach((c, i) => {
+    cuesList.innerHTML += `<div class="cue-card">
+      <div class="cue-num">${i+1}</div>
+      <div class="cue-text">"${c}"</div>
+    </div>`;
+  });
 }
 
-function DiagramSprintSlow() {
-  return (
-    <svg viewBox="0 0 300 140" style={{width:"100%",maxWidth:320,display:"block",margin:"0 auto"}}>
-      <rect width="300" height="140" rx="8" fill="#166534"/>
-      {/* Start line */}
-      <line x1="30" y1="20" x2="30" y2="120" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeDasharray="4 3"/>
-      <text x="30" y="135" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Start</text>
-      {/* Slow zone */}
-      <rect x="185" y="35" width="50" height="50" rx="4" fill="rgba(250,204,21,0.2)" stroke="#facc21" strokeWidth="1.5"/>
-      <text x="210" y="58" textAnchor="middle" fill="#facc15" fontSize="9" fontWeight="bold">SLOW</text>
-      <text x="210" y="70" textAnchor="middle" fill="#facc15" fontSize="8">2-3m</text>
-      {/* Sprint arrow */}
-      <line x1="50" y1="70" x2="182" y2="70" stroke="#4ade80" strokeWidth="2.5"/>
-      <polygon points="182,65 192,70 182,75" fill="#4ade80"/>
-      <text x="116" y="62" textAnchor="middle" fill="#4ade80" fontSize="10" fontWeight="bold">SPRINT</text>
-      {/* Jockey arrow */}
-      <line x1="238" y1="70" x2="262" y2="70" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4 3"/>
-      <polygon points="262,65 272,70 262,75" fill="#60a5fa"/>
-      <text x="250" y="62" textAnchor="middle" fill="#60a5fa" fontSize="8">JOCKEY</text>
-      {/* Defender */}
-      <circle cx="30" cy="70" r="13" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="2"/>
-      <text x="30" y="74" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">D</text>
-      {/* Attacker */}
-      <circle cx="275" cy="70" r="13" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-      <text x="275" y="74" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">A</text>
-      {/* Side-on shape label */}
-      <text x="210" y="105" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8">Side-on shape</text>
-      <text x="210" y="115" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8">on arrival</text>
-    </svg>
-  );
+function showHome() {
+  document.getElementById("home-screen").style.display = "block";
+  document.getElementById("drill-screen").style.display = "none";
+  document.getElementById("cues-screen").style.display = "none";
+  stopTimer();
 }
 
-function DiagramAwareness() {
-  return (
-    <svg viewBox="0 0 300 180" style={{width:"100%",maxWidth:320,display:"block",margin:"0 auto"}}>
-      <rect width="300" height="180" rx="8" fill="#166534"/>
-      <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-      {/* Goal */}
-      <rect x="125" y="8" width="50" height="14" fill="none" stroke="white" strokeWidth="2"/>
-      <text x="150" y="19" textAnchor="middle" fill="white" fontSize="8">GOAL</text>
-      {/* Live attacker */}
-      <circle cx="150" cy="100" r="14" fill="#ef4444" stroke="white" strokeWidth="2"/>
-      <text x="150" y="104" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">A1</text>
-      <circle cx="163" cy="113" r="5" fill="white" stroke="#166534" strokeWidth="1"/>
-      {/* Shadow attacker */}
-      <circle cx="260" cy="80" r="14" fill="#ef4444" stroke="#facc15" strokeWidth="2" strokeDasharray="4 2"/>
-      <text x="260" y="84" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">A2</text>
-      <text x="260" y="104" textAnchor="middle" fill="#facc15" fontSize="8">SHADOW</text>
-      {/* Defender */}
-      <circle cx="150" cy="60" r="14" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="2"/>
-      <text x="150" y="64" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">D</text>
-      {/* Vision arc */}
-      <path d="M 150 60 L 130 95 A 30 30 0 0 1 170 95 Z" fill="rgba(96,165,250,0.15)" stroke="rgba(96,165,250,0.4)" strokeWidth="1"/>
-      {/* Scan arrow */}
-      <path d="M 165 58 Q 210 40 248 72" fill="none" stroke="#facc15" strokeWidth="1.5" strokeDasharray="4 3"/>
-      <polygon points="248,72 255,65 254,75" fill="#facc15"/>
-      <text x="205" y="45" fill="#facc15" fontSize="8">SCAN!</text>
-      <text x="150" y="172" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">D must watch A1 AND scan for A2</text>
-    </svg>
-  );
+function showCues() {
+  prevScreen = document.getElementById("drill-screen").style.display === "flex" ? "drill" : "home";
+  document.getElementById("home-screen").style.display = "none";
+  document.getElementById("drill-screen").style.display = "none";
+  document.getElementById("cues-screen").style.display = "block";
 }
 
-function DiagramGame() {
-  return (
-    <svg viewBox="0 0 300 180" style={{width:"100%",maxWidth:320,display:"block",margin:"0 auto"}}>
-      <rect width="300" height="180" rx="8" fill="#166534"/>
-      <rect x="8" y="8" width="284" height="164" rx="6" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-      {/* Goals */}
-      <rect x="115" y="8" width="70" height="12" fill="none" stroke="white" strokeWidth="2"/>
-      <text x="150" y="18" textAnchor="middle" fill="white" fontSize="8">GOAL</text>
-      <rect x="115" y="160" width="70" height="12" fill="none" stroke="white" strokeWidth="2"/>
-      <text x="150" y="170" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="8">Halfway</text>
-      {/* Halfway line */}
-      <line x1="8" y1="140" x2="292" y2="140" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="6 4"/>
-      {/* 3 Attackers */}
-      <circle cx="80" cy="80" r="13" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-      <text x="80" y="84" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">A1</text>
-      <circle cx="150" cy="60" r="13" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-      <text x="150" y="64" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">A2</text>
-      <circle cx="220" cy="80" r="13" fill="#ef4444" stroke="white" strokeWidth="1.5"/>
-      <text x="220" y="84" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">A3</text>
-      {/* 2 Defenders */}
-      <circle cx="100" cy="42" r="13" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="2"/>
-      <text x="100" y="46" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">D1</text>
-      <circle cx="195" cy="42" r="13" fill="#1d4ed8" stroke="#60a5fa" strokeWidth="2"/>
-      <text x="195" y="46" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">D2</text>
-      {/* Pressure arrow D1 to A1 */}
-      <line x1="92" y1="55" x2="85" y2="68" stroke="#4ade80" strokeWidth="2"/>
-      <polygon points="83,68 88,78 92,68" fill="#4ade80"/>
-      <text x="68" y="65" fill="#4ade80" fontSize="8">PRESS</text>
-      {/* Cover arrow D2 covering A2/A3 */}
-      <line x1="195" y1="55" x2="180" y2="68" stroke="#facc15" strokeWidth="1.5" strokeDasharray="3 2"/>
-      <text x="205" y="62" fill="#facc15" fontSize="8">COVER</text>
-      <text x="150" y="130" textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="9">3 Attackers vs 2 Defenders</text>
-    </svg>
-  );
+function backFromCues() {
+  document.getElementById("cues-screen").style.display = "none";
+  if (prevScreen === "drill") {
+    document.getElementById("drill-screen").style.display = "flex";
+  } else {
+    document.getElementById("home-screen").style.display = "block";
+  }
 }
 
-function DiagramCooldown() {
-  return (
-    <svg viewBox="0 0 300 160" style={{width:"100%",maxWidth:320,display:"block",margin:"0 auto"}}>
-      <rect width="300" height="160" rx="8" fill="#1e1b4b"/>
-      {/* Circle of players */}
-      {Array.from({length:8}).map((_,i)=>{
-        const angle = (i/8)*Math.PI*2 - Math.PI/2;
-        const x = 150 + 80*Math.cos(angle);
-        const y = 90 + 60*Math.sin(angle);
-        const colors = ["#ef4444","#60a5fa","#4ade80","#facc15","#f97316","#a78bfa","#ef4444","#60a5fa"];
-        return (
-          <circle key={i} cx={x} cy={y} r="12" fill={colors[i]} stroke="white" strokeWidth="1.5"/>
-        );
-      })}
-      {/* Coach in middle */}
-      <circle cx="150" cy="90" r="16" fill="#7c3aed" stroke="#a78bfa" strokeWidth="2"/>
-      <text x="150" y="94" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">COACH</text>
-      {/* Speech lines */}
-      {Array.from({length:8}).map((_,i)=>{
-        const angle = (i/8)*Math.PI*2 - Math.PI/2;
-        const x1 = 150 + 18*Math.cos(angle);
-        const y1 = 90 + 18*Math.sin(angle);
-        const x2 = 150 + 66*Math.cos(angle);
-        const y2 = 90 + 50*Math.sin(angle);
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(167,139,250,0.3)" strokeWidth="1"/>;
-      })}
-      <text x="150" y="148" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="9">Circle discussion & reflection</text>
-    </svg>
-  );
+function goToPhase(i) {
+  stopTimer();
+  currentPhase = i;
+  timeLeft = PHASES[i].duration;
+  running = false;
+  renderDrill();
+  document.getElementById("home-screen").style.display = "none";
+  document.getElementById("cues-screen").style.display = "none";
+  document.getElementById("drill-screen").style.display = "flex";
 }
 
-function Diagram({ type }) {
-  if (type === "freeze") return <DiagramFreeze/>;
-  if (type === "sprintslow") return <DiagramSprintSlow/>;
-  if (type === "awareness") return <DiagramAwareness/>;
-  if (type === "game") return <DiagramGame/>;
-  if (type === "cooldown") return <DiagramCooldown/>;
-  return null;
-}
+function renderDrill() {
+  const p = PHASES[currentPhase];
+  document.getElementById("drill-cat").textContent = p.category;
+  document.getElementById("drill-cat").style.color = p.color;
+  document.getElementById("drill-title").textContent = p.title;
 
-function formatTime(s) {
-  const m = Math.floor(s/60);
-  const sec = s%60;
-  return `${m}:${sec.toString().padStart(2,"0")}`;
-}
+  // Diagram
+  const svg = document.getElementById("diagram-svg");
+  svg.setAttribute("viewBox", p.diagram === "sprintslow" ? "0 0 300 140" : p.diagram === "cooldown" ? "0 0 300 160" : "0 0 300 180");
+  svg.innerHTML = DIAGRAMS[p.diagram];
 
-export default function App() {
-  const [screen, setScreen] = useState("home"); // home | drill | cues
-  const [phaseIdx, setPhaseIdx] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(PHASES[0].duration);
-  const [running, setRunning] = useState(false);
-  const [done, setDone] = useState(false);
-  const intervalRef = useRef(null);
+  // Setup
+  document.getElementById("setup-text").textContent = p.setup;
 
-  const phase = PHASES[phaseIdx];
-  const totalDuration = PHASES.reduce((a,p)=>a+p.duration,0);
-  const elapsed = PHASES.slice(0,phaseIdx).reduce((a,p)=>a+p.duration,0) + (phase.duration - timeLeft);
-  const overallPct = Math.min(100,(elapsed/totalDuration)*100);
+  // Points
+  const pl = document.getElementById("points-list");
+  pl.innerHTML = "";
+  p.points.forEach(pt => {
+    pl.innerHTML += `<div class="point-row">
+      <div class="point-dot" style="background:${p.color}"></div>
+      <div class="point-text">${pt}</div>
+    </div>`;
+  });
 
-  useEffect(()=>{
-    if(running){
-      intervalRef.current = setInterval(()=>{
-        setTimeLeft(t=>{
-          if(t<=1){
-            clearInterval(intervalRef.current);
-            setRunning(false);
-            if(phaseIdx < PHASES.length-1){
-              // auto advance
-              const next = phaseIdx+1;
-              setPhaseIdx(next);
-              setTimeLeft(PHASES[next].duration);
-              setRunning(false);
-            } else {
-              setDone(true);
-            }
-            return 0;
-          }
-          return t-1;
-        });
-      },1000);
-    }
-    return ()=>clearInterval(intervalRef.current);
-  },[running,phaseIdx]);
-
-  function goToPhase(i){
-    clearInterval(intervalRef.current);
-    setRunning(false);
-    setPhaseIdx(i);
-    setTimeLeft(PHASES[i].duration);
-    setDone(false);
-    setScreen("drill");
+  // Progression
+  const ps = document.getElementById("prog-section");
+  if (p.progression) {
+    ps.style.display = "block";
+    document.getElementById("prog-text").textContent = "↑ " + p.progression;
+  } else {
+    ps.style.display = "none";
   }
 
-  function toggleTimer(){
-    if(done) return;
-    setRunning(r=>!r);
-  }
+  // Nav buttons
+  document.getElementById("btn-prev").disabled = currentPhase === 0;
+  const btnNext = document.getElementById("btn-next");
+  btnNext.disabled = false;
+  btnNext.textContent = currentPhase === PHASES.length - 1 ? "✓ Complete" : "Next Phase →";
+  btnNext.style.background = p.color + "22";
+  btnNext.style.color = p.color;
+  btnNext.style.border = `1px solid ${p.color}44`;
+  if (currentPhase === PHASES.length - 1) btnNext.disabled = true;
 
-  function resetTimer(){
-    clearInterval(intervalRef.current);
-    setRunning(false);
-    setTimeLeft(phase.duration);
-    setDone(false);
-  }
-
-  const pct = Math.max(0,Math.min(100,(timeLeft/phase.duration)*100));
-  const timerColor = pct>50 ? phase.color : pct>20 ? "#f97316" : "#ef4444";
-
-  const s = {
-    app:{ background:"#0d1117", minHeight:"100vh", fontFamily:"'Helvetica Neue',Arial,sans-serif", color:"#f0f0f0", maxWidth:480, margin:"0 auto", position:"relative" },
-    // HOME
-    homeHeader:{ background:"#161b22", padding:"20px 16px 14px", borderBottom:"2px solid #21262d" },
-    sessionTitle:{ fontSize:22, fontWeight:900, textTransform:"uppercase", letterSpacing:"0.04em", color:"#fff", margin:0 },
-    sessionSub:{ fontSize:12, color:"#8b949e", marginTop:4 },
-    progressBar:{ height:4, background:"#21262d", borderRadius:2, margin:"12px 0 0" },
-    progressFill:{ height:"100%", background:"#4ade80", borderRadius:2, transition:"width 0.5s" },
-    phaseCard:{ margin:"10px 12px", background:"#161b22", borderRadius:10, border:"1px solid #21262d", overflow:"hidden", cursor:"pointer" },
-    phaseCardHeader:{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px" },
-    phaseNum:{ width:32, height:32, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:15, flexShrink:0 },
-    phaseInfo:{ flex:1 },
-    phaseTitle:{ fontSize:14, fontWeight:700, color:"#fff" },
-    phaseCat:{ fontSize:11, color:"#8b949e", marginTop:2 },
-    phaseTime:{ fontSize:12, fontWeight:700, color:"#8b949e" },
-    // DRILL
-    drillHeader:{ background:"#161b22", borderBottom:"1px solid #21262d" },
-    backBtn:{ background:"none", border:"none", color:"#8b949e", fontSize:13, cursor:"pointer", padding:"12px 14px 8px", display:"flex", alignItems:"center", gap:5 },
-    drillTitle:{ padding:"0 14px 12px", fontSize:20, fontWeight:900, color:"#fff", textTransform:"uppercase" },
-    drillCat:{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", padding:"0 14px", marginBottom:8 },
-    timerBox:{ margin:"12px 12px 0", background:"#161b22", borderRadius:12, padding:"16px", border:"1px solid #21262d", textAlign:"center" },
-    timerNum:{ fontSize:52, fontWeight:900, letterSpacing:"-2px", lineHeight:1 },
-    timerLabel:{ fontSize:11, color:"#8b949e", marginTop:4 },
-    timerBtns:{ display:"flex", gap:8, justifyContent:"center", marginTop:12 },
-    btn:{ border:"none", borderRadius:8, padding:"9px 22px", fontWeight:700, fontSize:13, cursor:"pointer" },
-    circleWrap:{ position:"relative", width:100, height:100, margin:"0 auto 4px" },
-    sectionHead:{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:"#8b949e", padding:"14px 14px 6px" },
-    diagramWrap:{ margin:"0 12px", background:"#161b22", borderRadius:10, padding:"12px", border:"1px solid #21262d" },
-    setupBox:{ margin:"0 12px 8px", background:"#161b22", borderRadius:10, padding:"12px 14px", border:"1px solid #21262d", fontSize:13, lineHeight:1.6, color:"#c9d1d9" },
-    pointRow:{ display:"flex", gap:8, padding:"4px 14px" },
-    pointDot:{ width:6, height:6, borderRadius:"50%", marginTop:7, flexShrink:0 },
-    pointText:{ fontSize:13, lineHeight:1.55, color:"#c9d1d9" },
-    progBox:{ margin:"8px 12px", background:"rgba(96,165,250,0.08)", borderRadius:10, padding:"10px 14px", border:"1px solid rgba(96,165,250,0.2)", fontSize:13, color:"#93c5fd", lineHeight:1.55 },
-    navBtns:{ display:"flex", gap:8, padding:"12px", position:"sticky", bottom:0, background:"#0d1117", borderTop:"1px solid #21262d" },
-    navBtn:{ flex:1, border:"none", borderRadius:8, padding:"11px", fontWeight:700, fontSize:13, cursor:"pointer" },
-    // CUES
-    cueCard:{ margin:"10px 12px", background:"#161b22", borderRadius:10, border:"1px solid #21262d", padding:"14px", display:"flex", alignItems:"center", gap:10 },
-    cueNum:{ width:28, height:28, borderRadius:6, background:"rgba(74,222,128,0.15)", border:"1px solid rgba(74,222,128,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:13, color:"#4ade80", flexShrink:0 },
-    cueText:{ fontSize:14, fontWeight:700, color:"#fff" },
-  };
-
-  if(screen === "cues"){
-    return (
-      <div style={s.app}>
-        <div style={s.drillHeader}>
-          <button style={s.backBtn} onClick={()=>setScreen(phaseIdx===-1?"home":"drill")}>← Back</button>
-          <div style={{padding:"0 14px 12px",fontSize:20,fontWeight:900,color:"#fff"}}>Key Coaching Cues</div>
-        </div>
-        <div style={{padding:"4px 0 20px"}}>
-          {CUES.map((c,i)=>(
-            <div key={i} style={s.cueCard}>
-              <div style={s.cueNum}>{i+1}</div>
-              <div style={s.cueText}>"{c}"</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if(screen === "home"){
-    return (
-      <div style={s.app}>
-        <div style={s.homeHeader}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.2em",color:"#4ade80",textTransform:"uppercase",marginBottom:4}}>U9 Coaching Session</div>
-          <h1 style={s.sessionTitle}>Closing Down &<br/>Defensive Awareness</h1>
-          <div style={s.sessionSub}>55 min · 8–12 players · Age 9</div>
-          <div style={s.progressBar}>
-            <div style={{...s.progressFill, width: overallPct+"%"}}/>
-          </div>
-        </div>
-
-        <div style={{padding:"10px 0 80px"}}>
-          {PHASES.map((p,i)=>(
-            <div key={i} style={{...s.phaseCard, borderLeft:`3px solid ${p.color}`}} onClick={()=>goToPhase(i)}>
-              <div style={s.phaseCardHeader}>
-                <div style={{...s.phaseNum, background: p.color+"22", color: p.color}}>{p.num}</div>
-                <div style={s.phaseInfo}>
-                  <div style={s.phaseTitle}>{p.title}</div>
-                  <div style={s.phaseCat}>{p.category}</div>
-                </div>
-                <div style={s.phaseTime}>{Math.round(p.duration/60)} min</div>
-                <span style={{color:"#8b949e",fontSize:12,marginLeft:4}}>›</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,padding:"10px 12px",background:"#0d1117",borderTop:"1px solid #21262d",display:"flex",gap:8}}>
-          <button style={{...s.btn,flex:1,background:"#4ade8022",color:"#4ade80",border:"1px solid #4ade8044"}} onClick={()=>goToPhase(0)}>▶ Start Session</button>
-          <button style={{...s.btn,background:"#21262d",color:"#c9d1d9",border:"1px solid #30363d"}} onClick={()=>{setPhaseIdx(-1);setScreen("cues");}}>Cues</button>
-        </div>
-      </div>
-    );
-  }
-
-  // DRILL SCREEN
-  return (
-    <div style={s.app}>
-      <div style={s.drillHeader}>
-        <button style={s.backBtn} onClick={()=>setScreen("home")}>← All Phases</button>
-        <div style={{...s.drillCat, color: phase.color}}>{phase.category}</div>
-        <div style={s.drillTitle}>{phase.title}</div>
-      </div>
-
-      <div style={{paddingBottom:80}}>
-        {/* Timer */}
-        <div style={s.timerBox}>
-          {/* Circular progress */}
-          <svg width="110" height="110" viewBox="0 0 110 110" style={{display:"block",margin:"0 auto 6px"}}>
-            <circle cx="55" cy="55" r="48" fill="none" stroke="#21262d" strokeWidth="7"/>
-            <circle cx="55" cy="55" r="48" fill="none" stroke={timerColor} strokeWidth="7"
-              strokeDasharray={`${2*Math.PI*48}`}
-              strokeDashoffset={`${2*Math.PI*48*(1-pct/100)}`}
-              strokeLinecap="round"
-              transform="rotate(-90 55 55)"
-              style={{transition:"stroke-dashoffset 1s linear, stroke 0.5s"}}
-            />
-            <text x="55" y="50" textAnchor="middle" fill={timerColor} fontSize="22" fontWeight="900">{formatTime(timeLeft)}</text>
-            <text x="55" y="68" textAnchor="middle" fill="#8b949e" fontSize="10">{done?"DONE":"remaining"}</text>
-          </svg>
-          <div style={s.timerBtns}>
-            <button style={{...s.btn, background: running?"#f9731622":"#4ade8022", color: running?"#f97316":"#4ade80", border:`1px solid ${running?"#f9731644":"#4ade8044"}`}} onClick={toggleTimer}>
-              {done ? "✓ Done" : running ? "⏸ Pause" : "▶ Start"}
-            </button>
-            <button style={{...s.btn, background:"#21262d", color:"#8b949e", border:"1px solid #30363d"}} onClick={resetTimer}>↺ Reset</button>
-            <button style={{...s.btn, background:"#21262d", color:"#8b949e", border:"1px solid #30363d", fontSize:11}} onClick={()=>setScreen("cues")}>Cues</button>
-          </div>
-        </div>
-
-        {/* Diagram */}
-        <div style={s.sectionHead}>Pitch Diagram</div>
-        <div style={s.diagramWrap}><Diagram type={phase.diagram}/></div>
-
-        {/* Setup */}
-        <div style={s.sectionHead}>Setup</div>
-        <div style={s.setupBox}>{phase.setup}</div>
-
-        {/* Coaching Points */}
-        <div style={s.sectionHead}>Coaching Points</div>
-        {phase.points.map((pt,i)=>(
-          <div key={i} style={s.pointRow}>
-            <div style={{...s.pointDot, background: phase.color}}/>
-            <div style={s.pointText}>{pt}</div>
-          </div>
-        ))}
-
-        {/* Progression */}
-        {phase.progression && <>
-          <div style={s.sectionHead}>Progression</div>
-          <div style={s.progBox}>↑ {phase.progression}</div>
-        </>}
-      </div>
-
-      {/* Nav */}
-      <div style={s.navBtns}>
-        <button style={{...s.navBtn, background:"#21262d", color: phaseIdx===0?"#8b949e":"#c9d1d9", opacity: phaseIdx===0?0.4:1}}
-          onClick={()=>phaseIdx>0&&goToPhase(phaseIdx-1)} disabled={phaseIdx===0}>← Prev</button>
-        <button style={{...s.navBtn, background: phase.color+"22", color: phase.color, border:`1px solid ${phase.color}44`}}
-          onClick={()=>phaseIdx<PHASES.length-1&&goToPhase(phaseIdx+1)} disabled={phaseIdx===PHASES.length-1}>
-          {phaseIdx===PHASES.length-1?"Session Complete":"Next Phase →"}
-        </button>
-      </div>
-    </div>
-  );
+  updateTimerUI();
 }
+
+function updateTimerUI() {
+  const p = PHASES[currentPhase];
+  const pct = timeLeft / p.duration;
+  const circumference = 2 * Math.PI * 48;
+  const offset = circumference * (1 - pct);
+  const ring = document.getElementById("timer-ring");
+  ring.setAttribute("stroke-dashoffset", offset);
+  const color = pct > 0.5 ? p.color : pct > 0.2 ? "#f97316" : "#ef4444";
+  ring.setAttribute("stroke", color);
+  document.getElementById("timer-num").setAttribute("fill", color);
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  document.getElementById("timer-num").textContent = m + ":" + String(s).padStart(2, "0");
+  document.getElementById("timer-label").textContent = timeLeft === 0 ? "DONE" : "remaining";
+
+  const btn = document.getElementById("btn-play");
+  if (timeLeft === 0) {
+    btn.textContent = "✓ Done";
+    btn.style.background = "rgba(74,222,128,0.13)";
+    btn.style.color = "#4ade80";
+    btn.style.border = "1px solid rgba(74,222,128,0.3)";
+  } else if (running) {
+    btn.textContent = "⏸ Pause";
+    btn.style.background = "rgba(249,115,22,0.13)";
+    btn.style.color = "#f97316";
+    btn.style.border = "1px solid rgba(249,115,22,0.3)";
+  } else {
+    btn.textContent = "▶ Start";
+    btn.style.background = "rgba(74,222,128,0.13)";
+    btn.style.color = "#4ade80";
+    btn.style.border = "1px solid rgba(74,222,128,0.3)";
+  }
+
+  // Overall progress bar
+  const elapsed = PHASES.slice(0, currentPhase).reduce((a, ph) => a + ph.duration, 0) + (p.duration - timeLeft);
+  const total = PHASES.reduce((a, ph) => a + ph.duration, 0);
+  document.getElementById("overall-fill").style.width = Math.min(100, (elapsed / total) * 100) + "%";
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  running = false;
+}
+
+function toggleTimer() {
+  if (timeLeft === 0) return;
+  running = !running;
+  if (running) {
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerUI();
+      if (timeLeft === 0) {
+        stopTimer();
+        updateTimerUI();
+        if (currentPhase < PHASES.length - 1) {
+          setTimeout(() => goToPhase(currentPhase + 1), 1200);
+        }
+      }
+    }, 1000);
+  } else {
+    stopTimer();
+  }
+  updateTimerUI();
+}
+
+function resetTimer() {
+  stopTimer();
+  timeLeft = PHASES[currentPhase].duration;
+  updateTimerUI();
+}
+
+function prevPhase() { if (currentPhase > 0) goToPhase(currentPhase - 1); }
+function nextPhase() { if (currentPhase < PHASES.length - 1) goToPhase(currentPhase + 1); }
+
+init();
+</script>
+</body>
+</html>
