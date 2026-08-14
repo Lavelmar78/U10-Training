@@ -186,10 +186,14 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
       <div class="section-label">Key Cues</div>
       <div class="cue-chips" id="detail-cues"></div>
       <div id="detail-yt-wrap" style="display:none;margin-top:14px">
-        <div class="section-label">Watch on YouTube</div>
-        <a id="detail-yt-link" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #ff0000;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
+        <div class="section-label">Watch it</div>
+        <a id="detail-yt-link" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #ff0000;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">
           <span style="background:#ff0000;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">▶ YouTube</span>
           <span id="detail-yt-label">Watch drill video</span>
+        </a>
+        <a id="detail-ig-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #c13584;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
+          <span style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">📷 Instagram</span>
+          <span>See it on Instagram</span>
         </a>
       </div>
     </div>
@@ -531,6 +535,39 @@ const DRILLS = [
     youtube:{url:'https://www.youtube.com/watch?v=QMjbiNrJGMU',label:'Pac-Man football warm-up'},
     anim: animBumper
   },
+  {
+    id:'w8', cat:'warmup', name:'Protect the King', duration:8,
+    setup:'Groups of 5. One player is the King — they tuck a bib (tail) into the back of their shorts and stand in the middle. The other 4 link arms or hold hands in a circle around the King to shield them. 1–2 chasers on the outside try to grab the King\'s tail. The group must rotate and move together to block the chasers. King cannot run — the group does all the protecting. When a chaser grabs the tail, rotate the King.',
+    points:['Shielding group: move as one — no gaps','Communicate constantly — "left!", "right!", "behind you!"','King: stay central, trust your teammates','Chasers: look for gaps — fake one way and go the other'],
+    progression:'Add a second chaser. Time how long each King survives — try to beat the record.',
+    cues:['Move together!','No gaps!','Talk!','Stay tight'],
+    diagram:'protectking', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=9oBc20ywJ5M',label:'Protect the King warm-up game'},
+    instagram:{url:'https://www.instagram.com/reel/DURSlOBkg5I/',label:'See it on Instagram'},
+    anim: animProtectKing
+  },
+  {
+    id:'w9', cat:'warmup', name:"Don't Drop the Egg", duration:7,
+    setup:'Pairs. Each pair holds one ball between them — one palm each, no gripping. They move around a 20×20m grid trying to knock OTHER pairs\' balls (eggs) to the ground using their free hands, while keeping their own egg from dropping. If an egg drops, that pair does 5 jumping jacks before rejoining. Last pair with their egg wins.',
+    points:['Hold with your palm flat — no gripping or cradling','Communicate with your partner — move together','Use your free hand to attack but keep balanced','Scan constantly — threat can come from any direction'],
+    progression:'Restrict the grid size to increase pressure. Winning pair plays with one finger each.',
+    cues:['Soft hands','Move together!','Head up','Attack AND protect'],
+    diagram:'droppedegg', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=g9HjCrN_u1M',label:"Don't Drop the Egg — teamwork warm-up"},
+    instagram:{url:'https://www.instagram.com/reel/DVtO9x3jHT3/',label:'See it on Instagram'},
+    anim: animDroppedEgg
+  },
+  {
+    id:'w10', cat:'warmup', name:'Frog Jump Race', duration:7,
+    setup:'Each player has 2 cones. All start on a line. Place cone 1 on the line, then squat low and leap as far forward as possible, landing and placing cone 2 where you land. Sprint back, pick up cone 1, return to cone 2, then leap again placing cone 1 ahead. Repeat — leapfrogging your own cones — until you reach the finish line 30m away. First to finish wins.',
+    points:['Explosive squat — arms back, then swing forward to add distance','Land balanced — place the cone before you step away','Sprint back at full pace — the race is won in the sprints','Keep cones upright — knocked over cone = restart that jump'],
+    progression:'Race in pairs side by side. Add a ball to carry during the sprint phase.',
+    cues:['Low and explode!','Full sprint back','Arms forward on jump','Stay balanced on landing'],
+    diagram:'frogjump', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=hlJW5q8s2z0',label:'Explosive jump warm-up for youth football'},
+    instagram:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'See it on Instagram'},
+    anim: animFrogJump
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
@@ -795,6 +832,11 @@ function openDrillDetail(id, fromScreen) {
     document.getElementById('detail-yt-link').href = d.youtube.url;
     document.getElementById('detail-yt-label').textContent = d.youtube.label;
   } else { ytWrap.style.display = 'none'; }
+  const igLink = document.getElementById('detail-ig-link');
+  if (d.instagram) {
+    igLink.style.display = 'flex';
+    igLink.href = d.instagram.url;
+  } else { igLink.style.display = 'none'; }
   stopAnim();
   renderDiagram('detail-svg', d, false);
   updateAddBtn();
