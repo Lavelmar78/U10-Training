@@ -188,7 +188,7 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
       <div id="detail-yt-wrap" style="display:none;margin-top:14px">
         <div class="section-label">Watch it</div>
         <a id="detail-yt-link" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #ff0000;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">
-          <span style="background:#ff0000;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">▶ YouTube</span>
+          <span id="detail-yt-badge" style="background:#ff0000;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">▶ YouTube</span>
           <span id="detail-yt-label">Watch drill video</span>
         </a>
         <a id="detail-ig-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #c13584;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
@@ -537,12 +537,12 @@ const DRILLS = [
   },
   {
     id:'w8', cat:'warmup', name:'Protect the King', duration:8,
-    setup:'Groups of 5. One player is the King — they tuck a bib (tail) into the back of their shorts and stand in the middle. The other 4 link arms or hold hands in a circle around the King to shield them. 1–2 chasers on the outside try to grab the King\'s tail. The group must rotate and move together to block the chasers. King cannot run — the group does all the protecting. When a chaser grabs the tail, rotate the King.',
+    setup:'Groups of 5 + 1–2 chasers. One player is the King — they tuck a bib (tail) into the back of their shorts. The King links arms with 4 teammates to form a group of 5 moving together. The chasers on the outside try to grab the King\'s tail. The whole group rotates and moves together to keep the tail away from the chasers. When a chaser grabs the tail, rotate the King to a new player.',
     points:['Shielding group: move as one — no gaps','Communicate constantly — "left!", "right!", "behind you!"','King: stay central, trust your teammates','Chasers: look for gaps — fake one way and go the other'],
     progression:'Add a second chaser. Time how long each King survives — try to beat the record.',
     cues:['Move together!','No gaps!','Talk!','Stay tight'],
     diagram:'protectking', viewBox:'0 0 300 180',
-    youtube:{url:'https://www.youtube.com/watch?v=9oBc20ywJ5M',label:'Protect the King warm-up game'},
+    youtube:{url:'https://www.instagram.com/reel/DURSlOBkg5I/',label:'Watch: Protect the King (Instagram)'},
     instagram:{url:'https://www.instagram.com/reel/DURSlOBkg5I/',label:'See it on Instagram'},
     anim: animProtectKing
   },
@@ -553,7 +553,7 @@ const DRILLS = [
     progression:'Restrict the grid size to increase pressure. Winning pair plays with one finger each.',
     cues:['Soft hands','Move together!','Head up','Attack AND protect'],
     diagram:'droppedegg', viewBox:'0 0 300 180',
-    youtube:{url:'https://www.youtube.com/watch?v=g9HjCrN_u1M',label:"Don't Drop the Egg — teamwork warm-up"},
+    youtube:{url:'https://www.instagram.com/reel/DVtO9x3jHT3/',label:"Watch: Don't Drop the Egg (Instagram)"},
     instagram:{url:'https://www.instagram.com/reel/DVtO9x3jHT3/',label:'See it on Instagram'},
     anim: animDroppedEgg
   },
@@ -564,7 +564,7 @@ const DRILLS = [
     progression:'Race in pairs side by side. Add a ball to carry during the sprint phase.',
     cues:['Low and explode!','Full sprint back','Arms forward on jump','Stay balanced on landing'],
     diagram:'frogjump', viewBox:'0 0 300 180',
-    youtube:{url:'https://www.youtube.com/watch?v=hlJW5q8s2z0',label:'Explosive jump warm-up for youth football'},
+    youtube:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'Watch: Frog Jump Race (Instagram)'},
     instagram:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'See it on Instagram'},
     anim: animFrogJump
   },
@@ -829,8 +829,14 @@ function openDrillDetail(id, fromScreen) {
   const ytWrap = document.getElementById('detail-yt-wrap');
   if (d.youtube) {
     ytWrap.style.display = 'block';
-    document.getElementById('detail-yt-link').href = d.youtube.url;
+    const ytLink = document.getElementById('detail-yt-link');
+    const ytBadge = document.getElementById('detail-yt-badge');
+    ytLink.href = d.youtube.url;
     document.getElementById('detail-yt-label').textContent = d.youtube.label;
+    const isIG = d.youtube.url.includes('instagram.com');
+    ytLink.style.borderColor = isIG ? '#c13584' : '#ff0000';
+    ytBadge.style.background = isIG ? 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' : '#ff0000';
+    ytBadge.textContent = isIG ? 'Instagram' : 'YouTube';
   } else { ytWrap.style.display = 'none'; }
   const igLink = document.getElementById('detail-ig-link');
   if (d.instagram) {
@@ -1798,6 +1804,106 @@ function animThrowIn(svg, t, animated, state, w, h) {
     arrow(svg,rx+12,h/2,195,h/2,'rgba(168,230,61,0.6)',true);
   }
   const lbl=mkSvg('text',{x:w/2+20,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='T throws, R controls and plays through gate';svg.appendChild(lbl);
+}
+
+// PROTECT THE KING
+function animProtectKing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const cx = w/2, cy = h/2, r = 52;
+  // 5 players in the group (4 shielders + King) all on the circle, linked arms
+  const n = 5;
+  const groupAngles = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i/n)*Math.PI*2 + (animated ? t*0.4 : 0);
+    groupAngles.push(angle);
+    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+    // draw arm links between adjacent players
+    const nextAngle = ((i+1)/n)*Math.PI*2 + (animated ? t*0.4 : 0);
+    const nx2 = cx + r*Math.cos(nextAngle), ny2 = cy + r*Math.sin(nextAngle);
+    svg.appendChild(mkSvg('line', {x1:x, y1:y, x2:nx2, y2:ny2, stroke:'rgba(255,255,255,0.25)', 'stroke-width':'2'}));
+    // King is player index 0, shielders are 1-4
+    if (i === 0) {
+      // King with tail bib
+      svg.appendChild(playerCircle(svg, x, y, 'K', '#ffb830', '#ff8800', 13));
+      // tail bib dangling outward
+      const tailX = x + 8*Math.cos(angle), tailY = y + 8*Math.sin(angle);
+      svg.appendChild(mkSvg('rect', {x:tailX, y:tailY, width:5, height:12, rx:2, fill:'#ff6eb4', stroke:'white', 'stroke-width':'1', transform:`rotate(${(angle*180/Math.PI)+90},${tailX+2.5},${tailY+6})`}));
+    } else {
+      svg.appendChild(playerCircle(svg, x, y, 'S', '#1d4ed8', '#60a5fa', 12));
+    }
+  }
+  // chasers outside trying to get the tail
+  const chasers = [[cx - 95, cy - 15], [cx + 90, cy + 20]];
+  chasers.forEach(([bx, by], i) => {
+    let px = bx, py = by;
+    if (animated) {
+      px = bx + Math.sin(t*Math.PI*2 + i*Math.PI)*20;
+      py = by + Math.cos(t*Math.PI*2 + i*Math.PI)*14;
+    }
+    svg.appendChild(playerCircle(svg, px, py, 'C', '#ef4444', 'white', 12));
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'K=King (with tail bib)  S=Shielder  C=Chaser';
+  svg.appendChild(lbl);
+}
+
+// DON'T DROP THE EGG
+function animDroppedEgg(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  svg.appendChild(mkSvg('rect', {x:15, y:15, width:w-30, height:h-30, rx:6, fill:'none', stroke:'rgba(255,255,255,0.15)', 'stroke-width':'1.5'}));
+  // pairs holding ball between them
+  const pairs = [
+    [[80,70],[110,70],'#a8e63d'],
+    [[190,80],[220,80],'#5ab4ff'],
+    [[70,130],[100,130],'#ffb830'],
+    [[200,140],[230,140],'#b87fff'],
+  ];
+  pairs.forEach(([[x1,y1],[x2,y2],color], pi) => {
+    let ox=0, oy=0;
+    if (animated) { ox=Math.sin(t*Math.PI*2+pi*1.5)*12; oy=Math.cos(t*Math.PI*1.7+pi)*10; }
+    // line between pair (arms)
+    svg.appendChild(mkSvg('line', {x1:x1+ox, y1:y1+oy, x2:x2+ox, y2:y2+oy, stroke:'rgba(255,255,255,0.2)', 'stroke-width':'2'}));
+    // ball (egg) between them
+    const mx=(x1+x2)/2+ox, my=(y1+y2)/2+oy;
+    svg.appendChild(mkSvg('ellipse', {cx:mx, cy:my, rx:9, ry:11, fill:'white', stroke:color, 'stroke-width':'2'}));
+    // players
+    svg.appendChild(playerCircle(svg, x1+ox, y1+oy, 'P', color, 'white', 11));
+    svg.appendChild(playerCircle(svg, x2+ox, y2+oy, 'P', color, 'white', 11));
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Pairs hold egg - knock others away without dropping!';
+  svg.appendChild(lbl);
+}
+
+// FROG JUMP RACE
+function animFrogJump(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  // start and finish lines
+  svg.appendChild(mkSvg('line', {x1:20, y1:20, x2:20, y2:h-20, stroke:'#a8e63d', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('line', {x1:w-20, y1:20, x2:w-20, y2:h-20, stroke:'#ef4444', 'stroke-width':'2'}));
+  const sl = mkSvg('text', {x:20, y:15, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'8', 'font-weight':'700'}); sl.textContent='START'; svg.appendChild(sl);
+  const fl = mkSvg('text', {x:w-20, y:15, 'text-anchor':'middle', fill:'#ef4444', 'font-size':'8', 'font-weight':'700'}); fl.textContent='FINISH'; svg.appendChild(fl);
+  // show 3 lanes of players
+  const lanes = [h/2-30, h/2, h/2+30];
+  const colors = ['#a8e63d','#5ab4ff','#ffb830'];
+  lanes.forEach((ly, li) => {
+    const progress = animated ? (t + li*0.25) % 1 : li*0.2;
+    const px = 20 + progress*(w-40);
+    // cones behind and ahead
+    const cone1x = Math.max(20, px-30);
+    const cone2x = px;
+    // cone triangles
+    svg.appendChild(mkSvg('polygon', {points:`${cone1x},${ly+8} ${cone1x-5},${ly+18} ${cone1x+5},${ly+18}`, fill:colors[li]}));
+    svg.appendChild(mkSvg('polygon', {points:`${cone2x},${ly+8} ${cone2x-5},${ly+18} ${cone2x+5},${ly+18}`, fill:colors[li], opacity:'0.5'}));
+    // player
+    const jumpY = animated ? ly - Math.abs(Math.sin(t*Math.PI*6+li))*18 : ly;
+    svg.appendChild(playerCircle(svg, px, jumpY, 'P', colors[li], 'white', 11));
+    // sprint back arrow (dashed)
+    if (cone1x > 25) arrow(svg, cone2x, ly+4, cone1x+8, ly+4, colors[li]+'88', true);
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Jump + plant cone + sprint back + repeat!';
+  svg.appendChild(lbl);
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────
