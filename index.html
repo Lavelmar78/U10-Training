@@ -358,10 +358,19 @@ const DRILLS = [
     progression:'Players can only use their weaker foot.',
     cues:['Low centre of gravity','Protect your ball','Head up!'],
     diagram:'bumper', viewBox:'0 0 300 160',
-    youtube:{url:'https://www.youtube.com/watch?v=qHYm5ZF_x0I',label:'Bumper Cars warm-up'},
     anim: animBumper
   },
   // ── DEFENDING ──
+  {
+    id:'d0', cat:'defending', name:"Don't Dive In", duration:10,
+    setup:"Mark a line 25 yards long. Two small goals are placed behind the defender, spread evenly across the 25 yards (roughly at the 8 and 17 yard marks). Attacker stands on one side of the line with the ball, defender on the other side facing them. Neither player can cross the line. The attacker moves side to side along the line trying to get a shooting angle to score in either goal. The defender mirrors them, staying goalside and blocking angles. Swap roles after 5 attempts.",
+    points:['Stay light on your feet — small shuffle steps, never cross your legs','Keep your body between the attacker and the nearest goal at all times','Don\'t lunge or dive across — stay balanced and make yourself big','Watch the ball, not the attacker\'s body — feet give away the shot','Force the attacker to the wider angles away from both goals'],
+    progression:'Give the attacker a 3-second time limit to force quicker decisions. Add a second defender to cover both goals.',
+    cues:["Don't dive in!",'Mirror their movement','Stay balanced','Watch the ball','Make yourself big'],
+    diagram:'dontdivein', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=uVkpeXS6Byw',label:"Don't Dive In — 1v1 Defending Drill"},
+    anim: animDontDiveIn
+  },
   {
     id:'d1', cat:'defending', name:'Sprint & Slow Drill', duration:12,
     setup:'Pairs. Attacker stands still at a cone 12m away with a ball. On your call, defender sprints toward them, SLOWS at 2–3m, drops into side-on defensive shape. 5 reps then swap.',
@@ -369,7 +378,6 @@ const DRILLS = [
     progression:'Attacker dribbles slowly — defender practises live jockeying.',
     cues:['Fast approach slow arrival','Side-on','Get goalside',"Don't dive in"],
     diagram:'sprintslow', viewBox:'0 0 300 140',
-    youtube:{url:'https://www.youtube.com/watch?v=uVkpeXS6Byw',label:'Closing down & jockeying drill'},
     anim: animSprintSlow
   },
   {
@@ -1903,6 +1911,58 @@ function animFrogJump(svg, t, animated, state, w, h) {
   });
   const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
   lbl.textContent = 'Jump + plant cone + sprint back + repeat!';
+  svg.appendChild(lbl);
+}
+
+// DON'T DIVE IN
+function animDontDiveIn(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var lineY = Math.floor(h / 2);
+  var g1x = Math.floor(w * 0.28);
+  var g2x = Math.floor(w * 0.72);
+  var goalY = h - 22;
+
+  // Dividing line
+  svg.appendChild(mkSvg('line', {x1:10, y1:lineY, x2:w-10, y2:lineY, stroke:'white', 'stroke-width':'2', 'stroke-dasharray':'6 4'}));
+  var ll = mkSvg('text', {x:w/2, y:lineY-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.35)', 'font-size':'8'});
+  ll.textContent = '25 yard line'; svg.appendChild(ll);
+
+  // Goal 1 (left)
+  svg.appendChild(mkSvg('rect', {x:g1x-14, y:goalY-12, width:28, height:12, fill:'none', stroke:'#a8e63d', 'stroke-width':'2', rx:2}));
+  var g1l = mkSvg('text', {x:g1x, y:goalY+10, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'9', 'font-weight':'bold'});
+  g1l.textContent = 'G1'; svg.appendChild(g1l);
+
+  // Goal 2 (right)
+  svg.appendChild(mkSvg('rect', {x:g2x-14, y:goalY-12, width:28, height:12, fill:'none', stroke:'#a8e63d', 'stroke-width':'2', rx:2}));
+  var g2l = mkSvg('text', {x:g2x, y:goalY+10, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'9', 'font-weight':'bold'});
+  g2l.textContent = 'G2'; svg.appendChild(g2l);
+
+  // Attacker side / defender side labels
+  var al = mkSvg('text', {x:14, y:lineY-14, fill:'#ef4444', 'font-size':'8', 'font-weight':'700'});
+  al.textContent = 'ATTACKER SIDE'; svg.appendChild(al);
+  var dl = mkSvg('text', {x:14, y:lineY+13, fill:'#60a5fa', 'font-size':'8', 'font-weight':'700'});
+  dl.textContent = 'DEFENDER SIDE'; svg.appendChild(dl);
+
+  // Attacker moves side to side
+  var swing = animated ? Math.sin(t * Math.PI * 2) : 0;
+  var ax = w * 0.2 + (swing * 0.5 + 0.5) * w * 0.6;
+  var ay = lineY - 30;
+  svg.appendChild(playerCircle(svg, ax, ay, 'A', '#ef4444', 'white', 13));
+  svg.appendChild(mkSvg('circle', {cx:ax, cy:ay+18, r:6, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+
+  // Defender mirrors below line
+  var dx = animated ? ax : w / 2;
+  var dy = lineY + 24;
+  svg.appendChild(playerCircle(svg, dx, dy, 'D', '#1d4ed8', '#60a5fa', 13));
+
+  // Shooting angle lines
+  if (animated) {
+    svg.appendChild(mkSvg('line', {x1:ax, y1:ay+18, x2:g1x, y2:goalY-12, stroke:'rgba(255,184,48,0.5)', 'stroke-width':'1.5', 'stroke-dasharray':'4 3'}));
+    svg.appendChild(mkSvg('line', {x1:ax, y1:ay+18, x2:g2x, y2:goalY-12, stroke:'rgba(255,184,48,0.5)', 'stroke-width':'1.5', 'stroke-dasharray':'4 3'}));
+  }
+
+  var lbl = mkSvg('text', {x:w/2, y:h-3, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Neither crosses line - D mirrors A to block goals';
   svg.appendChild(lbl);
 }
 
