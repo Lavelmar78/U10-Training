@@ -397,8 +397,17 @@ const DRILLS = [
     progression:'4v3. Praise when defenders close quickly AND communicate.',
     cues:['Delay!','Cover!','Talk!','Force wide'],
     diagram:'game', viewBox:'0 0 300 180',
-    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM',label:'3v2 defending conditioned game'},
     anim: animGame
+  },
+  {
+    id:'d3b', cat:'defending', name:'Transition Press — 2 Goal Counter', duration:15,
+    setup:'Set up a central goal with a keeper, defended by 2 blue defenders, with two "transition zones" either side each having its own small goal at the far end. 2 reds (attackers) attack the central goal against the keeper and 2 blues, with the coach feeding balls in. An extra blue waits in each transition zone near the main goal end. As soon as the reds score, miss, or the blues clear the ball, BOTH extra blues immediately dribble the length of their zone and try to score in their small goal. The instant that happens, both reds become defenders — one sprints into each zone to press and try to win the ball back before the blue can score.',
+    points:['Reds: react instantly the moment possession is lost — sprint to press, don\'t jog back','Blues: as soon as you win it, drive forward at pace into your zone — don\'t delay','Each red must recognise and close down THEIR nearest blue - don\'t both chase one','Communicate the transition moment loudly — "Transition! Press!"'],
+    progression:'Reduce reaction time allowed before the press must start. Add a second wave — winning team must then defend again immediately.',
+    cues:['Transition!','Press instantly!','Drive forward!','React, don\'t jog'],
+    diagram:'transitionpress', viewBox:'0 0 300 200',
+    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM',label:'Transition press — 2 goal counter'},
+    anim: animTransitionPress
   },
   {
     id:'d4', cat:'defending', name:'Gates Defending', duration:12,
@@ -588,14 +597,14 @@ const DRILLS = [
     anim: animGame
   },
   {
-    id:'d7', cat:'defending', name:'Zonal Defending Box', duration:14,
-    setup:'Divide a 40×30m pitch into 4 zones. Defending team of 4 must stay in their zone unless ball enters it. Attacking team of 5 score by keeping possession and completing 8 passes in a row.',
-    points:['Stay compact in your zone — don\u2019t be dragged out','Press hard when ball enters your zone','Communicate when ball is about to enter a zone'],
-    progression:'Reduce zones to 3 to increase pressure. Defenders can leave zone to press for 3 seconds.',
-    cues:['Stay in your zone','Hard press when ball enters','Squeeze together'],
-    diagram:'pressing', viewBox:'0 0 300 180',
-    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM',label:'Zonal defending drill'},
-    anim: animPressing
+    id:'d7', cat:'defending', name:'Zonal 3v3 — Split Pitch', duration:14,
+    setup:'Split the pitch into 3 equal vertical zones, with a small goal at each end of every zone (6 goals total — 3 at each end). Two teams of 3. Each player is locked to their own zone — one player from each team per zone (3 separate 1v1 zones side by side). Teams pass between zones to build attacks and can score in ANY of the 3 goals at the end they are attacking. Players cannot leave their zone to help a teammate.',
+    points:['You are on your own in your zone — win your individual battle','Scan for which of your 3 goals is most open before you receive','Communicate with teammates in the other zones to shift the point of attack','Defending: stay compact to your goals, don\'t get turned easily'],
+    progression:'Allow one "free" player who can move between zones to overload. Reduce to 2 zones for more crowded 1v1s.',
+    cues:['Win your zone!','Which goal is open?','Switch the ball','Stay compact'],
+    diagram:'zonal3v3', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM&t=210',label:'Zonal 3v3 (2nd drill in video, from 3:30)'},
+    anim: animZonal3v3
   },
     // ── EXTRA ATTACKING ──
   {
@@ -1152,25 +1161,43 @@ function closeShare() {
 }
 
 function copySession() {
-  const text = document.getElementById('share-text-box').textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copy-btn');
-      btn.textContent = '✓ Copied!';
-      setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2000);
-    });
-  } else {
-    // Fallback for older browsers
-    const el = document.createElement('textarea');
-    el.value = text;
-    el.style.position = 'fixed'; el.style.opacity = '0';
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    const btn = document.getElementById('copy-btn');
+  const box = document.getElementById('share-text-box');
+  const text = box ? box.textContent : '';
+  const btn = document.getElementById('copy-btn');
+  function showCopied() {
+    if (!btn) return;
     btn.textContent = '✓ Copied!';
     setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2000);
+  }
+  function showFailed() {
+    if (!btn) return;
+    btn.textContent = 'Copy failed — select text manually';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+      fallbackCopy(text, showCopied, showFailed);
+    });
+  } else {
+    fallbackCopy(text, showCopied, showFailed);
+  }
+}
+
+function fallbackCopy(text, onSuccess, onFail) {
+  try {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    if (!document.body) { onFail(); return; }
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, text.length);
+    const ok = document.execCommand ? document.execCommand('copy') : false;
+    document.body.removeChild(el);
+    ok ? onSuccess() : onFail();
+  } catch (e) {
+    onFail();
   }
 }
 
@@ -1674,13 +1701,14 @@ function animThirdMan(svg, t, animated, state, w, h) {
     else if(ph===1){arrow(svg,B[0],B[1],C[0],C[1],'rgba(90,180,255,0.7)');const bx=lerp(B[0],C[0],pt),by=lerp(B[1],C[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
     else{arrow(svg,C[0],C[1],D2[0],D2[1],'rgba(255,184,48,0.7)',true);const bx=lerp(C[0],D2[0],pt),by=lerp(C[1],D2[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
     const runX=animated&&t>0.2?lerp(C[0]+20,C[0],easeInOut((t-0.2)/0.5)):C[0]+20;
-    movePlayer(svg.querySelectorAll('g')[2]?.querySelector('circle')?svg.querySelectorAll('g')[2]:null,runX,C[1]);
+    const groups = svg.querySelectorAll('g');
+    if (groups[2]) movePlayer(groups[2], runX, C[1]);
   } else {
     arrow(svg,A[0],A[1],B[0],B[1],'#a8e63d');
     arrow(svg,B[0],B[1],C[0],C[1],'#5ab4ff',true);
     const rl=mkSvg('text',{x:w-60,y:50,fill:'#5ab4ff','font-size':'8'});rl.textContent='3rd man run';svg.appendChild(rl);
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='A→B, C makes diagonal run, B plays through';svg.appendChild(lbl);
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='A to B, C makes diagonal run, B plays through';svg.appendChild(lbl);
 }
 
 // COERVERS
@@ -1966,7 +1994,133 @@ function animDontDiveIn(svg, t, animated, state, w, h) {
   svg.appendChild(lbl);
 }
 
-// ─── INIT ────────────────────────────────────────────────────────────
+// TRANSITION PRESS — 2 GOAL COUNTER
+function animTransitionPress(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var zoneTop = 15, zoneBottom = h - 15;
+  var cgx = w / 2;
+  var leftZoneX = w * 0.24, rightZoneX = w * 0.76;
+
+  // Central goal (top middle) - this is what reds attack
+  svg.appendChild(mkSvg('rect', {x:cgx-30, y:zoneTop, width:60, height:14, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  var cgl = mkSvg('text', {x:cgx, y:zoneTop+26, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  cgl.textContent = 'MAIN GOAL'; svg.appendChild(cgl);
+
+  // Zone boundaries (vertical dashed lines either side of the central area)
+  svg.appendChild(mkSvg('line', {x1:leftZoneX, y1:zoneTop, x2:leftZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
+  svg.appendChild(mkSvg('line', {x1:rightZoneX, y1:zoneTop, x2:rightZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
+  var tzl = mkSvg('text', {x:leftZoneX/2+8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
+  tzl.textContent = 'TRANSITION ZONE'; svg.appendChild(tzl);
+  var tzr = mkSvg('text', {x:(w+rightZoneX)/2-8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
+  tzr.textContent = 'TRANSITION ZONE'; svg.appendChild(tzr);
+
+  // Small goals at the far end of each transition zone (extra blues' target)
+  svg.appendChild(mkSvg('rect', {x:leftZoneX/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect', {x:(w+rightZoneX)/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+
+  var phase = animated ? (t < 0.5 ? 'attack' : 'transition') : 'attack';
+  var localT = animated ? (phase === 'attack' ? t * 2 : (t - 0.5) * 2) : 0;
+
+  // --- Phase 1: Reds attack the main goal, 2 blue defenders + keeper defend ---
+  var r1x = cgx - 25, r2x = cgx + 25;
+  var r1y = zoneTop + 55 + (phase==='attack' ? localT*10 : 0);
+  var r2y = zoneTop + 60 - (phase==='attack' ? localT*8 : 0);
+
+  // Keeper on the goal line
+  svg.appendChild(playerCircle(svg, cgx, zoneTop+7, 'GK', '#ffb830', '#ff8800', 10));
+  // 2 blue defenders in the main zone shielding the goal
+  var def1x = cgx - 20, def1y = zoneTop + 32;
+  var def2x = cgx + 20, def2y = zoneTop + 32;
+  svg.appendChild(playerCircle(svg, def1x, def1y, 'B', '#1d4ed8', '#60a5fa', 12));
+  svg.appendChild(playerCircle(svg, def2x, def2y, 'B', '#1d4ed8', '#60a5fa', 12));
+
+  // Reds (attackers) working the ball in the main zone
+  svg.appendChild(playerCircle(svg, r1x, r1y, 'A', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, r2x, r2y, 'A', '#ef4444', 'white', 12));
+  if (phase === 'attack') {
+    svg.appendChild(mkSvg('circle', {cx:r1x, cy:r1y-14, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  }
+
+  // --- Extra blues: one waiting near the main goal end of EACH transition zone ---
+  var blLx = leftZoneX / 2, blRx = (w + rightZoneX) / 2;
+  var waitY = zoneTop + 30;
+  var goalY = zoneBottom - 14;
+
+  // Both extra blues dribble down their zone together on transition
+  var exLy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
+  var exRy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
+  svg.appendChild(playerCircle(svg, blLx, exLy, 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, blRx, exRy, 'B', '#1d4ed8', '#60a5fa', 11));
+  if (phase === 'transition') {
+    svg.appendChild(mkSvg('circle', {cx:blLx, cy:exLy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+    svg.appendChild(mkSvg('circle', {cx:blRx, cy:exRy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  }
+
+  // --- Both reds become defenders during transition: one sprints to press each zone ---
+  if (phase === 'transition') {
+    var pressLX = lerp(r1x, blLx, localT), pressLY = lerp(r1y, exLy - 20, localT);
+    var pressRX = lerp(r2x, blRx, localT), pressRY = lerp(r2y, exRy - 20, localT);
+    arrow(svg, r1x, r1y, pressLX, pressLY, 'rgba(239,68,68,0.5)', true);
+    arrow(svg, r2x, r2y, pressRX, pressRY, 'rgba(239,68,68,0.5)', true);
+  }
+
+  var phaseLbl = mkSvg('text', {x:w/2, y:h-6, 'text-anchor':'middle', fill: phase==='attack' ? '#ef4444' : '#a8e63d', 'font-size':'9', 'font-weight':'700'});
+  phaseLbl.textContent = phase === 'attack' ? 'REDS ATTACK MAIN GOAL (GK + 2 BLUES DEFEND)' : 'TRANSITION - BOTH BLUES COUNTER, BOTH REDS PRESS!';
+  svg.appendChild(phaseLbl);
+}
+
+// ZONAL 3v3 - SPLIT PITCH
+function animZonal3v3(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var zoneTop = 15, zoneBottom = h - 15;
+  var zoneW = (w - 20) / 3;
+  var z1x = 10, z2x = 10 + zoneW, z3x = 10 + zoneW * 2;
+
+  // Zone divider lines (vertical, solid - these are real boundaries)
+  svg.appendChild(mkSvg('line', {x1:z2x, y1:zoneTop, x2:z2x, y2:zoneBottom, stroke:'rgba(255,255,255,0.35)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('line', {x1:z3x, y1:zoneTop, x2:z3x, y2:zoneBottom, stroke:'rgba(255,255,255,0.35)', 'stroke-width':'1.5'}));
+
+  // Small goals at top and bottom of each zone (6 total)
+  var zoneCenters = [z1x + zoneW/2, z2x + zoneW/2, z3x + zoneW/2];
+  zoneCenters.forEach(function(cx) {
+    svg.appendChild(mkSvg('rect', {x:cx-13, y:zoneTop-2, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+    svg.appendChild(mkSvg('rect', {x:cx-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#ef4444', 'stroke-width':'2'}));
+  });
+
+  var topLbl = mkSvg('text', {x:w/2, y:zoneTop-6, 'text-anchor':'middle', fill:'rgba(168,230,61,0.7)', 'font-size':'7'});
+  topLbl.textContent = 'GREEN TEAM ATTACKS UP (3 goals)'; svg.appendChild(topLbl);
+  var botLbl = mkSvg('text', {x:w/2, y:zoneBottom+11, 'text-anchor':'middle', fill:'rgba(239,68,68,0.7)', 'font-size':'7'});
+  botLbl.textContent = 'RED TEAM ATTACKS DOWN (3 goals)'; svg.appendChild(botLbl);
+
+  // One green + one red player per zone, each locked to their zone, ball moves between zones
+  var activeZone = animated ? Math.floor(t * 3) % 3 : 1;
+  var localT = animated ? (t * 3) % 1 : 0.5;
+
+  for (var i = 0; i < 3; i++) {
+    var cx = zoneCenters[i];
+    var isActive = (i === activeZone);
+    var gy = isActive ? lerp(zoneBottom - 30, zoneTop + 30, easeInOut(localT)) : h / 2 - 15;
+    var ry = isActive ? lerp(zoneBottom - 20, zoneTop + 40, easeInOut(localT)) : h / 2 + 15;
+    svg.appendChild(playerCircle(svg, cx - 12, gy, 'G', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, cx + 12, ry, 'R', '#ef4444', 'white', 11));
+    if (isActive && animated) {
+      svg.appendChild(mkSvg('circle', {cx:cx-12, cy:gy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+    }
+  }
+
+  // Ball switching arrow between zones when transitioning
+  if (animated && localT > 0.85) {
+    var nextZone = (activeZone + 1) % 3;
+    arrow(svg, zoneCenters[activeZone], h/2, zoneCenters[nextZone], h/2, 'rgba(255,184,48,0.5)', true);
+  }
+
+  var lbl = mkSvg('text', {x:w/2, y:h/2+4, 'text-anchor':'middle', fill:'rgba(255,255,255,0.3)', 'font-size':'7'});
+  lbl.textContent = 'G=Green  R=Red - locked to own zone, score in any of 3 goals';
+  svg.appendChild(lbl);
+}
+
+
+
 renderHome();
 renderCues();
 updateCounts();
