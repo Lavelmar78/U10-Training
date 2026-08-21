@@ -254,7 +254,7 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <div class="section-label" style="padding-top:0">Signed in as</div>
     <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px" id="team-name-display"></div>
     <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="showScreen('screen-team-sessions')">📅 View Team Sessions</button>
-    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Regenerate Code</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Create Additional Code</button>
     <button class="btn-secondary" style="width:100%;color:#ff5a5a;border-color:rgba(255,90,90,0.3)" onclick="leaveTeamAction()">Leave Team</button>
     <div id="team-status-msg-2" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
   </div>
@@ -1302,12 +1302,12 @@ function leaveTeamAction() {
 async function regenerateCodeAction() {
   if (!currentTeam || !cloudAvailable()) return;
   const msg = document.getElementById('team-status-msg-2');
-  if (!confirm('This invalidates the current code for everyone. Continue?')) return;
+  if (!confirm('This creates a new code you can share. Continue?')) return;
   try {
     const newCode = await window.DrillAppCloud.regenerateCode(currentTeam.teamId);
-    alert(`New code:\n\n${newCode}\n\nShare this with your coaches — the old code no longer works.`);
+    alert(`New code:\n\n${newCode}\n\nShare this with your coaches. Note: the previous code will still work too — if it's been shared somewhere you don't want it, ask a coach to reach out and we can look at removing it manually.`);
   } catch (e) {
-    msg.textContent = e.message || 'Could not regenerate code.';
+    msg.textContent = e.message || 'Could not create a new code.';
     msg.style.color = '#ff5a5a';
   }
 }
