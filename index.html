@@ -146,10 +146,12 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <div class="session-bar"><div class="session-fill" id="home-sess-fill"></div></div>
   </div>
   <div class="cat-grid" id="cat-grid"></div>
+  <div id="team-badge-home" style="padding:0 14px 8px;font-size:11px;color:var(--muted);display:none">☁ <span id="team-badge-name"></span></div>
   <div style="flex:1"></div>
   <div class="home-footer">
     <button class="btn-primary" onclick="showScreen('screen-library','All Drills',null)">Browse All Drills</button>
     <button class="btn-secondary" id="home-sess-btn" onclick="showScreen('screen-session')">Session <span id="home-sess-count">0</span></button>
+    <button class="btn-secondary" onclick="showScreen('screen-team')">☁ Team</button>
   </div>
 </div>
 
@@ -210,6 +212,10 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <div class="nav-title">My Session</div>
     <div class="nav-badge" id="sess-badge">0</div>
   </div>
+  <div style="padding:12px 14px 0">
+    <div class="section-label" style="padding-top:0">Session Date</div>
+    <input type="date" id="sess-date-input" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit">
+  </div>
   <div id="sess-empty" class="sess-empty">
     <div class="sess-empty-icon">📋</div>
     <div class="sess-empty-txt">Your session is empty.<br>Browse drills and tap + to add them here.</div>
@@ -218,11 +224,49 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
   <div id="sess-total" class="sess-total" style="display:none">
     <div>Total duration</div><span id="sess-time">0 min</span>
   </div>
-  <div class="sess-footer">
+  <div class="sess-footer" style="flex-wrap:wrap">
     <button class="btn-secondary" onclick="showScreen('screen-library','All Drills',null)">+ Add Drills</button>
     <button class="btn-secondary" id="btn-share-session" onclick="shareSession()" style="color:#a8e63d;border-color:rgba(168,230,61,0.3)">⬆ Share</button>
     <button class="btn-primary" id="btn-run-session" onclick="startSession()" style="flex:1">▶ Run</button>
+    <button class="btn-secondary" id="btn-save-team" onclick="saveSessionToTeam()" style="width:100%;color:#5ab4ff;border-color:rgba(90,180,255,0.3)">☁ Save to Team</button>
   </div>
+</div>
+
+<!-- TEAM SCREEN -->
+<div id="screen-team" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-home')">‹</button>
+    <div class="nav-title">Team</div>
+  </div>
+  <div id="team-signed-out" style="padding:16px 14px">
+    <div class="section-label" style="padding-top:0">Join a Team</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px">Enter the code another coach shared with you to see and save sessions together.</p>
+    <input type="text" id="team-code-input" placeholder="e.g. FALCON-4821" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;font-family:inherit;text-transform:uppercase;margin-bottom:8px">
+    <button class="btn-primary" style="width:100%" onclick="joinTeamAction()">Join Team</button>
+
+    <div class="section-label" style="margin-top:24px">Or Create a New Team</div>
+    <input type="text" id="team-name-input" placeholder="Team name, e.g. Riverside U10" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;font-family:inherit;margin-bottom:8px">
+    <button class="btn-secondary" style="width:100%" onclick="createTeamAction()">Create Team</button>
+
+    <div id="team-status-msg" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+  </div>
+  <div id="team-signed-in" style="display:none;padding:16px 14px">
+    <div class="section-label" style="padding-top:0">Signed in as</div>
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px" id="team-name-display"></div>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="showScreen('screen-team-sessions')">📅 View Team Sessions</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Regenerate Code</button>
+    <button class="btn-secondary" style="width:100%;color:#ff5a5a;border-color:rgba(255,90,90,0.3)" onclick="leaveTeamAction()">Leave Team</button>
+    <div id="team-status-msg-2" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+  </div>
+</div>
+
+<!-- TEAM SESSIONS LIST -->
+<div id="screen-team-sessions" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-team')">‹</button>
+    <div class="nav-title">Team Sessions</div>
+  </div>
+  <div id="team-sess-list" style="flex:1;overflow-y:auto;padding:8px 0 20px"></div>
 </div>
 
 <!-- SHARE MODAL -->
@@ -775,6 +819,8 @@ function showScreen(id, libTitle, catId) {
   if (id === 'screen-home') renderHome();
   if (id === 'screen-session') renderSession();
   if (id === 'screen-cues') renderCues();
+  if (id === 'screen-team') updateTeamUI();
+  if (id === 'screen-team-sessions') renderTeamSessions();
   updateCounts();
 }
 
@@ -1158,6 +1204,192 @@ function shareSession() {
 
 function closeShare() {
   document.getElementById('share-modal').style.display = 'none';
+}
+
+// ─── TEAM / CLOUD FEATURES ─────────────────────────────────────────
+// Everything here degrades gracefully if window.DrillAppCloud isn't
+// loaded (i.e. firebase-client.js wasn't included) — the rest of the
+// app works fully offline without these.
+
+let currentTeam = null; // { teamId, teamName }
+
+function cloudAvailable() {
+  return typeof window.DrillAppCloud !== 'undefined';
+}
+
+async function initTeamState() {
+  if (!cloudAvailable()) return;
+  try {
+    const restored = await window.DrillAppCloud.restoreSession();
+    if (restored) {
+      currentTeam = restored;
+      updateTeamUI();
+    }
+  } catch (e) {
+    // silent — coach just sees the sign-in screen
+  }
+}
+
+function updateTeamUI() {
+  const badge = document.getElementById('team-badge-home');
+  const badgeName = document.getElementById('team-badge-name');
+  const signedOut = document.getElementById('team-signed-out');
+  const signedIn = document.getElementById('team-signed-in');
+  const nameDisplay = document.getElementById('team-name-display');
+
+  if (currentTeam) {
+    badge.style.display = 'block';
+    badgeName.textContent = currentTeam.teamName;
+    if (signedOut) signedOut.style.display = 'none';
+    if (signedIn) signedIn.style.display = 'block';
+    if (nameDisplay) nameDisplay.textContent = currentTeam.teamName;
+  } else {
+    badge.style.display = 'none';
+    if (signedOut) signedOut.style.display = 'block';
+    if (signedIn) signedIn.style.display = 'none';
+  }
+}
+
+async function joinTeamAction() {
+  const input = document.getElementById('team-code-input');
+  const msg = document.getElementById('team-status-msg');
+  const code = input.value.trim();
+  if (!code) { msg.textContent = 'Enter a code first.'; msg.style.color = '#ff5a5a'; return; }
+  if (!cloudAvailable()) { msg.textContent = 'Cloud features are not set up yet.'; msg.style.color = '#ff5a5a'; return; }
+
+  msg.textContent = 'Checking code...'; msg.style.color = 'var(--muted)';
+  try {
+    const result = await window.DrillAppCloud.joinTeam(code);
+    currentTeam = result;
+    updateTeamUI();
+    msg.textContent = '';
+    input.value = '';
+  } catch (e) {
+    msg.textContent = e.message || 'That code didn\'t work — check and try again.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+async function createTeamAction() {
+  const input = document.getElementById('team-name-input');
+  const msg = document.getElementById('team-status-msg');
+  const name = input.value.trim();
+  if (!name) { msg.textContent = 'Enter a team name first.'; msg.style.color = '#ff5a5a'; return; }
+  if (!cloudAvailable()) { msg.textContent = 'Cloud features are not set up yet.'; msg.style.color = '#ff5a5a'; return; }
+
+  msg.textContent = 'Creating team...'; msg.style.color = 'var(--muted)';
+  try {
+    const result = await window.DrillAppCloud.createTeam(name);
+    currentTeam = { teamId: result.teamId, teamName: result.teamName };
+    updateTeamUI();
+    msg.textContent = '';
+    input.value = '';
+    // Show the code prominently — this is the ONLY time it's shown in plaintext
+    alert(`Team created! Your code is:\n\n${result.code}\n\nShare this with your coaches. Save it somewhere — it won't be shown again (you can regenerate it if lost).`);
+  } catch (e) {
+    msg.textContent = e.message || 'Could not create team — try again.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+function leaveTeamAction() {
+  if (!cloudAvailable()) return;
+  window.DrillAppCloud.signOutTeam();
+  currentTeam = null;
+  updateTeamUI();
+}
+
+async function regenerateCodeAction() {
+  if (!currentTeam || !cloudAvailable()) return;
+  const msg = document.getElementById('team-status-msg-2');
+  if (!confirm('This invalidates the current code for everyone. Continue?')) return;
+  try {
+    const newCode = await window.DrillAppCloud.regenerateCode(currentTeam.teamId);
+    alert(`New code:\n\n${newCode}\n\nShare this with your coaches — the old code no longer works.`);
+  } catch (e) {
+    msg.textContent = e.message || 'Could not regenerate code.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+async function saveSessionToTeam() {
+  if (session.length === 0) return;
+  if (!cloudAvailable() || !currentTeam) {
+    showScreen('screen-team');
+    return;
+  }
+  const dateInput = document.getElementById('sess-date-input');
+  const date = dateInput.value;
+  if (!date) {
+    alert('Pick a date for this session first.');
+    return;
+  }
+
+  const drillData = session.map(id => {
+    const d = DRILLS.find(x => x.id === id);
+    const cat = CATEGORIES.find(c => c.id === d.cat);
+    return { id: d.id, name: d.name, duration: d.duration, category: cat.name };
+  });
+
+  const btn = document.getElementById('btn-save-team');
+  const originalText = btn.textContent;
+  btn.textContent = 'Saving...';
+  try {
+    await window.DrillAppCloud.saveSession(currentTeam.teamId, {
+      name: `Session — ${date}`,
+      date,
+      drills: drillData,
+    });
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => { btn.textContent = originalText; }, 2000);
+  } catch (e) {
+    btn.textContent = originalText;
+    alert('Could not save: ' + (e.message || 'unknown error'));
+  }
+}
+
+async function renderTeamSessions() {
+  const list = document.getElementById('team-sess-list');
+  if (!currentTeam || !cloudAvailable()) {
+    list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">Join a team first to see saved sessions.</div>';
+    return;
+  }
+  list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">Loading...</div>';
+  try {
+    const sessions = await window.DrillAppCloud.listSessions(currentTeam.teamId);
+    if (sessions.length === 0) {
+      list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">No sessions saved yet.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    sessions.forEach(s => {
+      const totalMins = (s.drills || []).reduce((a, d) => a + (d.duration || 0), 0);
+      const el = document.createElement('div');
+      el.className = 'sess-item';
+      el.innerHTML = `
+        <div style="flex:1">
+          <div class="sess-name">${formatDisplayDate(s.date)}</div>
+          <div class="sess-meta">${(s.drills||[]).length} drills · ${totalMins} min</div>
+        </div>
+        <button class="sess-remove" onclick="deleteTeamSessionAction('${s.id}')">×</button>`;
+      list.appendChild(el);
+    });
+  } catch (e) {
+    list.innerHTML = '<div style="padding:20px 14px;color:#ff5a5a;font-size:13px">Could not load sessions.</div>';
+  }
+}
+
+async function deleteTeamSessionAction(sessionId) {
+  if (!currentTeam || !confirm('Delete this session?')) return;
+  await window.DrillAppCloud.deleteSession(currentTeam.teamId, sessionId);
+  renderTeamSessions();
+}
+
+function formatDisplayDate(iso) {
+  if (!iso) return 'No date';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function copySession() {
@@ -2124,6 +2356,17 @@ function animZonal3v3(svg, t, animated, state, w, h) {
 renderHome();
 renderCues();
 updateCounts();
+initTeamState();
+
+// Default the session date picker to today
+(function setDefaultDate() {
+  const dateInput = document.getElementById('sess-date-input');
+  if (dateInput && !dateInput.value) {
+    const today = new Date();
+    const iso = today.toISOString().slice(0, 10);
+    dateInput.value = iso;
+  }
+})();
 </script>
 </body>
 </html>
