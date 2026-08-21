@@ -342,6 +342,2383 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
   <div class="cues-list" id="cues-list"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js" onerror="document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:white;padding:14px;font-family:monospace;font-size:13px';b.textContent='FAILED TO LOAD: firebase-app-compat.js from gstatic.com (network/CDN blocked?)';document.body.prepend(b);});"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js" onerror="document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.style.cssText='position:fixed;top:30px;left:0;right:0;z-index:99999;background:#c0392b;color:white;padding:14px;font-family:monospace;font-size:13px';b.textContent='FAILED TO LOAD: firebase-auth-compat.js from gstatic.com';document.body.prepend(b);});"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js" onerror="document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.style.cssText='position:fixed;top:60px;left:0;right:0;z-index:99999;background:#c0392b;color:white;padding:14px;font-family:monospace;font-size:13px';b.textContent='FAILED TO LOAD: firebase-firestore-compat.js from gstatic.com';document.body.prepend(b);});"></script>
+<script src="firebase-client-debug.js" onerror="document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.style.cssText='position:fixed;top:90px;left:0;right:0;z-index:99999;background:#c0392b;color:white;padding:14px;font-family:monospace;font-size:13px';b.textContent='FAILED TO LOAD: firebase-client-debug.js (check filename and that it is uploaded to GitHub)';document.body.prepend(b);});"></script>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id:'warmup',    name:'Warm-Up',    icon:'🔥', color:'#ff6eb4', bg:'rgba(255,110,180,0.1)'  },
+  { id:'defending', name:'Defending',  icon:'🛡️', color:'#5ab4ff', bg:'rgba(90,180,255,0.1)'   },
+  { id:'attacking', name:'Attacking',  icon:'⚡', color:'#ffb830', bg:'rgba(255,184,48,0.1)'   },
+  { id:'movement',  name:'Movement',   icon:'🏃', color:'#3ddfc8', bg:'rgba(61,223,200,0.1)'   },
+  { id:'skills',    name:'Skills',     icon:'⚽', color:'#a8e63d', bg:'rgba(168,230,61,0.1)'   },
+  { id:'setpiece',  name:'Set Pieces', icon:'🎯', color:'#b87fff', bg:'rgba(184,127,255,0.1)'  },
+];
+
+const DRILLS = [
+  // ── WARM-UPS ──
+  {
+    id:'w1', cat:'warmup', name:'Freeze Tag Defenders', duration:8,
+    setup:'20×15m grid. 2–3 defenders (bibs). Attackers move freely with a ball each. Defenders freeze attackers by touching their ball. Frozen players stand with feet apart — a free attacker can nutmeg them to unfreeze. Rotate defenders every 90 seconds.',
+    points:['Sprint to close, then SLOW as you get near','Check over your shoulder — where are the other attackers?','Rotate defenders every 90 seconds'],
+    progression:'Defenders must freeze 3 players before the timer. Score it.',
+    cues:['Head on a swivel','Fast approach','Talk!'],
+    diagram:'freeze', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=9oBc20ywJ5M',label:'Freeze Tag Defenders warm-up'},
+    anim: animFreeze
+  },
+  {
+    id:'w2', cat:'warmup', name:'Shark Attack', duration:8,
+    setup:'30×20m grid. 3 defenders in the middle ("sharks"). Attackers with balls line up at one end and try to dribble to the other. If a shark kicks a ball out, that attacker joins the sharks. Last one with a ball wins.',
+    points:['Sharks: close quickly, pick your moment','Attackers: use changes of speed and direction','Keep your head up — scan for gaps'],
+    progression:'Sharks must stay in a zone — forces coordination between them.',
+    cues:['Low body position','Fake and go!','Protect the ball'],
+    diagram:'shark', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=xi9sut-iLN0',label:'Shark Attack dribbling game'},
+    anim: animShark
+  },
+  {
+    id:'w3', cat:'warmup', name:'Traffic Lights', duration:6,
+    setup:'Large grid 25×25m. All players dribbling freely. Coach shouts colours: RED = stop (foot on ball), AMBER = slow dribble, GREEN = fast dribble. Add: BLUE = turn 180°, YELLOW = move to nearest player and high-five.',
+    points:['Keep the ball close at all speeds','Scan the grid — avoid collisions','React fast to commands'],
+    progression:'Players give commands instead of the coach.',
+    cues:['Head up!','Soft touches','Quick feet'],
+    diagram:'traffic', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=rNih_5ZY8SQ',label:'Traffic Lights dribbling drill'},
+    anim: animTraffic
+  },
+  {
+    id:'w4', cat:'warmup', name:'Rondo 4v1', duration:8,
+    setup:'Small circle or 8×8m square. 4 players around the outside, 1 defender in the middle. Outer players keep possession with one or two touch passing. Defender wins ball = they swap with the player who lost it.',
+    points:['Move to create passing angles after every pass','Defender: press the player on the ball immediately','Quick feet — be ready before the ball arrives'],
+    progression:'Add second defender (5v2). Limit to one touch.',
+    cues:['"Show" for the ball','Body shape open','Press on bad touch'],
+    diagram:'rondo', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=c_nq0Ka_RWs',label:'4v1 Rondo — beginners guide'},
+    anim: animRondo
+  },
+  {
+    id:'w5', cat:'warmup', name:'Bumper Cars', duration:6,
+    setup:'All players dribbling in a grid. Aim: use your body/shoulder to barge OTHER players off their ball while protecting your own. If your ball leaves the grid you join a smaller grid. Last player wins.',
+    points:['Keep ball under control while pressuring others','Shield with your body — use your arms legally','Peripheral vision — never just watch your ball'],
+    progression:'Players can only use their weaker foot.',
+    cues:['Low centre of gravity','Protect your ball','Head up!'],
+    diagram:'bumper', viewBox:'0 0 300 160',
+    anim: animBumper
+  },
+  // ── DEFENDING ──
+  {
+    id:'d0', cat:'defending', name:"Don't Dive In", duration:10,
+    setup:"Mark a line 25 yards long. Two small goals are placed behind the defender, spread evenly across the 25 yards (roughly at the 8 and 17 yard marks). Attacker stands on one side of the line with the ball, defender on the other side facing them. Neither player can cross the line. The attacker moves side to side along the line trying to get a shooting angle to score in either goal. The defender mirrors them, staying goalside and blocking angles. Swap roles after 5 attempts.",
+    points:['Stay light on your feet — small shuffle steps, never cross your legs','Keep your body between the attacker and the nearest goal at all times','Don\'t lunge or dive across — stay balanced and make yourself big','Watch the ball, not the attacker\'s body — feet give away the shot','Force the attacker to the wider angles away from both goals'],
+    progression:'Give the attacker a 3-second time limit to force quicker decisions. Add a second defender to cover both goals.',
+    cues:["Don't dive in!",'Mirror their movement','Stay balanced','Watch the ball','Make yourself big'],
+    diagram:'dontdivein', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=uVkpeXS6Byw',label:"Don't Dive In — 1v1 Defending Drill"},
+    anim: animDontDiveIn
+  },
+  {
+    id:'d1', cat:'defending', name:'Sprint & Slow Drill', duration:12,
+    setup:'Pairs. Attacker stands still at a cone 12m away with a ball. On your call, defender sprints toward them, SLOWS at 2–3m, drops into side-on defensive shape. 5 reps then swap.',
+    points:['"Fast approach, slow arrival"','Side-on stance: one foot forward, low and balanced','Force attacker to their weaker foot or touchline',"Don't lunge — wait for the ball to move away"],
+    progression:'Attacker dribbles slowly — defender practises live jockeying.',
+    cues:['Fast approach slow arrival','Side-on','Get goalside',"Don't dive in"],
+    diagram:'sprintslow', viewBox:'0 0 300 140',
+    anim: animSprintSlow
+  },
+  {
+    id:'d2', cat:'defending', name:'Heads-Up Defending', duration:12,
+    setup:'20×20m grid with small goal. 1 defender, 1 live attacker with ball, 1 SHADOW attacker near edge without ball. You shout "Pass!" — ball goes to shadow who immediately becomes live.',
+    points:['Scan constantly — quick glances for the second attacker','Position to see BOTH the ball and the threat','Shout "Man on! Second runner!"',"Don't fully commit until you know where both are"],
+    progression:'Add a second defender — who closes? Who covers?',
+    cues:['Head on a swivel','Talk!','Half-turn body'],
+    diagram:'awareness', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=gHVXwse0MU8',label:'Defensive awareness & scanning'},
+    anim: animAwareness
+  },
+  {
+    id:'d3', cat:'defending', name:'3v2 Defending Game', duration:18,
+    setup:'3 attackers vs 2 defenders, 30×20m, with a goal. Attackers score normally. Defenders score by winning ball and dribbling over halfway. CONDITION: nearest defender must close within 3 seconds or attackers get a free shot.',
+    points:['Nearest defender: press immediately','Second defender: hold, scan, communicate','Delay attack until help arrives',"Don't both chase the ball"],
+    progression:'4v3. Praise when defenders close quickly AND communicate.',
+    cues:['Delay!','Cover!','Talk!','Force wide'],
+    diagram:'game', viewBox:'0 0 300 180',
+    anim: animGame
+  },
+  {
+    id:'d3b', cat:'defending', name:'Transition Press — 2 Goal Counter', duration:15,
+    setup:'Set up a central goal with a keeper, defended by 2 blue defenders, with two "transition zones" either side each having its own small goal at the far end. 2 reds (attackers) attack the central goal against the keeper and 2 blues, with the coach feeding balls in. An extra blue waits in each transition zone near the main goal end. As soon as the reds score, miss, or the blues clear the ball, BOTH extra blues immediately dribble the length of their zone and try to score in their small goal. The instant that happens, both reds become defenders — one sprints into each zone to press and try to win the ball back before the blue can score.',
+    points:['Reds: react instantly the moment possession is lost — sprint to press, don\'t jog back','Blues: as soon as you win it, drive forward at pace into your zone — don\'t delay','Each red must recognise and close down THEIR nearest blue - don\'t both chase one','Communicate the transition moment loudly — "Transition! Press!"'],
+    progression:'Reduce reaction time allowed before the press must start. Add a second wave — winning team must then defend again immediately.',
+    cues:['Transition!','Press instantly!','Drive forward!','React, don\'t jog'],
+    diagram:'transitionpress', viewBox:'0 0 300 200',
+    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM',label:'Transition press — 2 goal counter'},
+    anim: animTransitionPress
+  },
+  {
+    id:'d4', cat:'defending', name:'Gates Defending', duration:12,
+    setup:'Scatter 8 small cone gates (1m wide) around a 25×25m grid. Attackers score by dribbling through any gate. 2 defenders try to stop them. Defenders cannot guard a gate — they must close down.',
+    points:['Stay central — cover the most gates possible','Close down immediately when attacker approaches a gate','Communicate with partner — split the grid','Force attacker away from nearest gate'],
+    progression:'3 attackers vs 2 defenders. Add more gates.',
+    cues:['Stay central','Close angles','Force wide','Talk!'],
+    diagram:'gates', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=MDF6tB5foI0',label:'Gates game — defending & attacking'},
+    anim: animGates
+  },
+  {
+    id:'d5', cat:'defending', name:'1v1 Channel Defending', duration:10,
+    setup:'4m wide × 15m long channel with a small goal at each end. 1v1 — attacker tries to score, defender tries to win ball and score in other goal. Narrow channel forces proper defensive technique.',
+    points:['Engage — you cannot avoid in a narrow channel','Get side-on immediately','Force to weaker foot','Wait for the wrong touch before tackling'],
+    progression:'Attacker gets a bonus if they score within 5 seconds — tests speed of closing.',
+    cues:['Side-on','Patience','Pick your moment'],
+    diagram:'channel', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=h1mie6_Axss',label:'1v1 channel defending'},
+    anim: animChannel
+  },
+  // ── ATTACKING ──
+  {
+    id:'a1', cat:'attacking', name:'1-2 Combination Play', duration:12,
+    setup:'Groups of 3 in a 15×10m area. Player A passes to B, makes an overlapping run. B plays a one-two back to A who crosses or shoots. Rotate positions after 3 reps.',
+    points:['Weight of pass must be perfect for the one-two','Make the run early — before the pass','Disguise the pass — make the defender commit'],
+    progression:'Add a passive then active defender.',
+    cues:['Early run','Firm pass','Head up'],
+    diagram:'onetwo', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=EoiXfAjpcV0',label:'1-2 combination play drill'},
+    anim: animOneTwo
+  },
+  {
+    id:'a2', cat:'attacking', name:'2v1 Overload Attack', duration:12,
+    setup:'20×15m area. 2 attackers vs 1 defender + goalkeeper. Attackers start from halfway, defender from edge of box. Attackers must score. Reset after each attempt.',
+    points:['Attacker with ball: draw the defender, release early','Second attacker: move to create the angle','Never stand still — movement creates the chance'],
+    progression:'Defender gets a point for each turnover. Race to 5.',
+    cues:['Draw and release','Move off the ball','Be decisive'],
+    diagram:'twovone', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=TYECdqSrZNk',label:'2v1 attacking overload'},
+    anim: animTwoVOne
+  },
+  {
+    id:'a3', cat:'attacking', name:'Finishing Zones', duration:15,
+    setup:'Mark 3 zones in front of goal: Zone 1 (penalty spot area) = 1pt, Zone 2 (edge of box) = 2pts, Zone 3 (outside box) = 3pts. Players take turns shooting from each zone. 10 shots each.',
+    points:['Strike through the middle of the ball for power','Pick a corner — commit before shooting','Approach at a slight angle for better technique'],
+    progression:'Add a server who feeds balls moving. Player must control then shoot.',
+    cues:['Head down on contact','Pick your corner','Follow up for rebounds'],
+    diagram:'finishing', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=y-X_t1KVO7o',label:'Finishing zones shooting drill'},
+    anim: animFinishing
+  },
+  {
+    id:'a4', cat:'attacking', name:'Pressing Triggers Game', duration:15,
+    setup:'4v4 + goalkeepers in a 40×30m area. Introduce TRIGGERS: when the GK has ball, when there is a back pass, or when an attacker takes a heavy touch. On a trigger the whole team PRESSES together immediately.',
+    points:['Recognise the trigger instantly','Nearest player closes fast — team compresses behind','Force the ball wide and backward','No ball-watching — move as a unit'],
+    progression:'Coach calls "trigger" randomly to test reaction. Point for a press that wins ball in 4 seconds.',
+    cues:['Trigger!','Press now!','Close space','No easy out'],
+    diagram:'pressing', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=qVKS2p7WxaY',label:'Pressing triggers game'},
+    anim: animPressing
+  },
+  // ── MOVEMENT ──
+  {
+    id:'m1', cat:'movement', name:'Defensive Shadow Drill', duration:8,
+    setup:'Pairs, no ball. Attacker moves freely in a 5×5m area — slow jogs, sidesteps, changes of direction. Defender shadows them, staying 1m away, maintaining side-on shape. 60 seconds each.',
+    points:['Low centre of gravity — bend your knees','Small quick steps — never cross your feet','Stay 1 arm\'s length away at all times','Mirror every movement before it happens'],
+    progression:'Attacker speeds up. Add a ball for live 1v1.',
+    cues:['Small steps','Stay side-on','Mirror them','Low!'],
+    diagram:'shadow', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=d3yc7Sgl7X0',label:'Defensive shadow drill'},
+    anim: animShadow
+  },
+  {
+    id:'m2', cat:'movement', name:'Agility Ladder Passing', duration:10,
+    setup:'Lay an agility ladder flat (or use cones 30cm apart in a row). Player does ladder footwork (in-in-out-out) while a partner feeds passes at the end. Control, pass back, continue through.',
+    points:['Quick light feet through the ladder','Head up — watch for the pass WHILE doing footwork','Clean first touch out of feet before passing back'],
+    progression:'Two-touch, then one-touch return pass.',
+    cues:['Light feet','Eyes up','Quick touch'],
+    diagram:'ladder', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=hlJW5q8s2z0',label:'Agility ladder passing drill'},
+    anim: animLadder
+  },
+  {
+    id:'m3', cat:'movement', name:'Third Man Runs', duration:12,
+    setup:'Groups of 4 in a 20×15m area. A passes to B. As soon as A passes, C makes a diagonal run. B plays through ball for C. D follows up. Rotate and repeat from opposite side.',
+    points:['Third man run must happen as soon as A passes','Time the run — don\'t go too early','B must have vision to see the run before receiving'],
+    progression:'Add passive defender on C\'s run. Work both sides.',
+    cues:['Run on the pass','Time it!','See the picture early'],
+    diagram:'thirdman', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=w8PbZQHf83M',label:'Third man runs drill'},
+    anim: animThirdMan
+  },
+  // ── SKILLS ──
+  {
+    id:'s1', cat:'skills', name:'Coervers Skill Circuit', duration:12,
+    setup:'Cones 2m apart in a line of 6. Players dribble through using Coervers moves: inside cut, outside cut, step-over, drag-back, Cruyff turn. One move per cone. Return using different moves.',
+    points:['Exaggerate each move — make it convincing','Keep ball close — no big touches','Speed up as confidence builds','Weight on non-kicking foot for balance'],
+    progression:'Add a passive defender at the last cone. Perform move to beat them.',
+    cues:['Sell the dummy','Quick feet','Stay balanced'],
+    diagram:'coervers', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=IeMYh7roBjk',label:'Coervers skill moves circuit'},
+    anim: animCoervers
+  },
+  {
+    id:'s2', cat:'skills', name:'Weak Foot Pairs', duration:10,
+    setup:'Pairs 8m apart. ALL passing and receiving with the weaker foot only. Start with stationary passing, progress to movement. Any strong foot touch = opposition gets a point.',
+    points:['Square up the body — point toe toward target','Follow through in direction of pass','Accept it will be harder — keep quality up'],
+    progression:'Add a mini goal — both players shoot with weak foot only.',
+    cues:['Square your hips','Follow through','Commit to it'],
+    diagram:'weakfoot', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=xlHnFTEarKI',label:'Weak foot training drill'},
+    anim: animWeakFoot
+  },
+  {
+    id:'s3', cat:'skills', name:'Receiving Under Pressure', duration:12,
+    setup:'Player in middle of a triangle (5m sides). Three feeders take turns playing in balls — on the ground, in the air, low driven. Receiver controls, turns 90° and passes to a different feeder each time. 60 sec then swap.',
+    points:['Open body shape before the ball arrives','Let the ball travel across your body for a sideways touch','Shield the first touch if under pressure'],
+    progression:'Feeder follows their pass to apply light pressure. Receiver must protect.',
+    cues:['Open up early','Soft touch','Half-turn before ball arrives'],
+    diagram:'receiving', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=8xfWkNLdVYE',label:'Receiving under pressure drill'},
+    anim: animReceiving
+  },
+  {
+    id:'w6', cat:'warmup', name:'Tail Tag', duration:6,
+    setup:'All players tuck a bib into their shorts as a "tail". Dribble freely in a 20×20m grid and try to steal other players\' tails while protecting your own. If your tail is taken, do 5 toe-taps on the spot to get a new one from the coach.',
+    points:['Keep the ball under close control while looking up','Use your body to shield the ball and your tail','Quick direction changes to protect your tail'],
+    progression:'Anyone who loses their tail joins a smaller inner grid — increases intensity.',
+    cues:['Protect your tail!','Head up','Use your body'],
+    diagram:'traffic', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=O8Vk3sBsPa8',label:'Tail Tag dribbling drill'},
+    anim: animTraffic
+  },
+  {
+    id:'w7', cat:'warmup', name:'Pac-Man', duration:7,
+    setup:'Mark a grid with lines of cones forming a maze (4×4 or 5×5 grid of corridors). Players dribble along the corridors only — can\u2019t cut across open space. 1-2 players without balls are "ghosts" and try to tag dribblers. Tagged players freeze and can be freed by a teammate passing through their corridor.',
+    points:['Stay in the corridors — no shortcuts','Head up to see the ghosts coming','Use quick turns to change direction in tight spaces'],
+    progression:'Add more ghosts. Limit to weak foot only.',
+    cues:['Quick feet','Head up','Sharp turns'],
+    diagram:'bumper', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=QMjbiNrJGMU',label:'Pac-Man football warm-up'},
+    anim: animBumper
+  },
+  {
+    id:'w8', cat:'warmup', name:'Protect the King', duration:8,
+    setup:'Groups of 5 + 1–2 chasers. One player is the King — they tuck a bib (tail) into the back of their shorts. The King links arms with 4 teammates to form a group of 5 moving together. The chasers on the outside try to grab the King\'s tail. The whole group rotates and moves together to keep the tail away from the chasers. When a chaser grabs the tail, rotate the King to a new player.',
+    points:['Shielding group: move as one — no gaps','Communicate constantly — "left!", "right!", "behind you!"','King: stay central, trust your teammates','Chasers: look for gaps — fake one way and go the other'],
+    progression:'Add a second chaser. Time how long each King survives — try to beat the record.',
+    cues:['Move together!','No gaps!','Talk!','Stay tight'],
+    diagram:'protectking', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.instagram.com/reel/DURSlOBkg5I/',label:'Watch: Protect the King (Instagram)'},
+    instagram:{url:'https://www.instagram.com/reel/DURSlOBkg5I/',label:'See it on Instagram'},
+    anim: animProtectKing
+  },
+  {
+    id:'w9', cat:'warmup', name:"Don't Drop the Egg", duration:7,
+    setup:'Pairs. Each pair holds one ball between them — one palm each, no gripping. They move around a 20×20m grid trying to knock OTHER pairs\' balls (eggs) to the ground using their free hands, while keeping their own egg from dropping. If an egg drops, that pair does 5 jumping jacks before rejoining. Last pair with their egg wins.',
+    points:['Hold with your palm flat — no gripping or cradling','Communicate with your partner — move together','Use your free hand to attack but keep balanced','Scan constantly — threat can come from any direction'],
+    progression:'Restrict the grid size to increase pressure. Winning pair plays with one finger each.',
+    cues:['Soft hands','Move together!','Head up','Attack AND protect'],
+    diagram:'droppedegg', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.instagram.com/reel/DVtO9x3jHT3/',label:"Watch: Don't Drop the Egg (Instagram)"},
+    instagram:{url:'https://www.instagram.com/reel/DVtO9x3jHT3/',label:'See it on Instagram'},
+    anim: animDroppedEgg
+  },
+  {
+    id:'w10', cat:'warmup', name:'Frog Jump Race', duration:7,
+    setup:'Each player has 2 cones. All start on a line. Place cone 1 on the line, then squat low and leap as far forward as possible, landing and placing cone 2 where you land. Sprint back, pick up cone 1, return to cone 2, then leap again placing cone 1 ahead. Repeat — leapfrogging your own cones — until you reach the finish line 30m away. First to finish wins.',
+    points:['Explosive squat — arms back, then swing forward to add distance','Land balanced — place the cone before you step away','Sprint back at full pace — the race is won in the sprints','Keep cones upright — knocked over cone = restart that jump'],
+    progression:'Race in pairs side by side. Add a ball to carry during the sprint phase.',
+    cues:['Low and explode!','Full sprint back','Arms forward on jump','Stay balanced on landing'],
+    diagram:'frogjump', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'Watch: Frog Jump Race (Instagram)'},
+    instagram:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'See it on Instagram'},
+    anim: animFrogJump
+  },
+    // ── EXTRA DEFENDING ──
+  {
+    id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
+    setup:'2 defenders vs 2 attackers in a 20×15m area with a small goal. One defender presses the ball, second defender drops to cover the space behind. Attackers try to use a through ball or quick switch to beat them.',
+    points:['First defender: press the ball — limit time on it','Second defender: drop off, angle body to see ball AND second attacker','Swap roles when ball switches — communicate who presses'],
+    progression:'Add a wide attacker so defenders must also cover width.',
+    cues:['Press and cover','Drop and angle','Who has ball?'],
+    diagram:'game', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=Bo3mEAN0OZM',label:'Defending pairs cover & press'},
+    anim: animGame
+  },
+  {
+    id:'d7', cat:'defending', name:'Zonal 3v3 — Split Pitch', duration:14,
+    setup:'Split the pitch into 3 equal vertical zones, with a small goal at each end of every zone (6 goals total — 3 at each end). Two teams of 3. Each player is locked to their own zone — one player from each team per zone (3 separate 1v1 zones side by side). Teams pass between zones to build attacks and can score in ANY of the 3 goals at the end they are attacking. Players cannot leave their zone to help a teammate.',
+    points:['You are on your own in your zone — win your individual battle','Scan for which of your 3 goals is most open before you receive','Communicate with teammates in the other zones to shift the point of attack','Defending: stay compact to your goals, don\'t get turned easily'],
+    progression:'Allow one "free" player who can move between zones to overload. Reduce to 2 zones for more crowded 1v1s.',
+    cues:['Win your zone!','Which goal is open?','Switch the ball','Stay compact'],
+    diagram:'zonal3v3', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM&t=210',label:'Zonal 3v3 (2nd drill in video, from 3:30)'},
+    anim: animZonal3v3
+  },
+    // ── EXTRA ATTACKING ──
+  {
+    id:'a5', cat:'attacking', name:'Wall Pass Street Soccer', duration:12,
+    setup:'4 players in a 10×10m box. No goalkeeper. Players can use the walls/cones as 1-touch rebound walls (like a wall pass). First to score 5 wins. Unlimited touches but must wall-pass before shooting.',
+    points:['Play at speed — use the wall to beat the defender','Move after playing the wall — don\u2019t stand still','Vary the angle of your wall pass'],
+    progression:'One touch only. Add a "golden wall" cone worth double points.',
+    cues:['Play and move!','Angle the pass','First touch forward'],
+    diagram:'onetwo', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=bev-srStVsQ',label:'Wall pass combination play'},
+    anim: animOneTwo
+  },
+  {
+    id:'a6', cat:'attacking', name:'4-Goal Game', duration:15,
+    setup:'30×25m area. 4 small goals, one on each side. Two teams of 4. Players can score on ANY of the 4 goals. Forces teams to switch play quickly and exploit space.',
+    points:['Switch the ball quickly — find the open goal','Scan before receiving — know which goals are unguarded','Forwards must press to block goals as well as attack'],
+    progression:'Condition: must complete 3 passes before scoring.',
+    cues:['Switch play!','Head up','Quick ball'],
+    diagram:'gates', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'4-Goal Game'},
+    anim: animGates
+  },
+  {
+    id:'a7', cat:'attacking', name:'Crossing & Finishing', duration:15,
+    setup:'Server on each wing. Players take turns receiving a cross from the left or right. Must score with one touch if possible. Cross delivery varies: driven, floated, low and hard.',
+    points:['Attack the near post run first to drag defenders','Back-post runner arrives late with pace','Shoot across the keeper — far corner'],
+    progression:'Add a passive then active defender. Server chips instead of driving.',
+    cues:['Attack the ball!','Far corner','Arrive with pace'],
+    diagram:'finishing', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=mFhfexVwcvI',label:'Crossing & finishing drill'},
+    anim: animFinishing
+  },
+    // ── EXTRA MOVEMENT ──
+  {
+    id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
+    setup:'Player in the middle of a 10×10m square with a feeder on each side. Feeder passes in, player takes a first touch diagonally out of their feet and passes to a different feeder. 45 seconds each then rotate.',
+    points:['Open body shape BEFORE the ball arrives','First touch must go sideways or forward — never back into pressure','Make eye contact with target feeder before touching the ball'],
+    progression:'Feeder follows their pass as a passive defender. Player must shield.',
+    cues:['Open up early','Touch away from pressure','See the picture first'],
+    diagram:'receiving', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=q2hBd6O6Zss',label:'Directional first touch drill'},
+    anim: animReceiving
+  },
+  {
+    id:'m5', cat:'movement', name:'Overlapping Runs', duration:12,
+    setup:'Groups of 3 on a half-pitch. Player A has ball on the wing. B is ahead inside. A passes to B and immediately overlaps outside. B holds until A is level, then plays into the space for A to cross or shoot.',
+    points:['Overlapping player: time the run — go when the pass is made','Ball holder: hold until the run is made — don\u2019t play too early','Overlapping run must be at pace — no jogging'],
+    progression:'Add a defender to track the overlap. Work both sides.',
+    cues:['Go on the pass!','Hold... now!','Run at pace'],
+    diagram:'thirdman', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=9J8EyEvoZ4Y',label:'Overlapping runs drill'},
+    anim: animThirdMan
+  },
+    // ── EXTRA SKILLS ──
+  {
+    id:'s4', cat:'skills', name:'Turning Drill — 4 Turns', duration:10,
+    setup:'One ball per player. Dribble to a cone, perform a turn, dribble back. Cycle through 4 turns: inside hook, outside hook, Cruyff, drag-back. Coach calls the turn name before they reach the cone.',
+    points:['Approach the cone at pace — don\u2019t slow too early','Exaggerate the body feint before the turn','Accelerate away after the turn — it\u2019s wasted if you\u2019re slow'],
+    progression:'Two cones 8m apart — perform a different turn at each. Race.',
+    cues:['Feint first!','Quick exit','Sell it!'],
+    diagram:'coervers', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=IeMYh7roBjk',label:'Turning drill — 4 turns'},
+    anim: animCoervers
+  },
+  {
+    id:'s5', cat:'skills', name:'Ball Mastery Circuit', duration:10,
+    setup:'Each player has a ball. Run through 8 moves for 30 seconds each: toe-taps, inside-outside, sole rolls, scissors, step-overs, pull-push, Maradona, and figure-of-8 around feet.',
+    points:['Stay on your toes throughout — never flat-footed','Small quick touches — keep the ball under your body','As speed builds, add a tiny body shift to each move'],
+    progression:'Perform each move while dribbling forward. Add a cone gate to dribble through at the end.',
+    cues:['On your toes','Soft feet','Speed up!'],
+    diagram:'coervers', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=nab4UqS_2iM',label:'50 ball mastery drills — U9 to U12'},
+    anim: animCoervers
+  },
+    // ── EXTRA SET PIECES ──
+  {
+    id:'sp4', cat:'setpiece', name:'Penalty Pressure Shootout', duration:10,
+    setup:'All players take a penalty under pressure conditions: coach counts down from 5, one teammate shouts their name, another tries to distract. Goalkeeper must dive. Track scores. Sudden-death format for last 4.',
+    points:['Decide your spot before you start your run — don\u2019t change your mind','Short run-up for control','Strike through the middle of the ball — don\u2019t scoop'],
+    progression:'Winner of each round becomes goalkeeper for the next.',
+    cues:['Pick your spot','Commit!','Head down'],
+    diagram:'finishing', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=y-X_t1KVO7o',label:'Finishing & shooting under pressure'},
+    anim: animFinishing
+  },
+  {
+    id:'sp5', cat:'setpiece', name:'Goal Kick Build-Up', duration:10,
+    setup:'GK takes goal kick. 3 outfield players position to receive — one short left, one short right, one deeper central. Defending team of 2 press immediately. Aim to play out from the back through 5 passes before crossing halfway.',
+    points:['Receivers: check away then check back to show','Don\u2019t stand still waiting — create the angle','GK: go short if pressed — go long only as a last resort'],
+    progression:'Add a third pressing defender. GK must distribute in under 4 seconds.',
+    cues:['Check and show','Create the angle','Support the GK'],
+    diagram:'pressing', viewBox:'0 0 300 180',
+    youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'Goal kick build-up play'},
+    anim: animPressing
+  },
+    // ── SET PIECES ──
+  {
+    id:'sp1', cat:'setpiece', name:'Corner Kick Runs', duration:15,
+    setup:'Full or 3/4 pitch. Corner taker + 5 outfield players. Assign run types: near-post flick, back-post arriving late, edge of box for clearance, near-post decoy. Walk through then at pace.',
+    points:['Near-post runner: time run to get there as ball arrives','Back-post runner: start late — arrive with pace','Decoy: draw a defender, peel away last second','Shooter: stay at edge of box for second ball'],
+    progression:'Add 3 defenders. Corner taker varies delivery (inswing/outswing).',
+    cues:['Time the run!','Arrive with pace','Attack the ball','Back-post late!'],
+    diagram:'corner', viewBox:'0 0 300 200',
+    youtube:{url:'https://www.youtube.com/watch?v=KcJEITSMxLY',label:'Corner kick runs & delivery'},
+    anim: animCorner
+  },
+  {
+    id:'sp2', cat:'setpiece', name:'Free Kick Wall & Run', duration:12,
+    setup:'3v free kick 20m from goal. One player strikes over/around wall. Two runners time overlapping runs. GK in goal. Alternate strike + run combinations.',
+    points:['Wall: jump on command, hold shape','Shooter: decide early — strike or dummy for runner','Runners: stagger starts — create different angles'],
+    progression:'Add passive defenders behind wall. Add offside trap.',
+    cues:['Jump on command','Pick your spot','Disguise intent'],
+    diagram:'freekick', viewBox:'0 0 300 200',
+    youtube:{url:'https://www.youtube.com/watch?v=5lYvdlhTWrA',label:'Free kick wall & runners'},
+    anim: animFreeKick
+  },
+  {
+    id:'sp3', cat:'setpiece', name:'Throw-In Quick Play', duration:8,
+    setup:'Pairs along a touchline. Player A takes throw-in to Player B who has their back to play. B must control, turn, and play through a gate 5m away before a passive defender closes down.',
+    points:["Move to create the angle before the throw","Receive with back foot — protect with body","Turn quickly — look up before touching the ball","Move the ball immediately — don't hold"],
+    progression:'Make defender active. Add a second option for the thrower.',
+    cues:['Check away first','Protect with body','Quick turn','Play forward!'],
+    diagram:'throwin', viewBox:'0 0 300 160',
+    youtube:{url:'https://www.youtube.com/watch?v=EDJKPs2Qcag',label:'Throw-in quick play drill'},
+    anim: animThrowIn
+  },
+];
+
+const GLOBAL_CUES = [
+  'Fast approach, slow arrival',
+  'Head on a swivel',
+  'Get goalside',
+  "Don't dive in!",
+  'Force them wide',
+  'Talk to your partner!',
+  'Make yourself big',
+  'Press on a bad touch',
+  'Hold shape — delay!',
+  'Arrive with pace',
+  'Third man run!',
+  'One-touch if you can',
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────
+let session = [];
+let currentCatFilter = null;
+let currentDrillId = null;
+let detailBackScreen = 'screen-library';
+let prevScreenBeforeCues = 'screen-home';
+let runIdx = 0;
+let runTimeLeft = 0;
+let runRunning = false;
+let runInterval = null;
+let animPlaying = false;
+let animFrame = null;
+let runAnimPlaying = false;
+let runAnimFrame = null;
+
+// ─── SCREEN ROUTING ─────────────────────────────────────────────────
+function showScreen(id, libTitle, catId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-library') {
+    currentCatFilter = catId || null;
+    document.getElementById('lib-title').textContent = libTitle || 'All Drills';
+    renderDrillList();
+  }
+  if (id === 'screen-home') renderHome();
+  if (id === 'screen-session') renderSession();
+  if (id === 'screen-cues') renderCues();
+  if (id === 'screen-team') updateTeamUI();
+  if (id === 'screen-team-sessions') renderTeamSessions();
+  updateCounts();
+}
+
+function backFromCues() {
+  showScreen(prevScreenBeforeCues);
+}
+document.getElementById('screen-cues').querySelector('.nav-back').onclick = backFromCues;
+
+// ─── HOME ────────────────────────────────────────────────────────────
+function renderHome() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach(c => {
+    const count = DRILLS.filter(d => d.cat === c.id).length;
+    const el = document.createElement('div');
+    el.className = 'cat-card';
+    el.style.background = c.bg;
+    el.style.borderColor = c.color + '33';
+    el.innerHTML = `<div class="cat-icon">${c.icon}</div><div class="cat-name" style="color:${c.color}">${c.name}</div><div class="cat-count">${count} drills</div>`;
+    el.onclick = () => showScreen('screen-library', c.name, c.id);
+    grid.appendChild(el);
+  });
+  updateCounts();
+}
+
+// ─── DRILL LIST ──────────────────────────────────────────────────────
+function renderDrillList() {
+  const list = document.getElementById('drill-list');
+  list.innerHTML = '';
+  const drills = currentCatFilter ? DRILLS.filter(d => d.cat === currentCatFilter) : DRILLS;
+  document.getElementById('lib-count').textContent = drills.length + ' drills';
+  drills.forEach(d => {
+    const cat = CATEGORIES.find(c => c.id === d.cat);
+    const inSess = session.includes(d.id);
+    const el = document.createElement('div');
+    el.className = 'drill-item';
+    el.innerHTML = `
+      <div class="drill-thumb" style="background:${cat.bg}">${cat.icon}</div>
+      <div class="drill-info">
+        <div class="drill-name">${d.name}</div>
+        <div class="drill-meta">${cat.name} · ${d.duration} min</div>
+      </div>
+      <button class="drill-add ${inSess?'added':'not-added'}" onclick="event.stopPropagation();toggleSession('${d.id}')">${inSess?'✓':'+'}
+      </button>`;
+    el.onclick = () => openDrillDetail(d.id, 'screen-library');
+    list.appendChild(el);
+  });
+  updateCounts();
+}
+
+// ─── DRILL DETAIL ────────────────────────────────────────────────────
+function openDrillDetail(id, fromScreen) {
+  currentDrillId = id;
+  detailBackScreen = fromScreen;
+  const d = DRILLS.find(x => x.id === id);
+  const cat = CATEGORIES.find(c => c.id === d.cat);
+  document.getElementById('detail-nav-title').textContent = d.name;
+  document.getElementById('detail-back').onclick = () => showScreen(detailBackScreen);
+  document.getElementById('detail-setup').textContent = d.setup;
+  document.getElementById('detail-points').innerHTML = d.points.map(p =>
+    `<div class="point-row"><div class="point-dot" style="background:${cat.color}"></div><div class="point-txt">${p}</div></div>`).join('');
+  if (d.progression) {
+    document.getElementById('detail-prog-wrap').style.display = 'block';
+    document.getElementById('detail-prog').textContent = '↑ ' + d.progression;
+  } else {
+    document.getElementById('detail-prog-wrap').style.display = 'none';
+  }
+  document.getElementById('detail-cues').innerHTML = d.cues.map(c => `<div class="cue-chip">${c}</div>`).join('');
+  const ytWrap = document.getElementById('detail-yt-wrap');
+  if (d.youtube) {
+    ytWrap.style.display = 'block';
+    const ytLink = document.getElementById('detail-yt-link');
+    const ytBadge = document.getElementById('detail-yt-badge');
+    ytLink.href = d.youtube.url;
+    document.getElementById('detail-yt-label').textContent = d.youtube.label;
+    const isIG = d.youtube.url.includes('instagram.com');
+    ytLink.style.borderColor = isIG ? '#c13584' : '#ff0000';
+    ytBadge.style.background = isIG ? 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' : '#ff0000';
+    ytBadge.textContent = isIG ? 'Instagram' : 'YouTube';
+  } else { ytWrap.style.display = 'none'; }
+  const igLink = document.getElementById('detail-ig-link');
+  if (d.instagram) {
+    igLink.style.display = 'flex';
+    igLink.href = d.instagram.url;
+  } else { igLink.style.display = 'none'; }
+  stopAnim();
+  renderDiagram('detail-svg', d, false);
+  updateAddBtn();
+  showScreen('screen-detail');
+}
+
+function updateAddBtn() {
+  const d = DRILLS.find(x => x.id === currentDrillId);
+  const cat = CATEGORIES.find(c => c.id === d.cat);
+  const inSess = session.includes(d.id);
+  const btn = document.getElementById('btn-add-remove');
+  btn.textContent = inSess ? '✓ Added to Session' : '+ Add to Session';
+  btn.style.background = inSess ? 'rgba(168,230,61,0.15)' : cat.color;
+  btn.style.color = inSess ? '#a8e63d' : '#0a0e0a';
+  btn.style.border = inSess ? '1px solid rgba(168,230,61,0.3)' : 'none';
+}
+
+function toggleDrillInSession() {
+  toggleSession(currentDrillId);
+  updateAddBtn();
+  updateCounts();
+}
+
+// ─── SESSION ─────────────────────────────────────────────────────────
+function toggleSession(id) {
+  if (session.includes(id)) {
+    session = session.filter(x => x !== id);
+  } else {
+    session.push(id);
+  }
+  updateCounts();
+  if (document.getElementById('screen-library').classList.contains('active')) renderDrillList();
+  if (document.getElementById('screen-session').classList.contains('active')) renderSession();
+}
+
+function renderSession() {
+  const empty = document.getElementById('sess-empty');
+  const list = document.getElementById('sess-list');
+  const total = document.getElementById('sess-total');
+  if (session.length === 0) {
+    empty.style.display = 'flex';
+    list.style.display = 'none';
+    total.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  list.style.display = 'block';
+  total.style.display = 'flex';
+  list.innerHTML = '';
+  let totalMins = 0;
+  session.forEach((id, i) => {
+    const d = DRILLS.find(x => x.id === id);
+    const cat = CATEGORIES.find(c => c.id === d.cat);
+    totalMins += d.duration;
+    const el = document.createElement('div');
+    el.className = 'sess-item';
+    el.setAttribute('draggable', 'true');
+    el.setAttribute('data-id', id);
+    el.setAttribute('data-idx', i);
+    el.innerHTML = `
+      <div class="drag-handle" style="display:flex;flex-direction:column;gap:2px;padding:4px 6px 4px 2px;cursor:grab;flex-shrink:0;opacity:0.5">
+        <span style="display:block;width:16px;height:2px;background:#8aa08a;border-radius:2px"></span>
+        <span style="display:block;width:16px;height:2px;background:#8aa08a;border-radius:2px"></span>
+        <span style="display:block;width:16px;height:2px;background:#8aa08a;border-radius:2px"></span>
+      </div>
+      <div class="sess-num">${i+1}</div>
+      <div style="width:28px;height:28px;border-radius:6px;background:${cat.bg};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${cat.icon}</div>
+      <div class="sess-info" style="cursor:pointer"><div class="sess-name">${d.name}</div><div class="sess-meta">${cat.name} · ${d.duration} min</div></div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+        <button onclick="moveInSession(${i},-1)" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:26px;height:22px;font-size:12px;cursor:pointer;line-height:1;${i===0?'opacity:0.25;pointer-events:none':''}">▲</button>
+        <button onclick="moveInSession(${i},1)" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:26px;height:22px;font-size:12px;cursor:pointer;line-height:1;${i===session.length-1?'opacity:0.25;pointer-events:none':''}">▼</button>
+      </div>
+      <button class="sess-remove" onclick="toggleSession('${id}')">×</button>`;
+    // click on info = open drill detail
+    el.querySelector('.sess-info').onclick = () => openDrillDetail(id,'screen-session');
+    // drag events
+    el.addEventListener('dragstart', onDragStart);
+    el.addEventListener('dragover', onDragOver);
+    el.addEventListener('dragend', onDragEnd);
+    el.addEventListener('drop', onDrop);
+    // touch drag events
+    el.addEventListener('touchstart', onTouchStart, {passive:true});
+    el.addEventListener('touchmove', onTouchMove, {passive:false});
+    el.addEventListener('touchend', onTouchEnd);
+    list.appendChild(el);
+  });
+  document.getElementById('sess-time').textContent = totalMins + ' min';
+  document.getElementById('sess-badge').textContent = session.length;
+}
+
+function updateCounts() {
+  document.getElementById('home-sess-count').textContent = session.length;
+  document.getElementById('lib-sess-count').textContent = session.length;
+  document.getElementById('sess-badge').textContent = session.length;
+  const fill = Math.min(100, (session.length / DRILLS.length) * 100);
+  document.getElementById('home-sess-fill').style.width = fill + '%';
+  const btn = document.getElementById('home-sess-btn');
+  btn.className = session.length > 0 ? 'btn-secondary active-sess' : 'btn-secondary';
+}
+
+function moveInSession(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= session.length) return;
+  const tmp = session[idx]; session[idx] = session[newIdx]; session[newIdx] = tmp;
+  renderSession();
+}
+
+// ─── DRAG-TO-REORDER (mouse) ─────────────────────────────────────────
+let dragSrcIdx = null;
+function onDragStart(e) {
+  dragSrcIdx = parseInt(e.currentTarget.getAttribute('data-idx'));
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.sess-item').forEach(el => el.style.borderTop = '1px solid #2e382e');
+  e.currentTarget.style.borderTop = '2px solid #a8e63d';
+}
+function onDrop(e) {
+  e.preventDefault();
+  const targetIdx = parseInt(e.currentTarget.getAttribute('data-idx'));
+  if (dragSrcIdx !== null && dragSrcIdx !== targetIdx) {
+    const moved = session.splice(dragSrcIdx, 1)[0];
+    session.splice(targetIdx, 0, moved);
+    renderSession();
+  }
+}
+function onDragEnd(e) {
+  e.currentTarget.style.opacity = '1';
+  document.querySelectorAll('.sess-item').forEach(el => el.style.borderTop = '');
+  dragSrcIdx = null;
+}
+
+// ─── DRAG-TO-REORDER (touch) ─────────────────────────────────────────
+let touchDragIdx = null, touchClone = null, touchOffsetY = 0;
+function onTouchStart(e) {
+  // only drag from handle
+  if (!e.target.closest('.drag-handle')) return;
+  touchDragIdx = parseInt(e.currentTarget.getAttribute('data-idx'));
+  const rect = e.currentTarget.getBoundingClientRect();
+  touchOffsetY = e.touches[0].clientY - rect.top;
+  // create floating clone
+  touchClone = e.currentTarget.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;background:#252c25;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);`;
+  document.body.appendChild(touchClone);
+  e.currentTarget.style.opacity = '0.3';
+}
+function onTouchMove(e) {
+  if (touchDragIdx === null || !touchClone) return;
+  e.preventDefault();
+  const y = e.touches[0].clientY;
+  touchClone.style.top = (y - touchOffsetY) + 'px';
+  // find which item we're hovering over
+  document.querySelectorAll('.sess-item').forEach(el => el.style.borderTop = '1px solid #2e382e');
+  const items = Array.from(document.querySelectorAll('.sess-item'));
+  items.forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (y > r.top && y < r.bottom) el.style.borderTop = '2px solid #a8e63d';
+  });
+}
+function onTouchEnd(e) {
+  if (touchDragIdx === null) return;
+  if (touchClone) { document.body.removeChild(touchClone); touchClone = null; }
+  document.querySelectorAll('.sess-item').forEach(el => el.style.opacity = '1');
+  const y = e.changedTouches[0].clientY;
+  const items = Array.from(document.querySelectorAll('.sess-item'));
+  let targetIdx = touchDragIdx;
+  items.forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (y > r.top && y < r.bottom) targetIdx = parseInt(el.getAttribute('data-idx'));
+  });
+  if (targetIdx !== touchDragIdx) {
+    const moved = session.splice(touchDragIdx, 1)[0];
+    session.splice(targetIdx, 0, moved);
+    renderSession();
+  } else {
+    document.querySelectorAll('.sess-item').forEach(el => el.style.borderTop = '');
+  }
+  touchDragIdx = null;
+}
+
+// ─── SESSION RUN ─────────────────────────────────────────────────────
+function startSession() {
+  if (session.length === 0) return;
+  runIdx = 0;
+  stopRunTimer();
+  renderRunPhase();
+  showScreen('screen-run');
+}
+
+function renderRunPhase() {
+  const id = session[runIdx];
+  const d = DRILLS.find(x => x.id === id);
+  const cat = CATEGORIES.find(c => c.id === d.cat);
+  runTimeLeft = d.duration * 60;
+  runRunning = false;
+  document.getElementById('run-cat').textContent = cat.name;
+  document.getElementById('run-cat').style.color = cat.color;
+  document.getElementById('run-title').textContent = d.name;
+  document.getElementById('run-setup').textContent = d.setup;
+  document.getElementById('run-points').innerHTML = d.points.map(p =>
+    `<div class="point-row"><div class="point-dot" style="background:${cat.color}"></div><div class="point-txt">${p}</div></div>`).join('');
+  if (d.progression) {
+    document.getElementById('run-prog-wrap').style.display = 'block';
+    document.getElementById('run-prog').textContent = '↑ ' + d.progression;
+  } else { document.getElementById('run-prog-wrap').style.display = 'none'; }
+  // pips
+  const pips = document.getElementById('run-pips');
+  pips.innerHTML = session.map((_, i) =>
+    `<div class="run-pip ${i < runIdx ? 'done' : i === runIdx ? 'current' : ''}"></div>`).join('');
+  // diagram
+  stopRunAnim();
+  renderDiagram('run-svg', d, false);
+  document.getElementById('run-anim-btn').textContent = '▶ Animate';
+  // nav
+  document.getElementById('run-prev-btn').disabled = runIdx === 0;
+  const nxt = document.getElementById('run-next-btn');
+  nxt.textContent = runIdx === session.length-1 ? '✓ Finish' : 'Next →';
+  nxt.style.background = cat.color;
+  nxt.style.color = '#0a0e0a';
+  nxt.disabled = false;
+  updateRunTimerUI();
+}
+
+function updateRunTimerUI() {
+  const id = session[runIdx];
+  const d = DRILLS.find(x => x.id === id);
+  const cat = CATEGORIES.find(c => c.id === d.cat);
+  const pct = runTimeLeft / (d.duration * 60);
+  const circ = 2 * Math.PI * 52;
+  const offset = circ * (1 - pct);
+  const ring = document.getElementById('run-ring');
+  ring.setAttribute('stroke-dashoffset', offset);
+  const color = pct > 0.5 ? cat.color : pct > 0.2 ? '#ffb830' : '#ff5a5a';
+  ring.setAttribute('stroke', color);
+  document.getElementById('run-time-num').setAttribute('fill', color);
+  const m = Math.floor(runTimeLeft / 60), s = runTimeLeft % 60;
+  document.getElementById('run-time-num').textContent = m + ':' + String(s).padStart(2,'0');
+  document.getElementById('run-time-lbl').textContent = runTimeLeft === 0 ? 'DONE' : 'remaining';
+  const pb = document.getElementById('run-play-btn');
+  if (runTimeLeft === 0) {
+    pb.textContent = '✓ Done'; pb.style.background='rgba(168,230,61,0.15)'; pb.style.color='#a8e63d'; pb.style.border='1px solid rgba(168,230,61,0.3)';
+  } else if (runRunning) {
+    pb.textContent = '⏸ Pause'; pb.style.background='rgba(255,184,48,0.15)'; pb.style.color='#ffb830'; pb.style.border='1px solid rgba(255,184,48,0.3)';
+  } else {
+    pb.textContent = '▶ Start'; pb.style.background='rgba(168,230,61,0.15)'; pb.style.color='#a8e63d'; pb.style.border='1px solid rgba(168,230,61,0.3)';
+  }
+}
+
+function stopRunTimer() { clearInterval(runInterval); runInterval=null; runRunning=false; }
+function toggleRunTimer() {
+  if (runTimeLeft===0) return;
+  runRunning = !runRunning;
+  if (runRunning) {
+    runInterval = setInterval(() => {
+      runTimeLeft--;
+      updateRunTimerUI();
+      if (runTimeLeft===0) { stopRunTimer(); updateRunTimerUI(); }
+    }, 1000);
+  } else stopRunTimer();
+  updateRunTimerUI();
+}
+function resetRunTimer() { stopRunTimer(); runTimeLeft=DRILLS.find(x=>x.id===session[runIdx]).duration*60; updateRunTimerUI(); }
+function runPrev() { if(runIdx>0){stopRunTimer();runIdx--;renderRunPhase();} }
+function runNext() {
+  if(runIdx<session.length-1){stopRunTimer();runIdx++;renderRunPhase();}
+  else { stopRunTimer(); showScreen('screen-home'); }
+}
+function exitRun() {
+  stopRunTimer();
+  stopRunAnim();
+  showScreen('screen-session');
+}
+
+// ─── SHARE SESSION ───────────────────────────────────────────────────
+function shareSession() {
+  if (session.length === 0) return;
+  const lines = [];
+  lines.push('⚽ U10 COACHING SESSION');
+  lines.push('─────────────────────');
+  let total = 0;
+  session.forEach((id, i) => {
+    const d = DRILLS.find(x => x.id === id);
+    const cat = CATEGORIES.find(c => c.id === d.cat);
+    lines.push(`${i+1}. ${d.name} (${d.duration} min) — ${cat.name}`);
+    total += d.duration;
+  });
+  lines.push('─────────────────────');
+  lines.push(`Total: ${total} min`);
+  document.getElementById('share-text-box').textContent = lines.join('\n');
+  document.getElementById('copy-btn').textContent = 'Copy to Clipboard';
+  document.getElementById('share-modal').style.display = 'flex';
+}
+
+function closeShare() {
+  document.getElementById('share-modal').style.display = 'none';
+}
+
+// ─── TEAM / CLOUD FEATURES ─────────────────────────────────────────
+// Everything here degrades gracefully if window.DrillAppCloud isn't
+// loaded (i.e. firebase-client.js wasn't included) — the rest of the
+// app works fully offline without these.
+
+let currentTeam = null; // { teamId, teamName }
+
+function cloudAvailable() {
+  return typeof window.DrillAppCloud !== 'undefined';
+}
+
+async function initTeamState() {
+  if (!cloudAvailable()) return;
+  try {
+    const restored = await window.DrillAppCloud.restoreSession();
+    if (restored) {
+      currentTeam = restored;
+      updateTeamUI();
+    }
+  } catch (e) {
+    // silent — coach just sees the sign-in screen
+  }
+}
+
+function updateTeamUI() {
+  const badge = document.getElementById('team-badge-home');
+  const badgeName = document.getElementById('team-badge-name');
+  const signedOut = document.getElementById('team-signed-out');
+  const signedIn = document.getElementById('team-signed-in');
+  const nameDisplay = document.getElementById('team-name-display');
+
+  if (currentTeam) {
+    badge.style.display = 'block';
+    badgeName.textContent = currentTeam.teamName;
+    if (signedOut) signedOut.style.display = 'none';
+    if (signedIn) signedIn.style.display = 'block';
+    if (nameDisplay) nameDisplay.textContent = currentTeam.teamName;
+  } else {
+    badge.style.display = 'none';
+    if (signedOut) signedOut.style.display = 'block';
+    if (signedIn) signedIn.style.display = 'none';
+  }
+}
+
+async function joinTeamAction() {
+  const input = document.getElementById('team-code-input');
+  const msg = document.getElementById('team-status-msg');
+  const code = input.value.trim();
+  if (!code) { msg.textContent = 'Enter a code first.'; msg.style.color = '#ff5a5a'; return; }
+  if (!cloudAvailable()) { msg.textContent = 'Cloud features are not set up yet.'; msg.style.color = '#ff5a5a'; return; }
+
+  msg.textContent = 'Checking code...'; msg.style.color = 'var(--muted)';
+  try {
+    const result = await window.DrillAppCloud.joinTeam(code);
+    currentTeam = result;
+    updateTeamUI();
+    msg.textContent = '';
+    input.value = '';
+  } catch (e) {
+    msg.textContent = e.message || 'That code didn\'t work — check and try again.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+async function createTeamAction() {
+  const input = document.getElementById('team-name-input');
+  const msg = document.getElementById('team-status-msg');
+  const name = input.value.trim();
+  if (!name) { msg.textContent = 'Enter a team name first.'; msg.style.color = '#ff5a5a'; return; }
+  if (!cloudAvailable()) { msg.textContent = 'Cloud features are not set up yet.'; msg.style.color = '#ff5a5a'; return; }
+
+  msg.textContent = 'Creating team...'; msg.style.color = 'var(--muted)';
+  try {
+    const result = await window.DrillAppCloud.createTeam(name);
+    currentTeam = { teamId: result.teamId, teamName: result.teamName };
+    updateTeamUI();
+    msg.textContent = '';
+    input.value = '';
+    // Show the code prominently — this is the ONLY time it's shown in plaintext
+    alert(`Team created! Your code is:\n\n${result.code}\n\nShare this with your coaches. Save it somewhere — it won't be shown again (you can regenerate it if lost).`);
+  } catch (e) {
+    msg.textContent = e.message || 'Could not create team — try again.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+function leaveTeamAction() {
+  if (!cloudAvailable()) return;
+  window.DrillAppCloud.signOutTeam();
+  currentTeam = null;
+  updateTeamUI();
+}
+
+async function regenerateCodeAction() {
+  if (!currentTeam || !cloudAvailable()) return;
+  const msg = document.getElementById('team-status-msg-2');
+  if (!confirm('This creates a new code you can share. Continue?')) return;
+  try {
+    const newCode = await window.DrillAppCloud.regenerateCode(currentTeam.teamId);
+    alert(`New code:\n\n${newCode}\n\nShare this with your coaches. Note: the previous code will still work too — if it's been shared somewhere you don't want it, ask a coach to reach out and we can look at removing it manually.`);
+  } catch (e) {
+    msg.textContent = e.message || 'Could not create a new code.';
+    msg.style.color = '#ff5a5a';
+  }
+}
+
+async function saveSessionToTeam() {
+  if (session.length === 0) return;
+  if (!cloudAvailable() || !currentTeam) {
+    showScreen('screen-team');
+    return;
+  }
+  const dateInput = document.getElementById('sess-date-input');
+  const date = dateInput.value;
+  if (!date) {
+    alert('Pick a date for this session first.');
+    return;
+  }
+
+  const drillData = session.map(id => {
+    const d = DRILLS.find(x => x.id === id);
+    const cat = CATEGORIES.find(c => c.id === d.cat);
+    return { id: d.id, name: d.name, duration: d.duration, category: cat.name };
+  });
+
+  const btn = document.getElementById('btn-save-team');
+  const originalText = btn.textContent;
+  btn.textContent = 'Saving...';
+  try {
+    await window.DrillAppCloud.saveSession(currentTeam.teamId, {
+      name: `Session — ${date}`,
+      date,
+      drills: drillData,
+    });
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => { btn.textContent = originalText; }, 2000);
+  } catch (e) {
+    btn.textContent = originalText;
+    alert('Could not save: ' + (e.message || 'unknown error'));
+  }
+}
+
+async function renderTeamSessions() {
+  const list = document.getElementById('team-sess-list');
+  if (!currentTeam || !cloudAvailable()) {
+    list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">Join a team first to see saved sessions.</div>';
+    return;
+  }
+  list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">Loading...</div>';
+  try {
+    const sessions = await window.DrillAppCloud.listSessions(currentTeam.teamId);
+    if (sessions.length === 0) {
+      list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">No sessions saved yet.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    sessions.forEach(s => {
+      const totalMins = (s.drills || []).reduce((a, d) => a + (d.duration || 0), 0);
+      const el = document.createElement('div');
+      el.className = 'sess-item';
+      el.innerHTML = `
+        <div style="flex:1">
+          <div class="sess-name">${formatDisplayDate(s.date)}</div>
+          <div class="sess-meta">${(s.drills||[]).length} drills · ${totalMins} min</div>
+        </div>
+        <button class="sess-remove" onclick="deleteTeamSessionAction('${s.id}')">×</button>`;
+      list.appendChild(el);
+    });
+  } catch (e) {
+    list.innerHTML = '<div style="padding:20px 14px;color:#ff5a5a;font-size:13px">Could not load sessions.</div>';
+  }
+}
+
+async function deleteTeamSessionAction(sessionId) {
+  if (!currentTeam || !confirm('Delete this session?')) return;
+  await window.DrillAppCloud.deleteSession(currentTeam.teamId, sessionId);
+  renderTeamSessions();
+}
+
+function formatDisplayDate(iso) {
+  if (!iso) return 'No date';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function copySession() {
+  const box = document.getElementById('share-text-box');
+  const text = box ? box.textContent : '';
+  const btn = document.getElementById('copy-btn');
+  function showCopied() {
+    if (!btn) return;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2000);
+  }
+  function showFailed() {
+    if (!btn) return;
+    btn.textContent = 'Copy failed — select text manually';
+    setTimeout(() => { btn.textContent = 'Copy to Clipboard'; }, 2500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+      fallbackCopy(text, showCopied, showFailed);
+    });
+  } else {
+    fallbackCopy(text, showCopied, showFailed);
+  }
+}
+
+function fallbackCopy(text, onSuccess, onFail) {
+  try {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    if (!document.body) { onFail(); return; }
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, text.length);
+    const ok = document.execCommand ? document.execCommand('copy') : false;
+    document.body.removeChild(el);
+    ok ? onSuccess() : onFail();
+  } catch (e) {
+    onFail();
+  }
+}
+
+// Close modal on backdrop tap
+document.getElementById('share-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeShare();
+});
+
+// ─── CUES ────────────────────────────────────────────────────────────
+function renderCues() {
+  const list = document.getElementById('cues-list');
+  list.innerHTML = GLOBAL_CUES.map((c,i) =>
+    `<div class="cue-row"><div class="cue-n">${i+1}</div><div class="cue-q">"${c}"</div></div>`).join('');
+}
+
+// ─── ANIMATION ENGINE ────────────────────────────────────────────────
+// Each anim function returns an object: { init(svg), tick(svg,t), duration }
+// t goes 0→1 over `duration` ms, then loops
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function easeInOut(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+
+let animState = {};
+let animT = 0;
+let animStartTime = null;
+let animDuration = 3000;
+let animSvgId = 'detail-svg';
+
+function renderDiagram(svgId, drill, animated) {
+  const svg = document.getElementById(svgId);
+  svg.setAttribute('viewBox', drill.viewBox);
+  const w = parseInt(drill.viewBox.split(' ')[2]);
+  const h = parseInt(drill.viewBox.split(' ')[3]);
+  animState = {};
+  drill.anim(svg, 0, false, animState, w, h);
+}
+
+function stopAnim() {
+  cancelAnimationFrame(animFrame);
+  animFrame = null;
+  animPlaying = false;
+  document.getElementById('anim-btn').textContent = '▶ Animate';
+}
+
+function stopRunAnim() {
+  cancelAnimationFrame(runAnimFrame);
+  runAnimFrame = null;
+  runAnimPlaying = false;
+  if(document.getElementById('run-anim-btn'))
+    document.getElementById('run-anim-btn').textContent = '▶ Animate';
+}
+
+function toggleAnim() {
+  if (animPlaying) { stopAnim(); return; }
+  const d = DRILLS.find(x => x.id === currentDrillId);
+  const svg = document.getElementById('detail-svg');
+  animPlaying = true;
+  animStartTime = null;
+  document.getElementById('anim-btn').textContent = '■ Stop';
+  function frame(ts) {
+    if (!animStartTime) animStartTime = ts;
+    const elapsed = ts - animStartTime;
+    const t = (elapsed % 4000) / 4000;
+    animState = animState || {};
+    d.anim(svg, t, true, animState, parseInt(d.viewBox.split(' ')[2]), parseInt(d.viewBox.split(' ')[3]));
+    if (animPlaying) animFrame = requestAnimationFrame(frame);
+  }
+  animFrame = requestAnimationFrame(frame);
+}
+
+function toggleRunAnim() {
+  if (runAnimPlaying) { stopRunAnim(); return; }
+  const id = session[runIdx];
+  const d = DRILLS.find(x => x.id === id);
+  const svg = document.getElementById('run-svg');
+  runAnimPlaying = true;
+  let startTime = null;
+  document.getElementById('run-anim-btn').textContent = '■ Stop';
+  function frame(ts) {
+    if (!startTime) startTime = ts;
+    const t = ((ts - startTime) % 4000) / 4000;
+    d.anim(svg, t, true, {}, parseInt(d.viewBox.split(' ')[2]), parseInt(d.viewBox.split(' ')[3]));
+    if (runAnimPlaying) runAnimFrame = requestAnimationFrame(frame);
+  }
+  runAnimFrame = requestAnimationFrame(frame);
+}
+
+// ─── DIAGRAM / ANIMATION FUNCTIONS ───────────────────────────────────
+function mkSvg(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function pitchBg(svg, w, h, color='#166534') {
+  svg.innerHTML = '';
+  svg.appendChild(mkSvg('rect',{width:w,height:h,rx:8,fill:color}));
+  svg.appendChild(mkSvg('rect',{x:8,y:8,width:w-16,height:h-16,rx:6,fill:'none',stroke:'rgba(255,255,255,0.25)','stroke-width':'1.5'}));
+  return svg;
+}
+
+function playerCircle(svg, x, y, label, fill, stroke, r=13) {
+  const g = mkSvg('g', {});
+  g.appendChild(mkSvg('circle',{cx:x,cy:y,r:r,fill,stroke,'stroke-width':'2'}));
+  const t = mkSvg('text',{x,y:y+4,'text-anchor':'middle',fill:'white','font-size':'10','font-weight':'bold'});
+  t.textContent = label;
+  g.appendChild(t);
+  return g;
+}
+
+function arrow(svg, x1,y1,x2,y2,color,dashed=false) {
+  const line = mkSvg('line',{x1,y1,x2,y2,stroke:color,'stroke-width':'2.5','stroke-linecap':'round'});
+  if(dashed) line.setAttribute('stroke-dasharray','5 4');
+  svg.appendChild(line);
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  if(len<1)return;
+  const nx=dx/len,ny=dy/len,px=-ny,py=nx;
+  const ax=x2-nx*8+px*5, ay=y2-ny*8+py*5;
+  const bx=x2-nx*8-px*5, by=y2-ny*8-py*5;
+  const poly = mkSvg('polygon',{points:`${x2},${y2} ${ax},${ay} ${bx},${by}`,fill:color});
+  svg.appendChild(poly);
+}
+
+function movePlayer(g, x, y) {
+  const c = g.querySelector('circle');
+  const t = g.querySelector('text');
+  c.setAttribute('cx', x); c.setAttribute('cy', y);
+  t.setAttribute('x', x); t.setAttribute('y', y+4);
+}
+
+// FREEZE TAG
+function animFreeze(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // grid lines
+  [w/3,2*w/3].forEach(x => svg.appendChild(mkSvg('line',{x1:x,y1:8,x2:x,y2:h-8,stroke:'rgba(255,255,255,0.1)','stroke-width':'1'})));
+  svg.appendChild(mkSvg('line',{x1:8,y1:h/2,x2:w-8,y2:h/2,stroke:'rgba(255,255,255,0.1)','stroke-width':'1'}));
+  const attackers = [[50,50],[150,40],[240,60],[60,130],[200,130],[130,100]];
+  const defenders = [[100,90],[190,70]];
+  if (animated) {
+    // defenders move toward nearest attacker
+    defenders.forEach((d,i) => {
+      const target = attackers[(i*2+Math.floor(t*3))%attackers.length];
+      const x = lerp(d[0], target[0]*0.6+d[0]*0.4, easeInOut((t*2)%1));
+      const y = lerp(d[1], target[1]*0.6+d[1]*0.4, easeInOut((t*2)%1));
+      svg.appendChild(playerCircle(svg,x,y,'D','#1d4ed8','#60a5fa'));
+    });
+  } else {
+    defenders.forEach(([x,y]) => svg.appendChild(playerCircle(svg,x,y,'D','#1d4ed8','#60a5fa')));
+  }
+  attackers.forEach(([x,y],i) => {
+    let ax=x,ay=y;
+    if(animated){ ax=x+Math.sin(t*Math.PI*2+i)*8; ay=y+Math.cos(t*Math.PI*2+i*0.7)*8; }
+    const g=playerCircle(svg,ax,ay,'A','#ef4444','white');
+    svg.appendChild(g);
+    svg.appendChild(mkSvg('circle',{cx:ax+10,cy:ay+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+  const lbl = mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});
+  lbl.textContent = 'Red=Attacker  Blue=Defender';
+  svg.appendChild(lbl);
+}
+
+// SHARK ATTACK
+function animShark(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // end zones
+  svg.appendChild(mkSvg('rect',{x:8,y:8,width:w-16,height:25,fill:'rgba(168,230,61,0.1)',stroke:'rgba(168,230,61,0.3)','stroke-width':'1'}));
+  svg.appendChild(mkSvg('rect',{x:8,y:h-33,width:w-16,height:25,fill:'rgba(168,230,61,0.1)',stroke:'rgba(168,230,61,0.3)','stroke-width':'1'}));
+  const lbl1=mkSvg('text',{x:w/2,y:22,'text-anchor':'middle',fill:'rgba(168,230,61,0.7)','font-size':'8','font-weight':'700'});lbl1.textContent='START';svg.appendChild(lbl1);
+  const lbl2=mkSvg('text',{x:w/2,y:h-21,'text-anchor':'middle',fill:'rgba(168,230,61,0.7)','font-size':'8','font-weight':'700'});lbl2.textContent='END';svg.appendChild(lbl2);
+  // sharks (defenders) in middle
+  [[100,90],[180,90],[140,75]].forEach(([x,y],i) => {
+    let sx=x,sy=y;
+    if(animated){sx=x+Math.sin(t*Math.PI*2+i*2)*15;sy=y+Math.cos(t*Math.PI*2+i)*10;}
+    svg.appendChild(playerCircle(svg,sx,sy,'S','#1d4ed8','#60a5fa'));
+  });
+  // attackers dribbling across
+  [[60,55],[150,55],[240,55]].forEach(([x,y],i)=>{
+    let ay = animated ? lerp(22,h-22,(t+i*0.3)%1) : y;
+    svg.appendChild(playerCircle(svg,x,ay,'A','#ef4444','white'));
+    svg.appendChild(mkSvg('circle',{cx:x+8,cy:ay+8,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='S=Shark  A=Attacker — dribble to safe end';svg.appendChild(lbl);
+}
+
+// TRAFFIC LIGHTS
+function animTraffic(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const phase = animated ? Math.floor(t*4) : 0;
+  const colours = ['#ef4444','#ffb830','#a8e63d','#5ab4ff'];
+  const labels = ['RED: STOP','AMBER: SLOW','GREEN: GO!','BLUE: TURN'];
+  const bx=w/2,by=20;
+  svg.appendChild(mkSvg('rect',{x:bx-40,y:by-12,width:80,height:22,rx:5,fill:colours[phase]+'33',stroke:colours[phase],'stroke-width':'1.5'}));
+  const lbl=mkSvg('text',{x:bx,y:by+4,'text-anchor':'middle',fill:colours[phase],'font-size':'10','font-weight':'800'});lbl.textContent=labels[phase];svg.appendChild(lbl);
+  const players=[[60,80],[120,60],[180,90],[240,70],[80,130],[160,120],[220,140]];
+  players.forEach(([x,y],i)=>{
+    let px=x,py=y;
+    if(animated && phase>=2) {px=x+Math.sin(t*Math.PI*4+i)*12;py=y+Math.cos(t*Math.PI*3+i)*10;}
+    svg.appendChild(playerCircle(svg,px,py,'P','#a8e63d','#166534',11));
+    svg.appendChild(mkSvg('circle',{cx:px+8,cy:py+8,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+}
+
+// RONDO
+function animRondo(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const cx=w/2, cy=h/2, r=65;
+  svg.appendChild(mkSvg('circle',{cx,cy,r:r+5,fill:'none',stroke:'rgba(255,255,255,0.1)','stroke-width':'1','stroke-dasharray':'5 4'}));
+  const outer=[[cx,cy-r],[cx+r*Math.sin(Math.PI*2/3*1),cy-r*Math.cos(Math.PI*2/3*1)],[cx+r*Math.sin(Math.PI*2/3*2),cy-r*Math.cos(Math.PI*2/3*2)],[cx+r*Math.sin(Math.PI*2/3*3),cy-r*Math.cos(Math.PI*2/3*3)]];
+  const ballHolder = animated ? Math.floor(t*4)%4 : 0;
+  outer.forEach(([x,y],i)=>{
+    svg.appendChild(playerCircle(svg,x,y,'A','#ef4444','white'));
+    if(i===ballHolder) svg.appendChild(mkSvg('circle',{cx:x+12,cy:y+12,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+  // pass line
+  if(animated){
+    const next=(ballHolder+1)%4;
+    const [fx,fy]=outer[ballHolder],[tx,ty]=outer[next];
+    const bt=easeInOut((t*4)%1);
+    const bx=lerp(fx,tx,bt),by=lerp(fy,ty,bt);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    arrow(svg,fx,fy,tx,ty,'rgba(168,230,61,0.6)',true);
+  }
+  // defender in middle
+  let dx=cx,dy=cy;
+  if(animated){const target=outer[(ballHolder+1)%4];dx=lerp(cx,target[0]*0.4+cx*0.6,easeInOut((t*4)%1));dy=lerp(cy,target[1]*0.4+cy*0.6,easeInOut((t*4)%1));}
+  svg.appendChild(playerCircle(svg,dx,dy,'D','#1d4ed8','#60a5fa'));
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='4v1 Rondo — defender presses ball holder';svg.appendChild(lbl);
+}
+
+// BUMPER CARS
+function animBumper(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  svg.appendChild(mkSvg('rect',{x:20,y:15,width:w-40,height:h-30,rx:6,fill:'none',stroke:'rgba(255,255,255,0.2)','stroke-width':'1.5'}));
+  const players=[[70,50],[140,80],[220,50],[80,120],[190,120],[150,50]];
+  players.forEach(([x,y],i)=>{
+    let px=x,py=y;
+    if(animated){
+      px=Math.max(25,Math.min(w-25,x+Math.sin(t*Math.PI*2*1.3+i*1.1)*20));
+      py=Math.max(20,Math.min(h-20,y+Math.cos(t*Math.PI*2*0.9+i*0.8)*18));
+    }
+    const colors=['#ef4444','#ffb830','#3ddfc8','#b87fff','#5ab4ff','#a8e63d'];
+    svg.appendChild(playerCircle(svg,px,py,'P',colors[i],'white',12));
+    svg.appendChild(mkSvg('circle',{cx:px+10,cy:py+10,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));
+  });
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Protect your ball — barge others out!';svg.appendChild(lbl);
+}
+
+// SPRINT & SLOW
+function animSprintSlow(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
+  const lbl=mkSvg('text',{x:30,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Start';svg.appendChild(lbl);
+  svg.appendChild(mkSvg('rect',{x:195,y:35,width:55,height:50,rx:5,fill:'rgba(255,184,48,0.15)',stroke:'#ffb830','stroke-width':'1.5'}));
+  const sl=mkSvg('text',{x:222,y:58,'text-anchor':'middle',fill:'#ffb830','font-size':'9','font-weight':'700'});sl.textContent='SLOW';svg.appendChild(sl);
+  const sl2=mkSvg('text',{x:222,y:71,'text-anchor':'middle',fill:'#ffb830','font-size':'8'});sl2.textContent='2–3m';svg.appendChild(sl2);
+  const sprintLbl=mkSvg('text',{x:120,y:55,'text-anchor':'middle',fill:'#a8e63d','font-size':'10','font-weight':'700'});sprintLbl.textContent='SPRINT';svg.appendChild(sprintLbl);
+  const jLbl=mkSvg('text',{x:255,y:55,'text-anchor':'middle',fill:'#5ab4ff','font-size':'8'});jLbl.textContent='JOCKEY';svg.appendChild(jLbl);
+  arrow(svg,50,70,192,70,'#a8e63d');
+  arrow(svg,250,70,272,70,'#5ab4ff',true);
+  // attacker static
+  svg.appendChild(playerCircle(svg,280,70,'A','#ef4444','white'));
+  // defender animated
+  let dx=30;
+  if(animated){ const phase=(t*1.5)%1; dx=phase<0.6?lerp(30,195,easeInOut(phase/0.6)):lerp(195,248,easeInOut((phase-0.6)/0.4)); }
+  svg.appendChild(playerCircle(svg,dx,70,'D','#1d4ed8','#60a5fa'));
+}
+
+// AWARENESS
+function animAwareness(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-25,y:8,width:50,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+  const gl=mkSvg('text',{x:w/2,y:19,'text-anchor':'middle',fill:'white','font-size':'8'});gl.textContent='GOAL';svg.appendChild(gl);
+  // A1 live
+  const a1x=150,a1y=animated?lerp(100,80,easeInOut(t)):100;
+  svg.appendChild(playerCircle(svg,a1x,a1y,'A1','#ef4444','white'));
+  svg.appendChild(mkSvg('circle',{cx:a1x+12,cy:a1y+12,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  // A2 shadow
+  const a2x=animated?lerp(258,220,easeInOut(t)):258,a2y=80;
+  const a2g=mkSvg('g',{});
+  a2g.appendChild(mkSvg('circle',{cx:a2x,cy:a2y,r:14,fill:'#ef4444',stroke:'#ffb830','stroke-width':'2','stroke-dasharray':'4 2'}));
+  const a2t=mkSvg('text',{x:a2x,y:a2y+4,'text-anchor':'middle',fill:'white','font-size':'9','font-weight':'bold'});a2t.textContent='A2';a2g.appendChild(a2t);
+  const a2s=mkSvg('text',{x:a2x,y:a2y+20,'text-anchor':'middle',fill:'#ffb830','font-size':'8'});a2s.textContent='SHADOW';a2g.appendChild(a2s);
+  svg.appendChild(a2g);
+  // Defender
+  const dx=150,dy=55;
+  svg.appendChild(playerCircle(svg,dx,dy,'D','#1d4ed8','#60a5fa'));
+  // scan arrow animation
+  if(animated){
+    const scanT=(t*2)%1;
+    const sx=lerp(165,a2x-5,easeInOut(scanT));
+    const sy=lerp(50,a2y-5,easeInOut(scanT));
+    svg.appendChild(mkSvg('circle',{cx:sx,cy:sy,r:3,fill:'#ffb830',opacity:0.8}));
+  }
+  arrow(svg,165,53,a2x-5,a2y-5,'#ffb830',true);
+  const sc=mkSvg('text',{x:210,y:42,'text-anchor':'middle',fill:'#ffb830','font-size':'9','font-weight':'bold'});sc.textContent='SCAN!';svg.appendChild(sc);
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='D must close A1 AND scan for A2';svg.appendChild(lbl);
+}
+
+// GAME (3v2)
+function animGame(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:8,width:70,height:12,fill:'none',stroke:'white','stroke-width':'2'}));
+  const gl=mkSvg('text',{x:w/2,y:18,'text-anchor':'middle',fill:'white','font-size':'8'});gl.textContent='GOAL';svg.appendChild(gl);
+  svg.appendChild(mkSvg('line',{x1:8,y1:140,x2:w-8,y2:140,stroke:'rgba(255,255,255,0.25)','stroke-width':'1','stroke-dasharray':'6 4'}));
+  const hw=mkSvg('text',{x:w/2,y:153,'text-anchor':'middle',fill:'rgba(255,255,255,0.35)','font-size':'8'});hw.textContent='— Halfway (Defenders score here) —';svg.appendChild(hw);
+  const as=[[80,85],[150,65],[220,85]];
+  as.forEach(([x,y],i)=>{
+    let ax=x,ay=y;
+    if(animated){ax=x+Math.sin(t*Math.PI*2+i)*10;ay=y+Math.sin(t*Math.PI*1.5+i)*8;}
+    svg.appendChild(playerCircle(svg,ax,ay,'A'+(i+1),'#ef4444','white',13));
+  });
+  const ds=[[100,40],[200,40]];
+  ds.forEach(([x,y],i)=>{
+    let dx2=x,dy2=y;
+    if(animated){
+      const target=as[i];
+      dx2=lerp(x,target[0]*0.5+x*0.5,easeInOut((t+i*0.3)%1));
+      dy2=lerp(y,target[1]*0.5+y*0.5,easeInOut((t+i*0.3)%1));
+    }
+    svg.appendChild(playerCircle(svg,dx2,dy2,'D'+(i+1),'#1d4ed8','#60a5fa',13));
+  });
+  if(!animated){
+    arrow(svg,92,53,84,72,'#a8e63d');
+    const pl=mkSvg('text',{x:65,y:66,fill:'#a8e63d','font-size':'8','font-weight':'bold'});pl.textContent='PRESS';svg.appendChild(pl);
+    arrow(svg,192,53,178,66,'#ffb830',true);
+    const cl=mkSvg('text',{x:205,y:60,fill:'#ffb830','font-size':'8'});cl.textContent='COVER';svg.appendChild(cl);
+  }
+}
+
+// GATES
+function animGates(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gates=[[60,50],[140,40],[220,55],[50,120],[180,130],[250,100],[100,90],[230,80]];
+  gates.forEach(([x,y])=>{
+    svg.appendChild(mkSvg('line',{x1:x-8,y1:y,x2:x+8,y2:y,stroke:'#ffb830','stroke-width':'3','stroke-linecap':'round'}));
+    svg.appendChild(mkSvg('circle',{cx:x-8,cy:y,r:3,fill:'#ffb830'}));
+    svg.appendChild(mkSvg('circle',{cx:x+8,cy:y,r:3,fill:'#ffb830'}));
+  });
+  [[100,90],[200,80]].forEach(([x,y],i)=>{
+    let dx=x,dy=y;
+    if(animated){const target=gates[(i*3+Math.floor(t*4))%gates.length];dx=lerp(x,target[0]*0.6+x*0.4,easeInOut((t*2+i)%1));dy=lerp(y,target[1]*0.6+y*0.4,easeInOut((t*2+i)%1));}
+    svg.appendChild(playerCircle(svg,dx,dy,'D','#1d4ed8','#60a5fa'));
+  });
+  [[60,100],[180,60]].forEach(([x,y],i)=>{
+    let ax=x,ay=y;
+    if(animated){ax=x+Math.sin(t*Math.PI*2+i*2)*15;ay=y+Math.cos(t*Math.PI*1.7+i)*12;}
+    svg.appendChild(playerCircle(svg,ax,ay,'A','#ef4444','white'));
+    svg.appendChild(mkSvg('circle',{cx:ax+10,cy:ay+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Score by dribbling through orange gates';svg.appendChild(lbl);
+}
+
+// CHANNEL
+function animChannel(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const cx=w/2;
+  svg.appendChild(mkSvg('rect',{x:cx-22,y:10,width:44,height:h-20,rx:4,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.2)','stroke-width':'1.5'}));
+  // goals
+  svg.appendChild(mkSvg('rect',{x:cx-15,y:10,width:30,height:12,fill:'none',stroke:'#a8e63d','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:cx-15,y:h-22,width:30,height:12,fill:'none',stroke:'#ef4444','stroke-width':'2'}));
+  const gl=mkSvg('text',{x:cx+28,y:19,'text-anchor':'start',fill:'#a8e63d','font-size':'8'});gl.textContent='D scores';svg.appendChild(gl);
+  const gl2=mkSvg('text',{x:cx+28,y:h-14,'text-anchor':'start',fill:'#ef4444','font-size':'8'});gl2.textContent='A scores';svg.appendChild(gl2);
+  let ax=cx,ay=animated?lerp(h-50,30,easeInOut(t)):h-50;
+  let dx=cx,dy=animated?lerp(40,ay-20,easeInOut(t)):40;
+  svg.appendChild(playerCircle(svg,ax,ay,'A','#ef4444','white'));
+  svg.appendChild(playerCircle(svg,dx,dy,'D','#1d4ed8','#60a5fa'));
+  svg.appendChild(mkSvg('circle',{cx:ax+8,cy:ay+8,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Narrow channel — forces 1v1 technique';svg.appendChild(lbl);
+}
+
+// ONE-TWO
+function animOneTwo(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const A=[40,h-40], B=[w/2,h/2], C=[w-40,40];
+  const players=[[A,'A','#a8e63d','#166534'],[B,'B','#ef4444','white'],[C,'C','#5ab4ff','white']];
+  players.forEach(([[x,y],lbl,fill,stroke])=>svg.appendChild(playerCircle(svg,x,y,lbl,fill,stroke)));
+  if(animated){
+    const phase=Math.floor(t*3);
+    const pt=easeInOut((t*3)%1);
+    if(phase===0){const bx=lerp(A[0],B[0],pt),by=lerp(A[1],B[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    else if(phase===1){const bx=lerp(B[0],A[0]+10,pt),by=lerp(B[1],A[1]+10,pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    else{const bx=lerp(A[0],C[0],pt),by=lerp(A[1],C[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    arrow(svg,A[0],A[1],B[0],B[1],'rgba(168,230,61,0.5)',phase>0);
+    arrow(svg,B[0],B[1],A[0],A[1],'rgba(255,184,48,0.5)',phase<1);
+    arrow(svg,A[0],A[1],C[0],C[1],'rgba(90,180,255,0.5)',phase<2);
+  } else {
+    arrow(svg,A[0],A[1],B[0],B[1],'#a8e63d');
+    arrow(svg,B[0],B[1],A[0]-5,A[1]+5,'#ffb830',true);
+    arrow(svg,A[0],A[1],C[0],C[1],'#5ab4ff',true);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='A→B, B back to A, A plays in to C';svg.appendChild(lbl);
+}
+
+// 2v1
+function animTwoVOne(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:8,width:70,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+  const gl=mkSvg('text',{x:w/2,y:19,'text-anchor':'middle',fill:'white','font-size':'8'});gl.textContent='GOAL';svg.appendChild(gl);
+  const a1x=80,a2x=220;
+  let a1y=animated?lerp(h-30,50,easeInOut(t)):h-30;
+  let a2y=animated?lerp(h-30,70,easeInOut(t*0.8)):h-30;
+  let dy2=animated?lerp(h/2-10,h/2+20,easeInOut((t+0.3)%1)):h/2-10;
+  svg.appendChild(playerCircle(svg,a1x,a1y,'A1','#ef4444','white'));
+  svg.appendChild(playerCircle(svg,a2x,a2y,'A2','#ef4444','white'));
+  svg.appendChild(playerCircle(svg,w/2,dy2,'D','#1d4ed8','#60a5fa'));
+  svg.appendChild(mkSvg('circle',{cx:a1x+10,cy:a1y+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  if(animated){arrow(svg,a1x,a1y,a2x,a2y,'rgba(168,230,61,0.5)',true);}
+  else {
+    arrow(svg,a1x,a1y,a2x,a2y,'#a8e63d',true);
+    const lbl2=mkSvg('text',{x:w/2,y:a1y-10,'text-anchor':'middle',fill:'rgba(255,255,255,0.5)','font-size':'8'});lbl2.textContent='Draw defender, release';svg.appendChild(lbl2);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='2v1 — draw defender and release';svg.appendChild(lbl);
+}
+
+// FINISHING
+function animFinishing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx=w/2;
+  svg.appendChild(mkSvg('rect',{x:gx-40,y:8,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:gx-60,y:24,width:120,height:55,rx:3,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.15)','stroke-width':'1'}));
+  [[gx,60,'1pt','#a8e63d'],[gx,72,'2pt','#ffb830'],[gx,90,'3pt','#ef4444']].forEach(([x,y,lbl,color])=>{
+    svg.appendChild(mkSvg('line',{x1:gx-70,y1:y,x2:gx+70,y2:y,stroke:color+'55','stroke-width':'1','stroke-dasharray':'5 4'}));
+    const t2=mkSvg('text',{x:gx+72,y:y+3,fill:color,'font-size':'8','font-weight':'700'});t2.textContent=lbl;svg.appendChild(t2);
+  });
+  // shooter
+  let sy=animated?lerp(h-30,80,easeInOut(t)):h-30;
+  svg.appendChild(playerCircle(svg,gx,sy,'P','#a8e63d','#166534'));
+  svg.appendChild(mkSvg('circle',{cx:gx+10,cy:sy+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  if(animated&&t>0.5){const bx=lerp(gx,gx+20,easeInOut((t-0.5)*2)),by=lerp(sy-10,20,easeInOut((t-0.5)*2));svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Zones: near=1pt, box edge=2pt, outside=3pt';svg.appendChild(lbl);
+}
+
+// PRESSING
+function animPressing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-40,y:8,width:80,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+  const triggered=animated&&t>0.5;
+  const attackers=[[60,100],[130,70],[200,100],[260,70]];
+  const defenders=[[80,50],[160,40],[220,50],[290,40]];
+  attackers.forEach(([x,y],i)=>{
+    let ax=x,ay=y;
+    if(animated){ax=x+Math.sin(t*Math.PI*2+i)*8;ay=y+Math.sin(t*Math.PI*1.5+i)*6;}
+    svg.appendChild(playerCircle(svg,ax,ay,'A','#ef4444','white',11));
+  });
+  defenders.forEach(([x,y],i)=>{
+    let dx2=x,dy2=y;
+    if(triggered){const target=attackers[i];dx2=lerp(x,target[0]*0.7+x*0.3,easeInOut((t-0.5)*2));dy2=lerp(y,target[1]*0.7+y*0.3,easeInOut((t-0.5)*2));}
+    svg.appendChild(playerCircle(svg,dx2,dy2,'D','#1d4ed8','#60a5fa',11));
+  });
+  if(triggered){
+    const tl=mkSvg('text',{x:w/2,y:30,'text-anchor':'middle',fill:'#ef4444','font-size':'11','font-weight':'900'});tl.textContent='⚡ TRIGGER — PRESS!';svg.appendChild(tl);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Press together on trigger — compress as unit';svg.appendChild(lbl);
+}
+
+// SHADOW
+function animShadow(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const cx=w/2,cy=h/2,r=50;
+  svg.appendChild(mkSvg('circle',{cx,cy,r:r+10,fill:'none',stroke:'rgba(255,255,255,0.08)','stroke-width':'1','stroke-dasharray':'4 4'}));
+  const at=animated?t*Math.PI*2:0;
+  const ax=cx+r*Math.cos(at),ay=cy+r*Math.sin(at);
+  const dx=cx+r*0.7*Math.cos(at+0.3),dy=cy+r*0.7*Math.sin(at+0.3);
+  svg.appendChild(playerCircle(svg,ax,ay,'A','#ef4444','white'));
+  svg.appendChild(playerCircle(svg,dx,dy,'D','#1d4ed8','#60a5fa'));
+  if(animated){
+    const line=mkSvg('line',{x1:ax,y1:ay,x2:dx,y2:dy,stroke:'rgba(90,180,255,0.3)','stroke-width':'1.5','stroke-dasharray':'3 3'});
+    svg.appendChild(line);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='No ball — mirror attacker\'s every move';svg.appendChild(lbl);
+}
+
+// LADDER
+function animLadder(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const startX=50,steps=8,stepW=22;
+  for(let i=0;i<=steps;i++){
+    svg.appendChild(mkSvg('line',{x1:startX+i*stepW,y1:50,x2:startX+i*stepW,y2:110,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
+  }
+  svg.appendChild(mkSvg('line',{x1:startX,y1:50,x2:startX+steps*stepW,y2:50,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:startX,y1:110,x2:startX+steps*stepW,y2:110,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
+  const lbl=mkSvg('text',{x:w/2-20,y:40,'text-anchor':'middle',fill:'rgba(255,255,255,0.5)','font-size':'8'});lbl.textContent='Agility Ladder';svg.appendChild(lbl);
+  // player
+  let px=animated?lerp(startX,startX+steps*stepW,t):startX+20;
+  let py=animated?80+Math.sin(t*steps*Math.PI)*15:80;
+  svg.appendChild(playerCircle(svg,px,py,'P','#a8e63d','#166534',11));
+  // feeder at end
+  svg.appendChild(playerCircle(svg,startX+steps*stepW+25,80,'F','#ffb830','white',11));
+  if(animated&&t>0.8){svg.appendChild(mkSvg('circle',{cx:lerp(startX+steps*stepW+25,px,easeInOut((t-0.8)*5)),cy:80,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+  const lbl2=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl2.textContent='F=Feeder — passes ball at end of ladder';svg.appendChild(lbl2);
+}
+
+// THIRD MAN
+function animThirdMan(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const A=[40,h-30],B=[w/2,h/2],C=[w-50,30],D2=[w-30,h-30];
+  [[A,'A','#a8e63d','#166534'],[B,'B','#ef4444','white'],[C,'C','#5ab4ff','white'],[D2,'D','#ffb830','white']].forEach(([[x,y],l,f,s])=>svg.appendChild(playerCircle(svg,x,y,l,f,s,12)));
+  if(animated){
+    const ph=Math.floor(t*3);const pt=easeInOut((t*3)%1);
+    if(ph===0){arrow(svg,A[0],A[1],B[0],B[1],'rgba(168,230,61,0.7)');const bx=lerp(A[0],B[0],pt),by=lerp(A[1],B[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    else if(ph===1){arrow(svg,B[0],B[1],C[0],C[1],'rgba(90,180,255,0.7)');const bx=lerp(B[0],C[0],pt),by=lerp(B[1],C[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    else{arrow(svg,C[0],C[1],D2[0],D2[1],'rgba(255,184,48,0.7)',true);const bx=lerp(C[0],D2[0],pt),by=lerp(C[1],D2[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
+    const runX=animated&&t>0.2?lerp(C[0]+20,C[0],easeInOut((t-0.2)/0.5)):C[0]+20;
+    const groups = svg.querySelectorAll('g');
+    if (groups[2]) movePlayer(groups[2], runX, C[1]);
+  } else {
+    arrow(svg,A[0],A[1],B[0],B[1],'#a8e63d');
+    arrow(svg,B[0],B[1],C[0],C[1],'#5ab4ff',true);
+    const rl=mkSvg('text',{x:w-60,y:50,fill:'#5ab4ff','font-size':'8'});rl.textContent='3rd man run';svg.appendChild(rl);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='A to B, C makes diagonal run, B plays through';svg.appendChild(lbl);
+}
+
+// COERVERS
+function animCoervers(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const cones=[[40,80],[90,80],[140,80],[190,80],[240,80],[290,80]];
+  const moves=['Inside cut','Outside cut','Step-over','Drag-back','Cruyff','Beat!'];
+  cones.forEach(([x,y],i)=>{
+    svg.appendChild(mkSvg('polygon',{points:`${x},${y-8} ${x-6},${y+6} ${x+6},${y+6}`,fill:'#ffb830'}));
+    const ml=mkSvg('text',{x,y:y+18,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});ml.textContent=moves[i];svg.appendChild(ml);
+  });
+  let px=animated?lerp(25,305,t):25,py=80;
+  svg.appendChild(playerCircle(svg,px,py,'P','#a8e63d','#166534',11));
+  svg.appendChild(mkSvg('circle',{cx:px+8,cy:py+10,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='One move per cone — exaggerate each!';svg.appendChild(lbl);
+}
+
+// WEAK FOOT
+function animWeakFoot(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const p1=[60,h/2],p2=[w-60,h/2];
+  svg.appendChild(playerCircle(svg,p1[0],p1[1],'P1','#a8e63d','#166534',13));
+  svg.appendChild(playerCircle(svg,p2[0],p2[1],'P2','#5ab4ff','white',13));
+  const wl1=mkSvg('text',{x:p1[0],y:p1[1]+28,'text-anchor':'middle',fill:'rgba(168,230,61,0.7)','font-size':'8'});wl1.textContent='Weak foot only';svg.appendChild(wl1);
+  const wl2=mkSvg('text',{x:p2[0],y:p2[1]+28,'text-anchor':'middle',fill:'rgba(90,180,255,0.7)','font-size':'8'});wl2.textContent='Weak foot only';svg.appendChild(wl2);
+  if(animated){
+    const dir=Math.floor(t*2)===0;
+    const bx=lerp(dir?p1[0]:p2[0],dir?p2[0]:p1[0],easeInOut((t*2)%1));
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:h/2,r:7,fill:'white',stroke:'#111a11','stroke-width':'1.5'}));
+  } else {
+    arrow(svg,p1[0]+15,h/2,p2[0]-15,h/2,'rgba(255,255,255,0.4)');
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='All passes with the WEAKER FOOT only';svg.appendChild(lbl);
+}
+
+// RECEIVING
+function animReceiving(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const cx=w/2,cy=h/2,r=65;
+  const feeders=[[cx,cy-r],[cx+r*Math.sin(2.1),cy-r*Math.cos(2.1)],[cx+r*Math.sin(4.2),cy-r*Math.cos(4.2)]];
+  feeders.forEach(([x,y],i)=>{svg.appendChild(playerCircle(svg,x,y,'F','#ffb830','white',12));});
+  svg.appendChild(playerCircle(svg,cx,cy,'R','#a8e63d','#166534',14));
+  if(animated){
+    const feeder=Math.floor(t*3)%3;
+    const [fx,fy]=feeders[feeder];
+    const bt=easeInOut((t*3)%1);
+    const bx=lerp(fx,cx,bt),by=lerp(fy,cy,bt);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    arrow(svg,fx,fy,cx,cy,'rgba(255,184,48,0.5)',true);
+    const target=feeders[(feeder+1)%3];
+    if(bt>0.8) arrow(svg,cx,cy,target[0],target[1],'rgba(168,230,61,0.5)',true);
+  } else {
+    feeders.forEach(([fx,fy])=>arrow(svg,fx,fy,cx,cy,'rgba(255,184,48,0.4)',true));
+    feeders.forEach(([fx,fy],i)=>{const next=feeders[(i+1)%3];arrow(svg,cx,cy,next[0],next[1],'rgba(168,230,61,0.3)',true);});
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='R receives from F, controls and plays to next F';svg.appendChild(lbl);
+}
+
+// CORNER
+function animCorner(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-40,y:8,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-70,y:24,width:140,height:60,rx:3,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.1)','stroke-width':'1'}));
+  // corner taker
+  svg.appendChild(playerCircle(svg,8,h-20,'C','#ffb830','white',11));
+  const targets=[[w/2-20,30,'NP'],[w/2+25,45,'BP'],[w/2-45,65,'E']];
+  targets.forEach(([x,y,lbl],i)=>{
+    let tx=x,ty=y;
+    if(animated){tx=x+Math.sin(t*Math.PI*2+i)*5;ty=y+Math.cos(t*Math.PI*2+i)*5;}
+    svg.appendChild(playerCircle(svg,tx,ty,lbl,'#ef4444','white',11));
+  });
+  if(animated){
+    const bt=easeInOut(t);
+    const target=targets[Math.floor(t*3)%3];
+    const bx=lerp(8,target[0],bt),by=lerp(h-20,target[1],bt);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  } else {
+    targets.forEach(([x,y])=>arrow(svg,12,h-20,x,y,'rgba(255,184,48,0.4)',true));
+  }
+  const lbls=[['NP','Near post run'],['BP','Back post late'],['E','Edge of box']];
+  lbls.forEach(([abbr,text],i)=>{
+    const l=mkSvg('text',{x:w-10,y:30+i*14,'text-anchor':'end',fill:'rgba(255,255,255,0.5)','font-size':'8'});l.textContent=`${abbr}: ${text}`;svg.appendChild(l);
+  });
+}
+
+// FREE KICK
+function animFreeKick(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-40,y:8,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
+  // wall
+  [[-15,0,15].map(ox=>[w/2+ox,60])].flat().forEach(([x,y])=>svg.appendChild(playerCircle(svg,x,y,'W','#ef4444','white',10)));
+  // shooter
+  svg.appendChild(playerCircle(svg,w/2,h-30,'S','#a8e63d','#166534',12));
+  // runners
+  [[w/2-35,40],[w/2+40,50]].forEach(([x,y],i)=>{
+    let rx=x,ry=y;
+    if(animated){rx=lerp(w/2-30+i*40,x,easeInOut(t));ry=lerp(h-50,y,easeInOut(t));}
+    svg.appendChild(playerCircle(svg,rx,ry,'R','#5ab4ff','white',11));
+  });
+  if(animated){
+    const bt=easeInOut(t);
+    const bx=lerp(w/2,w/2-5,bt),by=lerp(h-30,20,bt);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  } else {
+    arrow(svg,w/2,h-35,w/2-5,25,'rgba(168,230,61,0.5)');
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='S=Shooter  W=Wall  R=Runners';svg.appendChild(lbl);
+}
+
+// THROW-IN
+function animThrowIn(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  // touchline
+  svg.appendChild(mkSvg('line',{x1:30,y1:10,x2:30,y2:h-10,stroke:'white','stroke-width':'2'}));
+  // thrower
+  svg.appendChild(playerCircle(svg,20,h/2,'T','#ffb830','white',11));
+  // receiver
+  const rx=120,ry=h/2;
+  svg.appendChild(playerCircle(svg,rx,ry,'R','#a8e63d','#166534',12));
+  // gate
+  svg.appendChild(mkSvg('line',{x1:200,y1:h/2-15,x2:200,y2:h/2+15,stroke:'#ffb830','stroke-width':'3'}));
+  const gl=mkSvg('text',{x:210,y:h/2+4,fill:'#ffb830','font-size':'8'});gl.textContent='Gate';svg.appendChild(gl);
+  if(animated){
+    const bt=easeInOut(t);
+    if(t<0.5){const bx=lerp(20,rx,bt*2),by=h/2-20+Math.sin(bt*2*Math.PI)*-20;svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));}
+    else{const pt=easeInOut((t-0.5)*2);const px2=lerp(rx,200,pt),py2=h/2;svg.appendChild(mkSvg('circle',{cx:px2,cy:py2,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));}
+  } else {
+    arrow(svg,25,h/2,rx-12,h/2,'rgba(255,184,48,0.6)');
+    arrow(svg,rx+12,h/2,195,h/2,'rgba(168,230,61,0.6)',true);
+  }
+  const lbl=mkSvg('text',{x:w/2+20,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='T throws, R controls and plays through gate';svg.appendChild(lbl);
+}
+
+// PROTECT THE KING
+function animProtectKing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const cx = w/2, cy = h/2, r = 52;
+  // 5 players in the group (4 shielders + King) all on the circle, linked arms
+  const n = 5;
+  const groupAngles = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (i/n)*Math.PI*2 + (animated ? t*0.4 : 0);
+    groupAngles.push(angle);
+    const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+    // draw arm links between adjacent players
+    const nextAngle = ((i+1)/n)*Math.PI*2 + (animated ? t*0.4 : 0);
+    const nx2 = cx + r*Math.cos(nextAngle), ny2 = cy + r*Math.sin(nextAngle);
+    svg.appendChild(mkSvg('line', {x1:x, y1:y, x2:nx2, y2:ny2, stroke:'rgba(255,255,255,0.25)', 'stroke-width':'2'}));
+    // King is player index 0, shielders are 1-4
+    if (i === 0) {
+      // King with tail bib
+      svg.appendChild(playerCircle(svg, x, y, 'K', '#ffb830', '#ff8800', 13));
+      // tail bib dangling outward
+      const tailX = x + 8*Math.cos(angle), tailY = y + 8*Math.sin(angle);
+      svg.appendChild(mkSvg('rect', {x:tailX, y:tailY, width:5, height:12, rx:2, fill:'#ff6eb4', stroke:'white', 'stroke-width':'1', transform:`rotate(${(angle*180/Math.PI)+90},${tailX+2.5},${tailY+6})`}));
+    } else {
+      svg.appendChild(playerCircle(svg, x, y, 'S', '#1d4ed8', '#60a5fa', 12));
+    }
+  }
+  // chasers outside trying to get the tail
+  const chasers = [[cx - 95, cy - 15], [cx + 90, cy + 20]];
+  chasers.forEach(([bx, by], i) => {
+    let px = bx, py = by;
+    if (animated) {
+      px = bx + Math.sin(t*Math.PI*2 + i*Math.PI)*20;
+      py = by + Math.cos(t*Math.PI*2 + i*Math.PI)*14;
+    }
+    svg.appendChild(playerCircle(svg, px, py, 'C', '#ef4444', 'white', 12));
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'K=King (with tail bib)  S=Shielder  C=Chaser';
+  svg.appendChild(lbl);
+}
+
+// DON'T DROP THE EGG
+function animDroppedEgg(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  svg.appendChild(mkSvg('rect', {x:15, y:15, width:w-30, height:h-30, rx:6, fill:'none', stroke:'rgba(255,255,255,0.15)', 'stroke-width':'1.5'}));
+  // pairs holding ball between them
+  const pairs = [
+    [[80,70],[110,70],'#a8e63d'],
+    [[190,80],[220,80],'#5ab4ff'],
+    [[70,130],[100,130],'#ffb830'],
+    [[200,140],[230,140],'#b87fff'],
+  ];
+  pairs.forEach(([[x1,y1],[x2,y2],color], pi) => {
+    let ox=0, oy=0;
+    if (animated) { ox=Math.sin(t*Math.PI*2+pi*1.5)*12; oy=Math.cos(t*Math.PI*1.7+pi)*10; }
+    // line between pair (arms)
+    svg.appendChild(mkSvg('line', {x1:x1+ox, y1:y1+oy, x2:x2+ox, y2:y2+oy, stroke:'rgba(255,255,255,0.2)', 'stroke-width':'2'}));
+    // ball (egg) between them
+    const mx=(x1+x2)/2+ox, my=(y1+y2)/2+oy;
+    svg.appendChild(mkSvg('ellipse', {cx:mx, cy:my, rx:9, ry:11, fill:'white', stroke:color, 'stroke-width':'2'}));
+    // players
+    svg.appendChild(playerCircle(svg, x1+ox, y1+oy, 'P', color, 'white', 11));
+    svg.appendChild(playerCircle(svg, x2+ox, y2+oy, 'P', color, 'white', 11));
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Pairs hold egg - knock others away without dropping!';
+  svg.appendChild(lbl);
+}
+
+// FROG JUMP RACE
+function animFrogJump(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  // start and finish lines
+  svg.appendChild(mkSvg('line', {x1:20, y1:20, x2:20, y2:h-20, stroke:'#a8e63d', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('line', {x1:w-20, y1:20, x2:w-20, y2:h-20, stroke:'#ef4444', 'stroke-width':'2'}));
+  const sl = mkSvg('text', {x:20, y:15, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'8', 'font-weight':'700'}); sl.textContent='START'; svg.appendChild(sl);
+  const fl = mkSvg('text', {x:w-20, y:15, 'text-anchor':'middle', fill:'#ef4444', 'font-size':'8', 'font-weight':'700'}); fl.textContent='FINISH'; svg.appendChild(fl);
+  // show 3 lanes of players
+  const lanes = [h/2-30, h/2, h/2+30];
+  const colors = ['#a8e63d','#5ab4ff','#ffb830'];
+  lanes.forEach((ly, li) => {
+    const progress = animated ? (t + li*0.25) % 1 : li*0.2;
+    const px = 20 + progress*(w-40);
+    // cones behind and ahead
+    const cone1x = Math.max(20, px-30);
+    const cone2x = px;
+    // cone triangles
+    svg.appendChild(mkSvg('polygon', {points:`${cone1x},${ly+8} ${cone1x-5},${ly+18} ${cone1x+5},${ly+18}`, fill:colors[li]}));
+    svg.appendChild(mkSvg('polygon', {points:`${cone2x},${ly+8} ${cone2x-5},${ly+18} ${cone2x+5},${ly+18}`, fill:colors[li], opacity:'0.5'}));
+    // player
+    const jumpY = animated ? ly - Math.abs(Math.sin(t*Math.PI*6+li))*18 : ly;
+    svg.appendChild(playerCircle(svg, px, jumpY, 'P', colors[li], 'white', 11));
+    // sprint back arrow (dashed)
+    if (cone1x > 25) arrow(svg, cone2x, ly+4, cone1x+8, ly+4, colors[li]+'88', true);
+  });
+  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Jump + plant cone + sprint back + repeat!';
+  svg.appendChild(lbl);
+}
+
+// DON'T DIVE IN
+function animDontDiveIn(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var lineY = Math.floor(h / 2);
+  var g1x = Math.floor(w * 0.28);
+  var g2x = Math.floor(w * 0.72);
+  var goalY = h - 22;
+
+  // Dividing line
+  svg.appendChild(mkSvg('line', {x1:10, y1:lineY, x2:w-10, y2:lineY, stroke:'white', 'stroke-width':'2', 'stroke-dasharray':'6 4'}));
+  var ll = mkSvg('text', {x:w/2, y:lineY-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.35)', 'font-size':'8'});
+  ll.textContent = '25 yard line'; svg.appendChild(ll);
+
+  // Goal 1 (left)
+  svg.appendChild(mkSvg('rect', {x:g1x-14, y:goalY-12, width:28, height:12, fill:'none', stroke:'#a8e63d', 'stroke-width':'2', rx:2}));
+  var g1l = mkSvg('text', {x:g1x, y:goalY+10, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'9', 'font-weight':'bold'});
+  g1l.textContent = 'G1'; svg.appendChild(g1l);
+
+  // Goal 2 (right)
+  svg.appendChild(mkSvg('rect', {x:g2x-14, y:goalY-12, width:28, height:12, fill:'none', stroke:'#a8e63d', 'stroke-width':'2', rx:2}));
+  var g2l = mkSvg('text', {x:g2x, y:goalY+10, 'text-anchor':'middle', fill:'#a8e63d', 'font-size':'9', 'font-weight':'bold'});
+  g2l.textContent = 'G2'; svg.appendChild(g2l);
+
+  // Attacker side / defender side labels
+  var al = mkSvg('text', {x:14, y:lineY-14, fill:'#ef4444', 'font-size':'8', 'font-weight':'700'});
+  al.textContent = 'ATTACKER SIDE'; svg.appendChild(al);
+  var dl = mkSvg('text', {x:14, y:lineY+13, fill:'#60a5fa', 'font-size':'8', 'font-weight':'700'});
+  dl.textContent = 'DEFENDER SIDE'; svg.appendChild(dl);
+
+  // Attacker moves side to side
+  var swing = animated ? Math.sin(t * Math.PI * 2) : 0;
+  var ax = w * 0.2 + (swing * 0.5 + 0.5) * w * 0.6;
+  var ay = lineY - 30;
+  svg.appendChild(playerCircle(svg, ax, ay, 'A', '#ef4444', 'white', 13));
+  svg.appendChild(mkSvg('circle', {cx:ax, cy:ay+18, r:6, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+
+  // Defender mirrors below line
+  var dx = animated ? ax : w / 2;
+  var dy = lineY + 24;
+  svg.appendChild(playerCircle(svg, dx, dy, 'D', '#1d4ed8', '#60a5fa', 13));
+
+  // Shooting angle lines
+  if (animated) {
+    svg.appendChild(mkSvg('line', {x1:ax, y1:ay+18, x2:g1x, y2:goalY-12, stroke:'rgba(255,184,48,0.5)', 'stroke-width':'1.5', 'stroke-dasharray':'4 3'}));
+    svg.appendChild(mkSvg('line', {x1:ax, y1:ay+18, x2:g2x, y2:goalY-12, stroke:'rgba(255,184,48,0.5)', 'stroke-width':'1.5', 'stroke-dasharray':'4 3'}));
+  }
+
+  var lbl = mkSvg('text', {x:w/2, y:h-3, 'text-anchor':'middle', fill:'rgba(255,255,255,0.4)', 'font-size':'9'});
+  lbl.textContent = 'Neither crosses line - D mirrors A to block goals';
+  svg.appendChild(lbl);
+}
+
+// TRANSITION PRESS — 2 GOAL COUNTER
+function animTransitionPress(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var zoneTop = 15, zoneBottom = h - 15;
+  var cgx = w / 2;
+  var leftZoneX = w * 0.24, rightZoneX = w * 0.76;
+
+  // Central goal (top middle) - this is what reds attack
+  svg.appendChild(mkSvg('rect', {x:cgx-30, y:zoneTop, width:60, height:14, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  var cgl = mkSvg('text', {x:cgx, y:zoneTop+26, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  cgl.textContent = 'MAIN GOAL'; svg.appendChild(cgl);
+
+  // Zone boundaries (vertical dashed lines either side of the central area)
+  svg.appendChild(mkSvg('line', {x1:leftZoneX, y1:zoneTop, x2:leftZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
+  svg.appendChild(mkSvg('line', {x1:rightZoneX, y1:zoneTop, x2:rightZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
+  var tzl = mkSvg('text', {x:leftZoneX/2+8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
+  tzl.textContent = 'TRANSITION ZONE'; svg.appendChild(tzl);
+  var tzr = mkSvg('text', {x:(w+rightZoneX)/2-8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
+  tzr.textContent = 'TRANSITION ZONE'; svg.appendChild(tzr);
+
+  // Small goals at the far end of each transition zone (extra blues' target)
+  svg.appendChild(mkSvg('rect', {x:leftZoneX/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect', {x:(w+rightZoneX)/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+
+  var phase = animated ? (t < 0.5 ? 'attack' : 'transition') : 'attack';
+  var localT = animated ? (phase === 'attack' ? t * 2 : (t - 0.5) * 2) : 0;
+
+  // --- Phase 1: Reds attack the main goal, 2 blue defenders + keeper defend ---
+  var r1x = cgx - 25, r2x = cgx + 25;
+  var r1y = zoneTop + 55 + (phase==='attack' ? localT*10 : 0);
+  var r2y = zoneTop + 60 - (phase==='attack' ? localT*8 : 0);
+
+  // Keeper on the goal line
+  svg.appendChild(playerCircle(svg, cgx, zoneTop+7, 'GK', '#ffb830', '#ff8800', 10));
+  // 2 blue defenders in the main zone shielding the goal
+  var def1x = cgx - 20, def1y = zoneTop + 32;
+  var def2x = cgx + 20, def2y = zoneTop + 32;
+  svg.appendChild(playerCircle(svg, def1x, def1y, 'B', '#1d4ed8', '#60a5fa', 12));
+  svg.appendChild(playerCircle(svg, def2x, def2y, 'B', '#1d4ed8', '#60a5fa', 12));
+
+  // Reds (attackers) working the ball in the main zone
+  svg.appendChild(playerCircle(svg, r1x, r1y, 'A', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, r2x, r2y, 'A', '#ef4444', 'white', 12));
+  if (phase === 'attack') {
+    svg.appendChild(mkSvg('circle', {cx:r1x, cy:r1y-14, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  }
+
+  // --- Extra blues: one waiting near the main goal end of EACH transition zone ---
+  var blLx = leftZoneX / 2, blRx = (w + rightZoneX) / 2;
+  var waitY = zoneTop + 30;
+  var goalY = zoneBottom - 14;
+
+  // Both extra blues dribble down their zone together on transition
+  var exLy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
+  var exRy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
+  svg.appendChild(playerCircle(svg, blLx, exLy, 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, blRx, exRy, 'B', '#1d4ed8', '#60a5fa', 11));
+  if (phase === 'transition') {
+    svg.appendChild(mkSvg('circle', {cx:blLx, cy:exLy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+    svg.appendChild(mkSvg('circle', {cx:blRx, cy:exRy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  }
+
+  // --- Both reds become defenders during transition: one sprints to press each zone ---
+  if (phase === 'transition') {
+    var pressLX = lerp(r1x, blLx, localT), pressLY = lerp(r1y, exLy - 20, localT);
+    var pressRX = lerp(r2x, blRx, localT), pressRY = lerp(r2y, exRy - 20, localT);
+    arrow(svg, r1x, r1y, pressLX, pressLY, 'rgba(239,68,68,0.5)', true);
+    arrow(svg, r2x, r2y, pressRX, pressRY, 'rgba(239,68,68,0.5)', true);
+  }
+
+  var phaseLbl = mkSvg('text', {x:w/2, y:h-6, 'text-anchor':'middle', fill: phase==='attack' ? '#ef4444' : '#a8e63d', 'font-size':'9', 'font-weight':'700'});
+  phaseLbl.textContent = phase === 'attack' ? 'REDS ATTACK MAIN GOAL (GK + 2 BLUES DEFEND)' : 'TRANSITION - BOTH BLUES COUNTER, BOTH REDS PRESS!';
+  svg.appendChild(phaseLbl);
+}
+
+// ZONAL 3v3 - SPLIT PITCH
+function animZonal3v3(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  var zoneTop = 15, zoneBottom = h - 15;
+  var zoneW = (w - 20) / 3;
+  var z1x = 10, z2x = 10 + zoneW, z3x = 10 + zoneW * 2;
+
+  // Zone divider lines (vertical, solid - these are real boundaries)
+  svg.appendChild(mkSvg('line', {x1:z2x, y1:zoneTop, x2:z2x, y2:zoneBottom, stroke:'rgba(255,255,255,0.35)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('line', {x1:z3x, y1:zoneTop, x2:z3x, y2:zoneBottom, stroke:'rgba(255,255,255,0.35)', 'stroke-width':'1.5'}));
+
+  // Small goals at top and bottom of each zone (6 total)
+  var zoneCenters = [z1x + zoneW/2, z2x + zoneW/2, z3x + zoneW/2];
+  zoneCenters.forEach(function(cx) {
+    svg.appendChild(mkSvg('rect', {x:cx-13, y:zoneTop-2, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+    svg.appendChild(mkSvg('rect', {x:cx-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#ef4444', 'stroke-width':'2'}));
+  });
+
+  var topLbl = mkSvg('text', {x:w/2, y:zoneTop-6, 'text-anchor':'middle', fill:'rgba(168,230,61,0.7)', 'font-size':'7'});
+  topLbl.textContent = 'GREEN TEAM ATTACKS UP (3 goals)'; svg.appendChild(topLbl);
+  var botLbl = mkSvg('text', {x:w/2, y:zoneBottom+11, 'text-anchor':'middle', fill:'rgba(239,68,68,0.7)', 'font-size':'7'});
+  botLbl.textContent = 'RED TEAM ATTACKS DOWN (3 goals)'; svg.appendChild(botLbl);
+
+  // One green + one red player per zone, each locked to their zone, ball moves between zones
+  var activeZone = animated ? Math.floor(t * 3) % 3 : 1;
+  var localT = animated ? (t * 3) % 1 : 0.5;
+
+  for (var i = 0; i < 3; i++) {
+    var cx = zoneCenters[i];
+    var isActive = (i === activeZone);
+    var gy = isActive ? lerp(zoneBottom - 30, zoneTop + 30, easeInOut(localT)) : h / 2 - 15;
+    var ry = isActive ? lerp(zoneBottom - 20, zoneTop + 40, easeInOut(localT)) : h / 2 + 15;
+    svg.appendChild(playerCircle(svg, cx - 12, gy, 'G', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, cx + 12, ry, 'R', '#ef4444', 'white', 11));
+    if (isActive && animated) {
+      svg.appendChild(mkSvg('circle', {cx:cx-12, cy:gy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+    }
+  }
+
+  // Ball switching arrow between zones when transitioning
+  if (animated && localT > 0.85) {
+    var nextZone = (activeZone + 1) % 3;
+    arrow(svg, zoneCenters[activeZone], h/2, zoneCenters[nextZone], h/2, 'rgba(255,184,48,0.5)', true);
+  }
+
+  var lbl = mkSvg('text', {x:w/2, y:h/2+4, 'text-anchor':'middle', fill:'rgba(255,255,255,0.3)', 'font-size':'7'});
+  lbl.textContent = 'G=Green  R=Red - locked to own zone, score in any of 3 goals';
+  svg.appendChild(lbl);
+}
+
+
+
+renderHome();
+renderCues();
+updateCounts();
+initTeamState();
+
+// Default the session date picker to today
+(function setDefaultDate() {
+  const dateInput = document.getElementById('sess-date-input');
+  if (dateInput && !dateInput.value) {
+    const today = new Date();
+    const iso = today.toISOString().slice(0, 10);
+    dateInput.value = iso;
+  }
+})();
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Coach's Drill Library</title>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0e0a">
+<style>
+:root {
+  --bg: #1a1f1a;
+  --surface: #202620;
+  --card: #252c25;
+  --border: #2e382e;
+  --text: #f0f8f0;
+  --muted: #8aa08a;
+  --lime: #a8e63d;
+  --lime-dim: rgba(168,230,61,0.12);
+  --red: #ff5a5a;
+  --blue: #5ab4ff;
+  --amber: #ffb830;
+  --purple: #b87fff;
+  --teal: #3ddfc8;
+  --pink: #ff6eb4;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; background:#1a1f1a; color-scheme:dark; }
+body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif; max-width:480px; margin:0 auto; min-height:100vh; overflow-x:hidden; }
+
+/* SCREENS */
+.screen { display:none; min-height:100vh; flex-direction:column; background:#1a1f1a; }
+.screen.active { display:flex; }
+
+/* TOP NAV */
+.top-nav { background:var(--surface); border-bottom:1px solid var(--border); padding:12px 14px; display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:100; }
+.nav-back { background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:2px 6px 2px 0; line-height:1; }
+.nav-title { font-size:16px; font-weight:800; color:var(--text); text-transform:uppercase; letter-spacing:0.05em; flex:1; }
+.nav-badge { background:var(--lime-dim); color:var(--lime); border:1px solid rgba(168,230,61,0.3); border-radius:20px; font-size:11px; font-weight:700; padding:3px 10px; }
+
+/* HOME */
+.home-hero { background:var(--surface); padding:22px 16px 18px; border-bottom:1px solid var(--border); }
+.home-eyebrow { font-size:10px; font-weight:700; letter-spacing:0.25em; color:var(--lime); text-transform:uppercase; margin-bottom:6px; }
+.home-title { font-size:28px; font-weight:900; text-transform:uppercase; line-height:1.05; letter-spacing:-0.01em; }
+.home-sub { font-size:12px; color:var(--muted); margin-top:6px; }
+.session-bar { margin:14px 0 0; background:var(--border); border-radius:3px; height:3px; }
+.session-fill { height:100%; background:var(--lime); border-radius:3px; width:0%; transition:width 0.4s; }
+
+.cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 12px; }
+.cat-card { border-radius:12px; padding:16px 14px; cursor:pointer; border:1px solid transparent; transition:transform 0.15s,border-color 0.15s; position:relative; overflow:hidden; }
+.cat-card:active { transform:scale(0.97); }
+.cat-icon { font-size:26px; margin-bottom:8px; }
+.cat-name { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; }
+.cat-count { font-size:11px; margin-top:3px; opacity:0.6; }
+.cat-card::after { content:''; position:absolute; bottom:-20px; right:-10px; width:60px; height:60px; border-radius:50%; opacity:0.08; }
+
+.home-footer { padding:12px; border-top:1px solid var(--border); display:flex; gap:8px; background:var(--bg); }
+.btn-primary { flex:1; background:var(--lime); color:#0a0e0a; border:none; border-radius:10px; padding:13px; font-weight:900; font-size:13px; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em; }
+.btn-secondary { background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:13px 16px; font-weight:700; font-size:13px; cursor:pointer; }
+.btn-secondary.active-sess { background:var(--lime-dim); color:var(--lime); border-color:rgba(168,230,61,0.3); }
+
+/* DRILL LIST */
+.drill-list { flex:1; overflow-y:auto; padding:8px 0 80px; background:#1a1f1a; }
+.drill-item { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid #1e281e; cursor:pointer; transition:background 0.1s; background:#1a1f1a; }
+.drill-item:active { background:#161d16; }
+.drill-thumb { width:48px; height:48px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.drill-info { flex:1; }
+.drill-name { font-size:14px; font-weight:700; color:#f0f8f0; }
+.drill-meta { font-size:11px; color:#8fa88f; margin-top:2px; }
+.drill-add { width:32px; height:32px; border-radius:8px; border:none; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform 0.15s; }
+.drill-add:active { transform:scale(0.9); }
+.drill-add.added { background:var(--lime-dim); color:var(--lime); border:1px solid rgba(168,230,61,0.3); }
+.drill-add.not-added { background:var(--card); color:var(--muted); border:1px solid var(--border); }
+
+.list-footer { padding:10px 12px; border-top:1px solid var(--border); background:var(--bg); }
+
+/* DRILL DETAIL */
+.detail-body { flex:1; overflow-y:auto; padding-bottom:80px; }
+.detail-diagram { margin:12px; background:var(--card); border-radius:12px; border:1px solid var(--border); overflow:hidden; position:relative; }
+.detail-diagram svg { width:100%; display:block; }
+.anim-btn { position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:20px; color:white; font-size:11px; font-weight:700; padding:5px 12px; cursor:pointer; }
+
+.detail-section { padding:6px 14px 0; }
+.section-label { font-size:10px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; padding-top:10px; }
+.setup-text { font-size:13px; line-height:1.65; color:#b8c8b8; background:var(--card); border-radius:10px; padding:12px 14px; border:1px solid var(--border); }
+.point-row { display:flex; gap:8px; margin-bottom:5px; }
+.point-dot { width:6px; height:6px; border-radius:50%; margin-top:7px; flex-shrink:0; }
+.point-txt { font-size:13px; line-height:1.55; color:#b8c8b8; }
+.prog-box { background:rgba(90,180,255,0.07); border:1px solid rgba(90,180,255,0.2); border-radius:10px; padding:10px 14px; font-size:13px; color:#93c5fd; line-height:1.55; }
+.cue-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.cue-chip { background:var(--lime-dim); border:1px solid rgba(168,230,61,0.25); border-radius:20px; padding:4px 12px; font-size:12px; color:var(--lime); font-weight:600; }
+
+.detail-footer { padding:10px 12px; border-top:1px solid var(--border); background:var(--bg); display:flex; gap:8px; }
+.btn-add-session { flex:1; border:none; border-radius:10px; padding:13px; font-weight:900; font-size:13px; cursor:pointer; text-transform:uppercase; letter-spacing:0.04em; transition:background 0.2s; }
+
+/* SESSION BUILDER */
+.sess-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:40px 20px; color:var(--muted); }
+.sess-empty-icon { font-size:48px; opacity:0.3; }
+.sess-empty-txt { font-size:13px; text-align:center; line-height:1.6; }
+.sess-list { flex:1; overflow-y:auto; padding:8px 0 80px; }
+.sess-item { display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--border); }
+.sess-num { width:24px; height:24px; border-radius:6px; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--muted); flex-shrink:0; }
+.sess-info { flex:1; }
+.sess-name { font-size:13px; font-weight:700; color:#f0f8f0; }
+.sess-meta { font-size:11px; color:var(--muted); margin-top:1px; }
+.sess-remove { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:4px; }
+.sess-total { padding:10px 14px; background:var(--surface); border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; }
+.sess-total span { color:var(--lime); font-weight:700; }
+.sess-footer { padding:10px 12px; border-top:1px solid var(--border); background:var(--bg); display:flex; gap:8px; }
+
+/* SESSION RUN */
+.run-header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px; }
+.run-phase-label { font-size:10px; font-weight:700; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
+.run-phase-title { font-size:18px; font-weight:900; text-transform:uppercase; }
+.run-progress { display:flex; gap:3px; margin-top:10px; }
+.run-pip { height:3px; border-radius:2px; flex:1; background:var(--border); transition:background 0.3s; }
+.run-pip.done { background:var(--lime); }
+.run-pip.current { background:var(--lime); opacity:0.5; }
+
+.run-body { flex:1; overflow-y:auto; padding-bottom:80px; }
+.timer-card { margin:12px; background:var(--card); border-radius:14px; border:1px solid var(--border); padding:18px; text-align:center; }
+.timer-svg-wrap { display:flex; justify-content:center; margin-bottom:10px; }
+.timer-btns { display:flex; gap:8px; justify-content:center; }
+.tbtn { border:none; border-radius:8px; padding:9px 18px; font-weight:800; font-size:13px; cursor:pointer; }
+
+.run-footer { padding:10px 12px; border-top:1px solid var(--border); background:var(--bg); display:flex; gap:8px; }
+.btn-run-prev { background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:12px; font-weight:700; font-size:13px; cursor:pointer; }
+.btn-run-prev:disabled { opacity:0.3; cursor:default; }
+.btn-run-next { flex:1; border:none; border-radius:10px; padding:12px; font-weight:800; font-size:13px; cursor:pointer; text-transform:uppercase; }
+.btn-run-next:disabled { opacity:0.3; cursor:default; }
+
+/* CUES SCREEN */
+.cues-list { flex:1; overflow-y:auto; padding:8px 0 20px; }
+.cue-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--border); }
+.cue-n { width:28px; height:28px; border-radius:7px; background:var(--lime-dim); border:1px solid rgba(168,230,61,0.25); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:13px; color:var(--lime); flex-shrink:0; }
+.cue-q { font-size:14px; font-weight:700; color:var(--text); }
+</style>
+</head>
+<body style="background:#1a1f1a !important; color:#f0f8f0 !important;">
+
+<!-- HOME SCREEN -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-eyebrow">U10 · Football Coach</div>
+    <h1 class="home-title">Drill<br>Library</h1>
+    <div class="home-sub">Tap a category to browse drills · Build your session</div>
+    <div class="session-bar"><div class="session-fill" id="home-sess-fill"></div></div>
+  </div>
+  <div class="cat-grid" id="cat-grid"></div>
+  <div id="team-badge-home" style="padding:0 14px 8px;font-size:11px;color:var(--muted);display:none">☁ <span id="team-badge-name"></span></div>
+  <div style="flex:1"></div>
+  <div class="home-footer">
+    <button class="btn-primary" onclick="showScreen('screen-library','All Drills',null)">Browse All Drills</button>
+    <button class="btn-secondary" id="home-sess-btn" onclick="showScreen('screen-session')">Session <span id="home-sess-count">0</span></button>
+    <button class="btn-secondary" onclick="showScreen('screen-team')">☁ Team</button>
+  </div>
+</div>
+
+<!-- DRILL LIST SCREEN -->
+<div id="screen-library" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-home')">‹</button>
+    <div class="nav-title" id="lib-title">All Drills</div>
+    <div class="nav-badge" id="lib-count">0</div>
+  </div>
+  <div class="drill-list" id="drill-list"></div>
+  <div class="list-footer">
+    <button class="btn-secondary active-sess" style="width:100%" onclick="showScreen('screen-session')">View Session (<span id="lib-sess-count">0</span> drills)</button>
+  </div>
+</div>
+
+<!-- DRILL DETAIL SCREEN -->
+<div id="screen-detail" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" id="detail-back">‹</button>
+    <div class="nav-title" id="detail-nav-title"></div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-diagram"><svg id="detail-svg" viewBox="0 0 300 180"></svg><button class="anim-btn" id="anim-btn" onclick="toggleAnim()">▶ Animate</button></div>
+    <div class="detail-section">
+      <div class="section-label">Setup</div>
+      <div class="setup-text" id="detail-setup"></div>
+      <div class="section-label">Coaching Points</div>
+      <div id="detail-points"></div>
+      <div id="detail-prog-wrap" style="display:none">
+        <div class="section-label">Progression</div>
+        <div class="prog-box" id="detail-prog"></div>
+      </div>
+      <div class="section-label">Key Cues</div>
+      <div class="cue-chips" id="detail-cues"></div>
+      <div id="detail-yt-wrap" style="display:none;margin-top:14px">
+        <div class="section-label">Watch it</div>
+        <a id="detail-yt-link" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #ff0000;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">
+          <span id="detail-yt-badge" style="background:#ff0000;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">▶ YouTube</span>
+          <span id="detail-yt-label">Watch drill video</span>
+        </a>
+        <a id="detail-ig-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #c13584;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
+          <span style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">📷 Instagram</span>
+          <span>See it on Instagram</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="detail-footer">
+    <button class="btn-add-session" id="btn-add-remove" onclick="toggleDrillInSession()"></button>
+  </div>
+</div>
+
+<!-- SESSION BUILDER SCREEN -->
+<div id="screen-session" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-home')">‹</button>
+    <div class="nav-title">My Session</div>
+    <div class="nav-badge" id="sess-badge">0</div>
+  </div>
+  <div style="padding:12px 14px 0">
+    <div class="section-label" style="padding-top:0">Session Date</div>
+    <input type="date" id="sess-date-input" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit">
+  </div>
+  <div id="sess-empty" class="sess-empty">
+    <div class="sess-empty-icon">📋</div>
+    <div class="sess-empty-txt">Your session is empty.<br>Browse drills and tap + to add them here.</div>
+  </div>
+  <div id="sess-list" class="sess-list" style="display:none"></div>
+  <div id="sess-total" class="sess-total" style="display:none">
+    <div>Total duration</div><span id="sess-time">0 min</span>
+  </div>
+  <div class="sess-footer" style="flex-wrap:wrap">
+    <button class="btn-secondary" onclick="showScreen('screen-library','All Drills',null)">+ Add Drills</button>
+    <button class="btn-secondary" id="btn-share-session" onclick="shareSession()" style="color:#a8e63d;border-color:rgba(168,230,61,0.3)">⬆ Share</button>
+    <button class="btn-primary" id="btn-run-session" onclick="startSession()" style="flex:1">▶ Run</button>
+    <button class="btn-secondary" id="btn-save-team" onclick="saveSessionToTeam()" style="width:100%;color:#5ab4ff;border-color:rgba(90,180,255,0.3)">☁ Save to Team</button>
+  </div>
+</div>
+
+<!-- TEAM SCREEN -->
+<div id="screen-team" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-home')">‹</button>
+    <div class="nav-title">Team</div>
+  </div>
+  <div id="team-signed-out" style="padding:16px 14px">
+    <div class="section-label" style="padding-top:0">Join a Team</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px">Enter the code another coach shared with you to see and save sessions together.</p>
+    <input type="text" id="team-code-input" placeholder="e.g. FALCON-4821" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;font-family:inherit;text-transform:uppercase;margin-bottom:8px">
+    <button class="btn-primary" style="width:100%" onclick="joinTeamAction()">Join Team</button>
+
+    <div class="section-label" style="margin-top:24px">Or Create a New Team</div>
+    <input type="text" id="team-name-input" placeholder="Team name, e.g. Riverside U10" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;font-family:inherit;margin-bottom:8px">
+    <button class="btn-secondary" style="width:100%" onclick="createTeamAction()">Create Team</button>
+
+    <div id="team-status-msg" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+  </div>
+  <div id="team-signed-in" style="display:none;padding:16px 14px">
+    <div class="section-label" style="padding-top:0">Signed in as</div>
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px" id="team-name-display"></div>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="showScreen('screen-team-sessions')">📅 View Team Sessions</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Create Additional Code</button>
+    <button class="btn-secondary" style="width:100%;color:#ff5a5a;border-color:rgba(255,90,90,0.3)" onclick="leaveTeamAction()">Leave Team</button>
+    <div id="team-status-msg-2" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+  </div>
+</div>
+
+<!-- TEAM SESSIONS LIST -->
+<div id="screen-team-sessions" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showScreen('screen-team')">‹</button>
+    <div class="nav-title">Team Sessions</div>
+  </div>
+  <div id="team-sess-list" style="flex:1;overflow-y:auto;padding:8px 0 20px"></div>
+</div>
+
+<!-- SHARE MODAL -->
+<div id="share-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:flex-end;justify-content:center">
+  <div style="background:#1a1f1a;border:1px solid #2e382e;border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;color:#f0f8f0">Share Session</div>
+      <button onclick="closeShare()" style="background:none;border:none;color:#8aa08a;font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8aa08a;margin-bottom:8px">Session Plan</div>
+    <div id="share-text-box" style="background:#0a0e0a;border:1px solid #2e382e;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;color:#f0f8f0;white-space:pre;font-family:monospace;max-height:240px;overflow-y:auto;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="copySession()" id="copy-btn" style="flex:1;background:#a8e63d;color:#0a0e0a;border:none;border-radius:10px;padding:13px;font-weight:900;font-size:13px;cursor:pointer;text-transform:uppercase">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION RUN SCREEN -->
+<div id="screen-run" class="screen">
+  <div class="run-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div id="run-cat" class="run-phase-label" style="margin-bottom:0"></div>
+      <button onclick="exitRun()" style="background:rgba(255,90,90,0.12);border:1px solid rgba(255,90,90,0.3);color:#ff5a5a;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer">✕ Exit</button>
+    </div>
+    <div class="run-phase-title" id="run-title"></div>
+    <div class="run-progress" id="run-pips"></div>
+  </div>
+  <div class="run-body">
+    <div class="timer-card">
+      <div class="timer-svg-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#1e281e" stroke-width="7"/>
+          <circle id="run-ring" cx="60" cy="60" r="52" fill="none" stroke="#a8e63d" stroke-width="7"
+            stroke-dasharray="326.7" stroke-dashoffset="0" stroke-linecap="round"
+            transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s linear,stroke 0.5s"/>
+          <text id="run-time-num" x="60" y="55" text-anchor="middle" fill="#a8e63d" font-size="24" font-weight="900">0:00</text>
+          <text id="run-time-lbl" x="60" y="73" text-anchor="middle" fill="#6b7f6b" font-size="10">remaining</text>
+        </svg>
+      </div>
+      <div class="timer-btns">
+        <button class="tbtn" id="run-play-btn" onclick="toggleRunTimer()" style="background:rgba(168,230,61,0.15);color:#a8e63d;border:1px solid rgba(168,230,61,0.3)">▶ Start</button>
+        <button class="tbtn" onclick="resetRunTimer()" style="background:#161d16;color:#6b7f6b;border:1px solid #1e281e">↺ Reset</button>
+        <button class="tbtn" onclick="showScreen('screen-cues')" style="background:#161d16;color:#6b7f6b;border:1px solid #1e281e;font-size:11px">Cues</button>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="section-label">Setup</div>
+      <div class="setup-text" id="run-setup"></div>
+      <div class="section-label">Coaching Points</div>
+      <div id="run-points"></div>
+      <div id="run-prog-wrap" style="display:none">
+        <div class="section-label">Progression</div>
+        <div class="prog-box" id="run-prog"></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="section-label">Pitch Diagram</div>
+      <div class="detail-diagram" style="margin:0 0 12px"><svg id="run-svg" viewBox="0 0 300 180" style="width:100%;display:block"></svg><button class="anim-btn" id="run-anim-btn" onclick="toggleRunAnim()">▶ Animate</button></div>
+    </div>
+  </div>
+  <div class="run-footer">
+    <button class="btn-run-prev" id="run-prev-btn" onclick="runPrev()">← Prev</button>
+    <button class="btn-run-next" id="run-next-btn" onclick="runNext()"></button>
+  </div>
+</div>
+
+<!-- CUES SCREEN -->
+<div id="screen-cues" class="screen">
+  <div class="top-nav">
+    <button class="nav-back" onclick="backFromCues()">‹</button>
+    <div class="nav-title">Coaching Cues</div>
+  </div>
+  <div class="cues-list" id="cues-list"></div>
+</div>
+
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────
 const CATEGORIES = [
