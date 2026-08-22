@@ -21,7 +21,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const TEAM_STORAGE_KEY = "drillapp_team";
+const TEAMS_STORAGE_KEY = "drillapp_teams";       // array of {teamId, teamName, code}
+const ACTIVE_TEAM_STORAGE_KEY = "drillapp_active_team"; // teamId string
 
 // ─── Anonymous auth: needed only so Firestore rules have a
 // request.auth to check != null. Not real identity. ───────────────
@@ -38,20 +39,62 @@ function ensureSignedIn() {
   return authReadyPromise;
 }
 
-// ─── Local team state ──────────────────────────────────────────
-function getStoredTeam() {
+// ─── Local team state — supports belonging to multiple teams ──────
+function getJoinedTeams() {
   try {
-    const raw = localStorage.getItem(TEAM_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
   } catch (e) {
-    return null;
+    return [];
   }
 }
-function storeTeam(teamId, teamName, code) {
-  localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify({ teamId, teamName, code }));
+
+function saveJoinedTeams(teams) {
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(teams));
 }
-function clearStoredTeam() {
-  localStorage.removeItem(TEAM_STORAGE_KEY);
+
+function addOrUpdateJoinedTeam(teamId, teamName, code) {
+  const teams = getJoinedTeams();
+  const existing = teams.findIndex((t) => t.teamId === teamId);
+  const entry = { teamId, teamName, code };
+  if (existing >= 0) {
+    teams[existing] = entry; // refresh name/code in case they changed
+  } else {
+    teams.push(entry);
+  }
+  saveJoinedTeams(teams);
+}
+
+function removeJoinedTeam(teamId) {
+  const teams = getJoinedTeams().filter((t) => t.teamId !== teamId);
+  saveJoinedTeams(teams);
+  if (getActiveTeamId() === teamId) {
+    // Fall back to whichever team is now first in the list, or none.
+    setActiveTeamId(teams.length ? teams[0].teamId : null);
+  }
+}
+
+function getActiveTeamId() {
+  return localStorage.getItem(ACTIVE_TEAM_STORAGE_KEY);
+}
+
+function setActiveTeamId(teamId) {
+  if (teamId) {
+    localStorage.setItem(ACTIVE_TEAM_STORAGE_KEY, teamId);
+  } else {
+    localStorage.removeItem(ACTIVE_TEAM_STORAGE_KEY);
+  }
+}
+
+function getStoredTeam() {
+  // Returns the currently ACTIVE team, or null if none joined yet —
+  // kept for backward compatibility with existing app code that
+  // expects "the current team" as a single object.
+  const activeId = getActiveTeamId();
+  const teams = getJoinedTeams();
+  if (!teams.length) return null;
+  const active = teams.find((t) => t.teamId === activeId);
+  return active || teams[0]; // fall back to first joined team if active pointer is stale
 }
 
 // ─── Code / alias helpers ───────────────────────────────────────
@@ -104,7 +147,8 @@ async function fbCreateTeam(teamName) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 
-  storeTeam(teamId, name, code);
+  addOrUpdateJoinedTeam(teamId, name, code);
+  setActiveTeamId(teamId);
   return { teamId, teamName: name, code };
 }
 
@@ -118,7 +162,8 @@ async function fbJoinTeam(code) {
     throw new Error("That code doesn't match a team.");
   }
   const { teamId, teamName } = aliasDoc.data();
-  storeTeam(teamId, teamName, alias);
+  addOrUpdateJoinedTeam(teamId, teamName, alias);
+  setActiveTeamId(teamId);
   return { teamId, teamName };
 }
 
@@ -127,8 +172,29 @@ async function fbRestoreSession() {
   return getStoredTeam();
 }
 
+function fbListJoinedTeams() {
+  return getJoinedTeams();
+}
+
+function fbSwitchTeam(teamId) {
+  const teams = getJoinedTeams();
+  const match = teams.find((t) => t.teamId === teamId);
+  if (!match) throw new Error("Not currently joined to that team.");
+  setActiveTeamId(teamId);
+  return match;
+}
+
+function fbLeaveTeam(teamId) {
+  removeJoinedTeam(teamId);
+}
+
 function fbSignOutTeam() {
-  clearStoredTeam();
+  // "Sign out" in the multi-team model means: leave the currently
+  // active team (removes it from the joined list). This matches the
+  // existing "Leave Team" button in the app. Switching teams (without
+  // leaving) is a separate action — see fbSwitchTeam.
+  const active = getStoredTeam();
+  if (active) removeJoinedTeam(active.teamId);
 }
 
 async function fbRegenerateCode(teamId) {
@@ -231,4 +297,7 @@ window.DrillAppCloud = {
   deleteSession: fbDeleteSession,
   shareSession: fbShareSession,
   getSharedSession: fbGetSharedSession,
+  listJoinedTeams: fbListJoinedTeams,
+  switchTeam: fbSwitchTeam,
+  leaveTeam: fbLeaveTeam,
 };
