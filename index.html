@@ -240,9 +240,22 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <button class="nav-back" onclick="showScreen('screen-home')">‹</button>
     <div class="nav-title">Team</div>
   </div>
+
+  <div id="team-list-wrap" style="display:none;padding:16px 14px 4px">
+    <div class="section-label" style="padding-top:0">Your Teams</div>
+    <div id="team-list"></div>
+  </div>
+
+  <div id="team-active-wrap" style="display:none;padding:8px 14px 16px">
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="showScreen('screen-team-sessions')">📅 View Sessions — <span id="team-name-display"></span></button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Create Additional Code</button>
+    <button class="btn-secondary" style="width:100%;color:#ff5a5a;border-color:rgba(255,90,90,0.3)" onclick="leaveTeamAction()">Leave This Team</button>
+    <div id="team-status-msg-2" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+  </div>
+
   <div id="team-signed-out" style="padding:16px 14px">
     <div class="section-label" style="padding-top:0">Join a Team</div>
-    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px">Enter the code another coach shared with you. Any coach with this code can save and view all of the team's sessions — save as many as you like, one per training date.</p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px">Enter the code another coach shared with you. Any coach with this code can save and view all of the team's sessions — save as many as you like, one per training date. You can join more than one team.</p>
     <input type="text" id="team-code-input" placeholder="e.g. FALCON-4821" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:15px;font-family:inherit;text-transform:uppercase;margin-bottom:8px">
     <button class="btn-primary" style="width:100%" onclick="joinTeamAction()">Join Team</button>
 
@@ -251,14 +264,6 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <button class="btn-secondary" style="width:100%" onclick="createTeamAction()">Create Team</button>
 
     <div id="team-status-msg" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
-  </div>
-  <div id="team-signed-in" style="display:none;padding:16px 14px">
-    <div class="section-label" style="padding-top:0">Signed in as</div>
-    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:16px" id="team-name-display"></div>
-    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="showScreen('screen-team-sessions')">📅 View Team Sessions</button>
-    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="regenerateCodeAction()">🔄 Create Additional Code</button>
-    <button class="btn-secondary" style="width:100%;color:#ff5a5a;border-color:rgba(255,90,90,0.3)" onclick="leaveTeamAction()">Leave Team</button>
-    <div id="team-status-msg-2" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
   </div>
 </div>
 
@@ -1241,19 +1246,52 @@ function updateTeamUI() {
   const badge = document.getElementById('team-badge-home');
   const badgeName = document.getElementById('team-badge-name');
   const signedOut = document.getElementById('team-signed-out');
-  const signedIn = document.getElementById('team-signed-in');
+  const listWrap = document.getElementById('team-list-wrap');
+  const activeWrap = document.getElementById('team-active-wrap');
   const nameDisplay = document.getElementById('team-name-display');
+  const teamListEl = document.getElementById('team-list');
+
+  const joined = cloudAvailable() ? window.DrillAppCloud.listJoinedTeams() : [];
 
   if (currentTeam) {
     badge.style.display = 'block';
-    badgeName.textContent = currentTeam.teamName;
-    if (signedOut) signedOut.style.display = 'none';
-    if (signedIn) signedIn.style.display = 'block';
-    if (nameDisplay) nameDisplay.textContent = currentTeam.teamName;
+    badgeName.textContent = currentTeam.teamName + (joined.length > 1 ? ` (+${joined.length - 1} more)` : '');
   } else {
     badge.style.display = 'none';
-    if (signedOut) signedOut.style.display = 'block';
-    if (signedIn) signedIn.style.display = 'none';
+  }
+
+  if (joined.length > 0) {
+    listWrap.style.display = 'block';
+    activeWrap.style.display = 'block';
+    if (nameDisplay) nameDisplay.textContent = currentTeam ? currentTeam.teamName : '';
+
+    teamListEl.innerHTML = '';
+    joined.forEach((t) => {
+      const isActive = currentTeam && t.teamId === currentTeam.teamId;
+      const row = document.createElement('button');
+      row.className = 'btn-secondary';
+      row.style.cssText = `width:100%;margin-bottom:8px;text-align:left;display:flex;align-items:center;justify-content:space-between;${isActive ? 'border-color:rgba(168,230,61,0.4);background:rgba(168,230,61,0.08)' : ''}`;
+      row.innerHTML = `<span>${isActive ? '✓ ' : ''}${t.teamName}</span>${isActive ? '<span style="color:#a8e63d;font-size:11px;font-weight:700">ACTIVE</span>' : '<span style="color:var(--muted);font-size:11px">Switch</span>'}`;
+      if (!isActive) row.onclick = () => switchTeamAction(t.teamId);
+      teamListEl.appendChild(row);
+    });
+  } else {
+    listWrap.style.display = 'none';
+    activeWrap.style.display = 'none';
+  }
+
+  // The join/create panel is always available now — a coach may want
+  // to join or create an additional team even while already on one.
+  if (signedOut) signedOut.style.display = 'block';
+}
+
+async function switchTeamAction(teamId) {
+  if (!cloudAvailable()) return;
+  try {
+    currentTeam = window.DrillAppCloud.switchTeam(teamId);
+    updateTeamUI();
+  } catch (e) {
+    alert(e.message || 'Could not switch teams.');
   }
 }
 
@@ -1300,9 +1338,11 @@ async function createTeamAction() {
 }
 
 function leaveTeamAction() {
-  if (!cloudAvailable()) return;
-  window.DrillAppCloud.signOutTeam();
-  currentTeam = null;
+  if (!cloudAvailable() || !currentTeam) return;
+  if (!confirm(`Leave "${currentTeam.teamName}"? You'll need the team code to rejoin.`)) return;
+  window.DrillAppCloud.leaveTeam(currentTeam.teamId);
+  const joined = window.DrillAppCloud.listJoinedTeams();
+  currentTeam = joined.length ? window.DrillAppCloud.getStoredTeam() : null;
   updateTeamUI();
 }
 
