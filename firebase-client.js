@@ -183,8 +183,11 @@ async function fbSaveSession(teamId, session) {
 
 async function fbListSessions(teamId) {
   await ensureSignedIn();
-  const snap = await db.collection("teams").doc(teamId).collection("sessions")
-    .orderBy("date", "asc").get();
+  // No orderBy here deliberately: Firestore's orderBy silently excludes
+  // documents where the ordered field is null/missing, which would hide
+  // template sessions (saved without a date). Sorting happens client-side
+  // in the app instead, where null dates can be handled explicitly.
+  const snap = await db.collection("teams").doc(teamId).collection("sessions").get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
