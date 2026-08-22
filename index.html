@@ -213,7 +213,9 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
     <div class="nav-badge" id="sess-badge">0</div>
   </div>
   <div style="padding:12px 14px 0">
-    <div class="section-label" style="padding-top:0">Session Date</div>
+    <div class="section-label" style="padding-top:0">Session Name</div>
+    <input type="text" id="sess-name-input" placeholder="e.g. Pre-season week 1, or leave blank" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;margin-bottom:12px">
+    <div class="section-label" style="padding-top:0">Session Date <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(optional — leave blank to save as a reusable template)</span></div>
     <input type="date" id="sess-date-input" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit">
   </div>
   <div id="sess-empty" class="sess-empty">
@@ -1323,11 +1325,25 @@ async function saveSessionToTeam() {
     showScreen('screen-team');
     return;
   }
+  const nameInput = document.getElementById('sess-name-input');
   const dateInput = document.getElementById('sess-date-input');
-  const date = dateInput.value;
-  if (!date) {
-    alert('Pick a date for this session first.');
+  const customName = nameInput.value.trim();
+  const date = dateInput.value; // optional now
+
+  if (!customName && !date) {
+    alert('Give this session a name or a date (or both) so you can find it again.');
     return;
+  }
+
+  // Build a sensible display name: prefer the custom name, fall back to
+  // the date, and show both together when both are given.
+  let displayName;
+  if (customName && date) {
+    displayName = `${customName} — ${formatDisplayDate(date)}`;
+  } else if (customName) {
+    displayName = customName;
+  } else {
+    displayName = formatDisplayDate(date);
   }
 
   const drillData = session.map(id => {
@@ -1341,8 +1357,8 @@ async function saveSessionToTeam() {
   btn.textContent = 'Saving...';
   try {
     await window.DrillAppCloud.saveSession(currentTeam.teamId, {
-      name: `Session — ${date}`,
-      date,
+      name: displayName,
+      date: date || null, // null date = reusable template, no fixed session date
       drills: drillData,
     });
     btn.textContent = '✓ Saved!';
@@ -1351,9 +1367,10 @@ async function saveSessionToTeam() {
       // Clear the builder so it's clear a fresh session can be started —
       // saved sessions live under Team → View Team Sessions from now on.
       session = [];
+      nameInput.value = '';
       updateCounts();
       renderSession();
-      alert('Session saved! Add more drills any time to build another session for a different date.');
+      alert('Session saved! Add more drills any time to build another one.');
     }, 900);
   } catch (e) {
     btn.textContent = originalText;
@@ -1369,20 +1386,30 @@ async function renderTeamSessions() {
   }
   list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">Loading...</div>';
   try {
-    const sessions = await window.DrillAppCloud.listSessions(currentTeam.teamId);
+    let sessions = await window.DrillAppCloud.listSessions(currentTeam.teamId);
     if (sessions.length === 0) {
       list.innerHTML = '<div style="padding:20px 14px;color:var(--muted);font-size:13px">No sessions saved yet. Any coach with your team code can save sessions here — build one and tap "Save to Team".</div>';
       return;
     }
+    // Dated sessions first (chronological), templates (no date) at the end
+    sessions = sessions.slice().sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    });
     list.innerHTML = `<div style="padding:10px 14px;color:var(--muted);font-size:12px">${sessions.length} session${sessions.length===1?'':'s'} saved · tap one to load it back into the builder</div>`;
     sessions.forEach(s => {
       const totalMins = (s.drills || []).reduce((a, d) => a + (d.duration || 0), 0);
       const el = document.createElement('div');
       el.className = 'sess-item';
+      const subline = s.date
+        ? `${formatDisplayDate(s.date)} · ${(s.drills||[]).length} drills · ${totalMins} min`
+        : `Template · ${(s.drills||[]).length} drills · ${totalMins} min`;
       el.innerHTML = `
         <div style="flex:1;cursor:pointer" class="team-sess-load">
-          <div class="sess-name">${formatDisplayDate(s.date)}</div>
-          <div class="sess-meta">${(s.drills||[]).length} drills · ${totalMins} min</div>
+          <div class="sess-name">${s.name || formatDisplayDate(s.date)}</div>
+          <div class="sess-meta">${subline}</div>
         </div>
         <button class="sess-remove" onclick="event.stopPropagation();deleteTeamSessionAction('${s.id}')">×</button>`;
       el.querySelector('.team-sess-load').onclick = () => loadTeamSessionIntoBuilder(s);
@@ -1401,7 +1428,9 @@ function loadTeamSessionIntoBuilder(savedSession) {
     .filter(id => DRILLS.some(x => x.id === id));
   session = validIds;
   const dateInput = document.getElementById('sess-date-input');
-  if (dateInput && savedSession.date) dateInput.value = savedSession.date;
+  const nameInput = document.getElementById('sess-name-input');
+  if (dateInput) dateInput.value = savedSession.date || '';
+  if (nameInput) nameInput.value = savedSession.name || '';
   updateCounts();
   showScreen('screen-session');
 }
@@ -1413,7 +1442,7 @@ async function deleteTeamSessionAction(sessionId) {
 }
 
 function formatDisplayDate(iso) {
-  if (!iso) return 'No date';
+  if (!iso) return 'Template (no date)';
   const d = new Date(iso + 'T00:00:00');
   if (isNaN(d)) return iso;
   return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
