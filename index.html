@@ -693,6 +693,16 @@ const DRILLS = [
     youtube:{url:'https://www.youtube.com/watch?v=mFhfexVwcvI',label:'Crossing & finishing drill'},
     anim: animFinishing
   },
+  {
+    id:'a8', cat:'attacking', name:'Shooting Drill — Combination Finish', duration:14,
+    setup:'3 players (A, B, C) with a goal and keeper. A stands furthest out, B to A\'s left, C to A\'s right — B has a mannequin or cone marker just ahead of them. A passes to B. B lays the ball off first-time to C, then immediately spins away from their own marker and runs out to the left into open space. C plays the ball first-time into that space for B, who shoots from the left side. Players rotate anti-clockwise after each rep — A becomes B, B becomes C, C becomes A.',
+    points:['B: spin off your own marker the INSTANT the pass to C is released — don\'t wait to see if it arrives','B: run out wide to the left — you need real separation before the ball arrives','C: first-time pass if possible — the space closes fast','A: weight the first pass so B can lay it off in one touch','B: attack the shot from the left — get your body shape right before striking'],
+    progression:'Add a passive defender on the shooter. Keeper must set before each attempt — no cheating early.',
+    cues:['Spin now!','First time if you can','Attack the space','Weight the pass'],
+    diagram:'shootcombo', viewBox:'0 0 300 200',
+    instagram:{url:'https://www.instagram.com/reel/DVAeFg3EqB1/',label:'See it on Instagram'},
+    anim: animShootCombo
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
@@ -923,17 +933,20 @@ function openDrillDetail(id, fromScreen) {
   }
   document.getElementById('detail-cues').innerHTML = d.cues.map(c => `<div class="cue-chip">${c}</div>`).join('');
   const ytWrap = document.getElementById('detail-yt-wrap');
+  ytWrap.style.display = (d.youtube || d.instagram) ? 'block' : 'none';
   if (d.youtube) {
-    ytWrap.style.display = 'block';
     const ytLink = document.getElementById('detail-yt-link');
     const ytBadge = document.getElementById('detail-yt-badge');
+    ytLink.style.display = 'flex';
     ytLink.href = d.youtube.url;
     document.getElementById('detail-yt-label').textContent = d.youtube.label;
     const isIG = d.youtube.url.includes('instagram.com');
     ytLink.style.borderColor = isIG ? '#c13584' : '#ff0000';
     ytBadge.style.background = isIG ? 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)' : '#ff0000';
     ytBadge.textContent = isIG ? 'Instagram' : 'YouTube';
-  } else { ytWrap.style.display = 'none'; }
+  } else {
+    document.getElementById('detail-yt-link').style.display = 'none';
+  }
   const igLink = document.getElementById('detail-ig-link');
   if (d.instagram) {
     igLink.style.display = 'flex';
@@ -2014,6 +2027,87 @@ function animFinishing(svg, t, animated, state, w, h) {
   if(animated&&t>0.5){const bx=lerp(gx,gx+20,easeInOut((t-0.5)*2)),by=lerp(sy-10,20,easeInOut((t-0.5)*2));svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
   const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Zones: near=1pt, box edge=2pt, outside=3pt';svg.appendChild(lbl);
 }
+
+// SHOOTING DRILL — COMBINATION FINISH
+function animShootCombo(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15;
+  svg.appendChild(mkSvg('rect',{x:gx-40,y:goalY,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(playerCircle(svg, gx, goalY+12, 'GK', '#ffb830', '#ff8800', 9));
+
+  // Fixed start positions
+  const Ax = gx, Ay = h-25;
+  const Bx = gx-70, By = h-90;
+  const Cx = gx+70, Cy = h-90;
+
+  // B's own marker (mannequin/cone), positioned just ahead of B toward goal —
+  // B spins around this and runs out to the LEFT into open space to receive
+  // the return ball and shoot from there.
+  const markerX = Bx, markerY = By-30;
+  const targetX = Bx-45, targetY = By-55; // the space out to the left where B receives and shoots from
+
+  svg.appendChild(mkSvg('polygon',{points:`${markerX},${markerY-9} ${markerX-7},${markerY+9} ${markerX+7},${markerY+9}`, fill:'#ffb830', opacity:'0.85'}));
+  const mLbl = mkSvg('text',{x:markerX, y:markerY+22,'text-anchor':'middle',fill:'#ffb830','font-size':'7'}); mLbl.textContent='marker'; svg.appendChild(mLbl);
+
+  // Phase timeline: 0-0.25 A->B, 0.25-0.5 B->C + B spins around his marker,
+  // 0.5-0.8 C plays the ball into the space to B's left, 0.8-1 shot from the left
+  const phase = animated ? t : 0;
+
+  // Player A (static)
+  svg.appendChild(playerCircle(svg, Ax, Ay, 'A', '#a8e63d', '#166534', 12));
+
+  // Player B: starts at Bx/By, after passing to C spins around HIS OWN marker
+  // and runs out to the left into open space
+  let bx = Bx, by = By;
+  if (animated && phase > 0.25) {
+    const spinT = Math.min(1, (phase - 0.25) / 0.4);
+    bx = lerp(Bx, targetX, easeInOut(spinT));
+    by = lerp(By, targetY, easeInOut(spinT));
+  }
+  svg.appendChild(playerCircle(svg, bx, by, 'B', '#5ab4ff', 'white', 12));
+
+  // Player C (static position, receives then plays the ball into the space)
+  svg.appendChild(playerCircle(svg, Cx, Cy, 'C', '#ef4444', 'white', 12));
+
+  // Ball movement across phases
+  if (animated) {
+    if (phase <= 0.25) {
+      // A -> B
+      const bt = easeInOut(phase / 0.25);
+      const ballX = lerp(Ax, Bx, bt), ballY = lerp(Ay, By, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else if (phase <= 0.5) {
+      // B -> C (B releases and immediately begins his spin, drawn above)
+      const bt = easeInOut((phase-0.25) / 0.25);
+      const ballX = lerp(Bx, Cx, bt), ballY = lerp(By, Cy, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else if (phase <= 0.8) {
+      // C -> the space to B's left
+      const bt = easeInOut((phase-0.5) / 0.3);
+      const ballX = lerp(Cx, targetX, bt), ballY = lerp(Cy, targetY, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else {
+      // shot on goal, struck from the left-side position
+      const bt = easeInOut((phase-0.8) / 0.2);
+      const ballX = lerp(targetX, gx, bt), ballY = lerp(targetY, goalY+14, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    }
+  }
+
+  // Pass arrows (static reference lines when not animated)
+  if (!animated) {
+    arrow(svg, Ax-8, Ay-8, Bx+8, By+8, '#a8e63d');
+    arrow(svg, Bx+8, By-4, Cx-8, Cy-4, '#5ab4ff');
+    arrow(svg, Cx-10, Cy-10, targetX+15, targetY+8, '#ef4444', true);
+    const spinLbl = mkSvg('text',{x:(Bx+targetX)/2, y:(By+targetY)/2-8,'text-anchor':'middle',fill:'#5ab4ff','font-size':'7'});
+    spinLbl.textContent='B spins & runs left'; svg.appendChild(spinLbl);
+  }
+
+  const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});
+  lbl.textContent = 'A to B to C, B spins off own marker and runs left, C plays him in, B shoots';
+  svg.appendChild(lbl);
+}
+
 
 // PRESSING
 function animPressing(svg, t, animated, state, w, h) {
