@@ -367,6 +367,7 @@ const CATEGORIES = [
   { id:'movement',  name:'Movement',   icon:'🏃', color:'#3ddfc8', bg:'rgba(61,223,200,0.1)'   },
   { id:'skills',    name:'Skills',     icon:'⚽', color:'#a8e63d', bg:'rgba(168,230,61,0.1)'   },
   { id:'setpiece',  name:'Set Pieces', icon:'🎯', color:'#b87fff', bg:'rgba(184,127,255,0.1)'  },
+  { id:'match',     name:'Training Match', icon:'🏟️', color:'#ff8a5b', bg:'rgba(255,138,91,0.1)' },
 ];
 
 const DRILLS = [
@@ -820,6 +821,43 @@ const DRILLS = [
     diagram:'throwin', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=EDJKPs2Qcag',label:'Throw-in quick play drill'},
     anim: animThrowIn
+  },
+  // ── TRAINING MATCH ──
+  {
+    id:'tm1', cat:'match', name:'Training Match — Free Play', duration:15,
+    setup:'Small-sided game (4v4 or 5v5 works well) with 2 goals, on a pitch roughly 30x20m. No touch, pass, or step restrictions — play exactly as they would in a real match. Use this as a baseline to see how the team applies everything they\'ve worked on in the session without any artificial constraints.',
+    points:['Let the game flow — only stop for genuine coaching moments, not every small error','Look for the specific skills/patterns from earlier in the session showing up naturally','Encourage communication and movement off the ball','Praise decision-making, not just outcomes'],
+    progression:'Add small conditions on the fly if you spot something worth reinforcing (e.g. "next 5 minutes, must switch play at least once per attack").',
+    cues:['Play what you see','Talk to each other!','Move after you pass','Enjoy it!'],
+    diagram:'matchfree', viewBox:'0 0 300 180',
+    anim: animMatchFree
+  },
+  {
+    id:'tm2', cat:'match', name:'Training Match — Minimum Passes', duration:15,
+    setup:'Small-sided game (4v4 or 5v5), 2 goals, roughly 30x20m. A team must complete a minimum number of passes (start with 3-4) before they\'re allowed to shoot. If they shoot too early, no goal counts even if the ball goes in. Encourages patience and combination play over hopeful long shots.',
+    points:['Count passes out loud as a team so everyone knows where they are','Move to support the ball — you can\'t hit the pass count standing still','Use width — passing sideways still counts and helps you reach the total','Don\'t force a bad pass just to hit the number — control still matters'],
+    progression:'Increase the minimum pass count as the team gets comfortable. Reduce it again if it\'s killing the game\'s pace.',
+    cues:['Count together!','Support the ball','Use the width','Quality over speed'],
+    diagram:'matchpasses', viewBox:'0 0 300 180',
+    anim: animMatchPasses
+  },
+  {
+    id:'tm3', cat:'match', name:'Training Match — Max Touches', duration:15,
+    setup:'Small-sided game (4v4 or 5v5), 2 goals, roughly 30x20m. Each player is limited to a maximum number of touches on the ball (start with 2-3) before they must pass or shoot. Extra touches beyond the limit turn possession over to the other team. Forces quick decision-making and off-the-ball movement.',
+    points:['Scan BEFORE the ball arrives — you won\'t have time to look around after','Move immediately after passing — you\'ll be needed again soon','First touch must set up your next action, not just control the ball','Communicate early so a teammate knows to expect the ball'],
+    progression:'Drop to 1-touch only for a spell to really sharpen decision speed, then relax back up.',
+    cues:['Look before it arrives!','One-two touch max','Move after you pass','Quick decisions'],
+    diagram:'matchtouches', viewBox:'0 0 300 180',
+    anim: animMatchTouches
+  },
+  {
+    id:'tm4', cat:'match', name:'Training Match — Max Steps', duration:15,
+    setup:'Small-sided game (4v4 or 5v5), 2 goals, roughly 30x20m. Each player is limited to a maximum number of steps while in possession (start with 3-4) before they must pass or shoot. Counting steps rather than touches specifically discourages dribbling and rewards quick combination play and movement off the ball.',
+    points:['Plan your pass before you even receive the ball','Take purposeful steps — don\'t waste them on unnecessary touches','Teammates must offer support quickly since the ball can\'t be held','Great for encouraging one-touch combinations near goal'],
+    progression:'Allow unlimited steps once a player has beaten a defender 1v1, to still reward good dribbling in the right moment.',
+    cues:['Plan ahead!','Purposeful steps','Offer support fast','Quick combinations'],
+    diagram:'matchsteps', viewBox:'0 0 300 180',
+    anim: animMatchSteps
   },
 ];
 
@@ -2026,6 +2064,113 @@ function animHeadsSaves(svg, t, animated, state, w, h) {
   const lbl = mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
   lbl.textContent = lblText;
   svg.appendChild(lbl);
+}
+
+// ── TRAINING MATCH HELPER ──
+// Draws a small-sided pitch with a goal at each end, shared by all
+// four Training Match variants below.
+function smallSidedPitch(svg, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2;
+  svg.appendChild(mkSvg('rect',{x:gx-32,y:8,width:64,height:14,fill:'none',stroke:'#a8e63d','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:gx-32,y:h-22,width:64,height:14,fill:'none',stroke:'#ef4444','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:10,y1:h/2,x2:w-10,y2:h/2,stroke:'rgba(255,255,255,0.15)','stroke-width':'1','stroke-dasharray':'4 4'}));
+}
+
+// TRAINING MATCH — FREE PLAY
+function animMatchFree(svg, t, animated, state, w, h) {
+  smallSidedPitch(svg, w, h);
+  const green=[[70,50],[150,40],[220,70],[100,110]];
+  const red=[[110,60],[190,55],[80,130],[210,120]];
+  const teams=[[green,'#a8e63d'],[red,'#ef4444']];
+  teams.forEach(([pts,color])=>{
+    pts.forEach(([x,y],i)=>{
+      let px=x,py=y;
+      if(animated){px=x+Math.sin(t*Math.PI*2+i*1.3)*20;py=y+Math.cos(t*Math.PI*1.7+i)*16;}
+      svg.appendChild(playerCircle(svg,px,py,'P',color,color==='#a8e63d'?'#166534':'white',10));
+    });
+  });
+  if(animated){
+    const bx=w/2+Math.sin(t*Math.PI*3)*40, by=h/2+Math.cos(t*Math.PI*2.3)*30;
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent='No restrictions - play freely, 2 goals'; svg.appendChild(lbl);
+}
+
+// TRAINING MATCH — MINIMUM PASSES
+function animMatchPasses(svg, t, animated, state, w, h) {
+  smallSidedPitch(svg, w, h);
+  const cx=w/2,cy=h/2,r=55;
+  const pts=[0,1,2,3].map(i=>{
+    const a=(i/4)*Math.PI*2;
+    return [cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  });
+  pts.forEach(([x,y])=>svg.appendChild(playerCircle(svg,x,y,'A','#a8e63d','#166534',11)));
+  const passCount = animated ? Math.min(3, Math.floor(t*4)) : 0;
+  const holder = animated ? Math.floor(t*4)%4 : 0;
+  if(animated){
+    const next=(holder+1)%4;
+    const bt=easeInOut((t*4)%1);
+    const bx=lerp(pts[holder][0],pts[next][0],bt), by=lerp(pts[holder][1],pts[next][1],bt);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  }
+  const counter=mkSvg('text',{x:w/2,y:26,'text-anchor':'middle',fill:'#ffb830','font-size':'12','font-weight':'900'});
+  counter.textContent = 'Passes: ' + (animated ? passCount : 0) + ' / 3';
+  svg.appendChild(counter);
+  const lbl=mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent='Must complete minimum passes before a shot counts'; svg.appendChild(lbl);
+}
+
+// TRAINING MATCH — MAX TOUCHES
+function animMatchTouches(svg, t, animated, state, w, h) {
+  smallSidedPitch(svg, w, h);
+  const px=w/2-40, py=h/2;
+  const opponent=[w/2+40,h/2-20];
+  svg.appendChild(playerCircle(svg, px, py, 'A', '#a8e63d', '#166534', 12));
+  svg.appendChild(playerCircle(svg, opponent[0], opponent[1], 'B', '#ef4444', 'white', 11));
+  const touch = animated ? Math.floor(t*3)%3 : 0;
+  const badgeColor = touch>=2 ? '#ef4444' : '#ffb830';
+  const badge=mkSvg('text',{x:px,y:py-22,'text-anchor':'middle',fill:badgeColor,'font-size':'11','font-weight':'900'});
+  badge.textContent = 'Touch ' + (animated ? touch+1 : 1) + '/2';
+  svg.appendChild(badge);
+  svg.appendChild(mkSvg('circle',{cx:px+10,cy:py+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  if(animated && touch>=2){
+    const passT=easeInOut((t*3)%1);
+    const bx=lerp(px,w/2+60,passT), by=lerp(py,h/2+40,passT);
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+    const forceLbl=mkSvg('text',{x:w/2,y:26,'text-anchor':'middle',fill:'#ef4444','font-size':'9','font-weight':'700'});
+    forceLbl.textContent='Limit reached - must release!';
+    svg.appendChild(forceLbl);
+  }
+  const lbl=mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent='Max touches per player before must pass/shoot'; svg.appendChild(lbl);
+}
+
+// TRAINING MATCH — MAX STEPS
+function animMatchSteps(svg, t, animated, state, w, h) {
+  smallSidedPitch(svg, w, h);
+  const startX=w/2-70, startY=h/2, endX=w/2+10, endY=h/2-10;
+  const stepT = animated ? (t*2)%1 : 0;
+  const px = lerp(startX, endX, stepT);
+  const py = lerp(startY, endY, stepT);
+  const stepNum = animated ? Math.min(4, Math.floor(stepT*4)+1) : 1;
+  // footstep dots along the path
+  for(let i=0;i<4;i++){
+    const ft = i/4;
+    const fx=lerp(startX,endX,ft), fy=lerp(startY,endY,ft);
+    const done = animated && ft <= stepT;
+    svg.appendChild(mkSvg('circle',{cx:fx,cy:fy,r:3,fill:done?'#ffb830':'rgba(255,255,255,0.2)'}));
+  }
+  svg.appendChild(playerCircle(svg, px, py, 'A', '#a8e63d', '#166534', 12));
+  svg.appendChild(mkSvg('circle',{cx:px+9,cy:py+9,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  const counter=mkSvg('text',{x:w/2,y:26,'text-anchor':'middle',fill:'#ffb830','font-size':'11','font-weight':'900'});
+  counter.textContent = 'Steps: ' + (animated ? stepNum : 1) + ' / 4';
+  svg.appendChild(counter);
+  // receiving teammate ready for the pass
+  svg.appendChild(playerCircle(svg, w/2+70, h/2+30, 'A', '#a8e63d', '#166534', 11));
+  const lbl=mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent='Max steps in possession before must pass/shoot'; svg.appendChild(lbl);
 }
 
 function animSprintSlow(svg, t, animated, state, w, h) {
