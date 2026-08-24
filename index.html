@@ -641,6 +641,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DXC_fs1tODT/',label:'See it on Instagram'},
     anim: animFrogJump
   },
+  {
+    id:'w11', cat:'warmup', name:'King of the Ring', duration:8,
+    setup:'All players inside a marked ring or grid, each with a ball. On "go", everyone dribbles freely around the ring — the aim is to protect your own ball while knocking others\' balls out of the ring using your feet. If your ball gets knocked out (or you dribble it out yourself), you\'re out and step outside to watch. Play continues until only one player — and their ball — remains inside. That player is King of the Ring.',
+    points:['Keep the ball close — small touches, never let it run away from you','Use your body to shield the ball from challengers','Scan constantly — threats can come from any direction, not just in front','Attack other balls when you see an opening, but don\'t abandon your own'],
+    progression:'Shrink the ring as players get knocked out to keep it competitive to the end. Winner starts as King next round — everyone else tries to knock the King out first.',
+    cues:['Protect your ball!','Head up','Small touches','Shield with your body'],
+    diagram:'kingofring', viewBox:'0 0 300 180',
+    youtube:{url:'https://youtu.be/eqEmKnJQH_A',label:'King of the Ring drill'},
+    anim: animKingOfRing
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
@@ -1843,7 +1853,59 @@ function animBumper(svg, t, animated, state, w, h) {
   const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});lbl.textContent='Protect your ball — barge others out!';svg.appendChild(lbl);
 }
 
-// SPRINT & SLOW
+// KING OF THE RING
+function animKingOfRing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const cx = w/2, cy = h/2, ringR = Math.min(w,h)/2 - 20;
+  svg.appendChild(mkSvg('circle',{cx,cy,r:ringR,fill:'none',stroke:'rgba(255,255,255,0.3)','stroke-width':'2','stroke-dasharray':'6 4'}));
+
+  const colors = ['#ef4444','#ffb830','#3ddfc8','#b87fff','#5ab4ff','#a8e63d'];
+  const startAngles = [0, 1, 2, 3, 4, 5].map(i => (i/6)*Math.PI*2);
+
+  // Player index 5 gets eliminated over the course of the animation —
+  // drifts outward and exits the ring boundary to illustrate being knocked out.
+  const eliminatedIdx = 5;
+
+  startAngles.forEach((baseAngle, i) => {
+    let px, py, isOut = false;
+
+    if (i === eliminatedIdx) {
+      if (animated && t > 0.5) {
+        // Knocked outward, past the ring edge, and stays out
+        const exitT = Math.min(1, (t - 0.5) / 0.3);
+        const exitR = lerp(ringR * 0.5, ringR * 1.4, easeInOut(exitT));
+        const exitAngle = baseAngle + 0.3;
+        px = cx + exitR * Math.cos(exitAngle);
+        py = cy + exitR * Math.sin(exitAngle);
+        isOut = exitT >= 1;
+      } else {
+        const wanderR = ringR * 0.5;
+        const angle = baseAngle + (animated ? t * Math.PI * 1.5 : 0);
+        px = cx + wanderR * Math.cos(angle);
+        py = cy + wanderR * Math.sin(angle);
+      }
+    } else {
+      const wanderR = ringR * (0.35 + 0.25 * ((i % 3) / 2));
+      const speed = 1 + (i % 3) * 0.3;
+      const angle = baseAngle + (animated ? t * Math.PI * 2 * speed : 0);
+      px = cx + wanderR * Math.cos(angle);
+      py = cy + wanderR * Math.sin(angle);
+    }
+
+    const pGroup = playerCircle(svg, px, py, 'P', colors[i], 'white', 11);
+    if (isOut) pGroup.setAttribute('opacity', '0.35');
+    svg.appendChild(pGroup);
+    // ball at each player's feet, fades out once eliminated
+    if (!isOut) {
+      svg.appendChild(mkSvg('circle',{cx:px+8,cy:py+8,r:4,fill:'white',stroke:'#111a11','stroke-width':'1'}));
+    }
+  });
+
+  const lbl = mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});
+  lbl.textContent = animated && t > 0.75 ? 'Ball knocked out - that player is out!' : 'Protect your ball, knock others out of the ring';
+  svg.appendChild(lbl);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
