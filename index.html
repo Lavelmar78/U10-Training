@@ -806,6 +806,27 @@ const GLOBAL_CUES = [
 
 // ─── STATE ──────────────────────────────────────────────────────────
 let session = [];
+let sessionDurations = {}; // { drillId: customMinutes } — only holds entries that differ from the drill's default
+
+function getSessionDuration(drill) {
+  const override = sessionDurations[drill.id];
+  return (override !== undefined && override !== null && override > 0) ? override : drill.duration;
+}
+
+function setSessionDuration(drillId, minutes) {
+  const d = DRILLS.find(x => x.id === drillId);
+  if (!d) return;
+  const clamped = Math.max(1, Math.min(60, Math.round(minutes)));
+  if (clamped === d.duration) {
+    delete sessionDurations[drillId]; // back to default — don't store redundant overrides
+  } else {
+    sessionDurations[drillId] = clamped;
+  }
+}
+
+function resetSessionDuration(drillId) {
+  delete sessionDurations[drillId];
+}
 let currentCatFilter = null;
 let currentDrillId = null;
 let detailBackScreen = 'screen-library';
@@ -945,6 +966,7 @@ function toggleDrillInSession() {
 function toggleSession(id) {
   if (session.includes(id)) {
     session = session.filter(x => x !== id);
+    resetSessionDuration(id); // no longer in session, drop any custom duration
   } else {
     session.push(id);
   }
@@ -971,7 +993,9 @@ function renderSession() {
   session.forEach((id, i) => {
     const d = DRILLS.find(x => x.id === id);
     const cat = CATEGORIES.find(c => c.id === d.cat);
-    totalMins += d.duration;
+    const mins = getSessionDuration(d);
+    const isCustom = mins !== d.duration;
+    totalMins += mins;
     const el = document.createElement('div');
     el.className = 'sess-item';
     el.setAttribute('draggable', 'true');
@@ -985,7 +1009,13 @@ function renderSession() {
       </div>
       <div class="sess-num">${i+1}</div>
       <div style="width:28px;height:28px;border-radius:6px;background:${cat.bg};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${cat.icon}</div>
-      <div class="sess-info" style="cursor:pointer"><div class="sess-name">${d.name}</div><div class="sess-meta">${cat.name} · ${d.duration} min</div></div>
+      <div class="sess-info" style="cursor:pointer;flex:1;min-width:0"><div class="sess-name">${d.name}</div><div class="sess-meta">${cat.name}</div></div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <button class="dur-btn" data-drill="${id}" data-delta="-1" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:24px;height:24px;font-size:13px;cursor:pointer;line-height:1">−</button>
+        <div style="min-width:44px;text-align:center;font-size:12px;font-weight:700;color:${isCustom?'#a8e63d':'var(--text)'}">${mins}<span style="font-size:9px;font-weight:400;color:var(--muted)"> min</span></div>
+        <button class="dur-btn" data-drill="${id}" data-delta="1" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:24px;height:24px;font-size:13px;cursor:pointer;line-height:1">+</button>
+        ${isCustom ? `<button class="dur-reset" data-drill="${id}" title="Reset to default (${d.duration} min)" style="background:none;border:none;color:#8aa08a;font-size:13px;cursor:pointer;padding:2px 4px">↺</button>` : ''}
+      </div>
       <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
         <button onclick="moveInSession(${i},-1)" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:26px;height:22px;font-size:12px;cursor:pointer;line-height:1;${i===0?'opacity:0.25;pointer-events:none':''}">▲</button>
         <button onclick="moveInSession(${i},1)" style="background:#252c25;border:1px solid #2e382e;border-radius:5px;color:#8aa08a;width:26px;height:22px;font-size:12px;cursor:pointer;line-height:1;${i===session.length-1?'opacity:0.25;pointer-events:none':''}">▼</button>
@@ -993,6 +1023,25 @@ function renderSession() {
       <button class="sess-remove" onclick="toggleSession('${id}')">×</button>`;
     // click on info = open drill detail
     el.querySelector('.sess-info').onclick = () => openDrillDetail(id,'screen-session');
+    // duration stepper buttons
+    el.querySelectorAll('.dur-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const drillId = btn.getAttribute('data-drill');
+        const delta = parseInt(btn.getAttribute('data-delta'));
+        const dr = DRILLS.find(x => x.id === drillId);
+        setSessionDuration(drillId, getSessionDuration(dr) + delta);
+        renderSession();
+      };
+    });
+    const resetBtn = el.querySelector('.dur-reset');
+    if (resetBtn) {
+      resetBtn.onclick = (e) => {
+        e.stopPropagation();
+        resetSessionDuration(resetBtn.getAttribute('data-drill'));
+        renderSession();
+      };
+    }
     // drag events
     el.addEventListener('dragstart', onDragStart);
     el.addEventListener('dragover', onDragOver);
@@ -1114,7 +1163,7 @@ function renderRunPhase() {
   const id = session[runIdx];
   const d = DRILLS.find(x => x.id === id);
   const cat = CATEGORIES.find(c => c.id === d.cat);
-  runTimeLeft = d.duration * 60;
+  runTimeLeft = getSessionDuration(d) * 60;
   runRunning = false;
   document.getElementById('run-cat').textContent = cat.name;
   document.getElementById('run-cat').style.color = cat.color;
@@ -1148,7 +1197,7 @@ function updateRunTimerUI() {
   const id = session[runIdx];
   const d = DRILLS.find(x => x.id === id);
   const cat = CATEGORIES.find(c => c.id === d.cat);
-  const pct = runTimeLeft / (d.duration * 60);
+  const pct = runTimeLeft / (getSessionDuration(d) * 60);
   const circ = 2 * Math.PI * 52;
   const offset = circ * (1 - pct);
   const ring = document.getElementById('run-ring');
@@ -1182,7 +1231,7 @@ function toggleRunTimer() {
   } else stopRunTimer();
   updateRunTimerUI();
 }
-function resetRunTimer() { stopRunTimer(); runTimeLeft=DRILLS.find(x=>x.id===session[runIdx]).duration*60; updateRunTimerUI(); }
+function resetRunTimer() { stopRunTimer(); runTimeLeft=getSessionDuration(DRILLS.find(x=>x.id===session[runIdx]))*60; updateRunTimerUI(); }
 function runPrev() { if(runIdx>0){stopRunTimer();runIdx--;renderRunPhase();} }
 function runNext() {
   if(runIdx<session.length-1){stopRunTimer();runIdx++;renderRunPhase();}
@@ -1204,8 +1253,9 @@ function shareSession() {
   session.forEach((id, i) => {
     const d = DRILLS.find(x => x.id === id);
     const cat = CATEGORIES.find(c => c.id === d.cat);
-    lines.push(`${i+1}. ${d.name} (${d.duration} min) — ${cat.name}`);
-    total += d.duration;
+    const mins = getSessionDuration(d);
+    lines.push(`${i+1}. ${d.name} (${mins} min) — ${cat.name}`);
+    total += mins;
   });
   lines.push('─────────────────────');
   lines.push(`Total: ${total} min`);
@@ -1389,7 +1439,7 @@ async function saveSessionToTeam() {
   const drillData = session.map(id => {
     const d = DRILLS.find(x => x.id === id);
     const cat = CATEGORIES.find(c => c.id === d.cat);
-    return { id: d.id, name: d.name, duration: d.duration, category: cat.name };
+    return { id: d.id, name: d.name, duration: getSessionDuration(d), category: cat.name };
   });
 
   const btn = document.getElementById('btn-save-team');
@@ -1407,6 +1457,7 @@ async function saveSessionToTeam() {
       // Clear the builder so it's clear a fresh session can be started —
       // saved sessions live under Team → View Team Sessions from now on.
       session = [];
+      sessionDurations = {};
       nameInput.value = '';
       updateCounts();
       renderSession();
@@ -1463,10 +1514,16 @@ async function renderTeamSessions() {
 function loadTeamSessionIntoBuilder(savedSession) {
   // Only load drills that still exist in the current library (in case
   // the library has changed since this was saved).
-  const validIds = (savedSession.drills || [])
-    .map(d => d.id)
-    .filter(id => DRILLS.some(x => x.id === id));
-  session = validIds;
+  const validDrills = (savedSession.drills || [])
+    .filter(d => DRILLS.some(x => x.id === d.id));
+  session = validDrills.map(d => d.id);
+  sessionDurations = {}; // reset, then restore any that differ from current defaults
+  validDrills.forEach(saved => {
+    const current = DRILLS.find(x => x.id === saved.id);
+    if (saved.duration && saved.duration !== current.duration) {
+      sessionDurations[saved.id] = saved.duration;
+    }
+  });
   const dateInput = document.getElementById('sess-date-input');
   const nameInput = document.getElementById('sess-name-input');
   if (dateInput) dateInput.value = savedSession.date || '';
