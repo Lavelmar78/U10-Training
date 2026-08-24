@@ -193,9 +193,13 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
           <span id="detail-yt-badge" style="background:#ff0000;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">▶ YouTube</span>
           <span id="detail-yt-label">Watch drill video</span>
         </a>
-        <a id="detail-ig-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #c13584;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
+        <a id="detail-ig-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #c13584;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">
           <span style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">📷 Instagram</span>
           <span>See it on Instagram</span>
+        </a>
+        <a id="detail-fb-link" href="#" target="_blank" style="display:none;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #1877f2;border-radius:10px;padding:11px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:700;">
+          <span style="background:#1877f2;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:900;color:white;flex-shrink:0">f Facebook</span>
+          <span>See it on Facebook</span>
         </a>
       </div>
     </div>
@@ -651,6 +655,16 @@ const DRILLS = [
     youtube:{url:'https://youtu.be/eqEmKnJQH_A',label:'King of the Ring drill'},
     anim: animKingOfRing
   },
+  {
+    id:'w12', cat:'warmup', name:'Heads & Saves', duration:10,
+    setup:'A goal with two teams lined up on either side. One player from Team A starts in goal. The first player from Team B stands at the edge of the box as the attacker. The next player in Team B\'s line throws the ball in for the attacker to head at goal — a goal scored wins Team B a point. After each attempt, roles rotate: the scorer (or attempted scorer) from Team B becomes the new goalkeeper for Team B\'s turn, the goalkeeper from Team A goes to the back of Team A\'s line, and the next player in Team A\'s line becomes the new attacker with a Team A teammate throwing them the ball. Continue until everyone has had a turn as both attacker and goalkeeper. Most points wins.',
+    points:['Attacker: attack the ball, don\'t wait for it to arrive — meet it with power','Keeper: set your feet early, hands ready before the header arrives','Thrower: serve it at head height with a bit of pace — a weak throw is easy to save','Keep the rotation moving briskly so nobody stands around too long'],
+    progression:'Change to volleys instead of headers. Add a second ball in play for a rebound scramble if the first shot is saved.',
+    cues:['Attack the ball!','Set your feet','Good service','Keep it moving'],
+    diagram:'headssaves', viewBox:'0 0 300 200',
+    facebook:{url:'https://www.facebook.com/share/r/1GV1MXazdq/',label:'See it on Facebook'},
+    anim: animHeadsSaves
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
@@ -943,7 +957,7 @@ function openDrillDetail(id, fromScreen) {
   }
   document.getElementById('detail-cues').innerHTML = d.cues.map(c => `<div class="cue-chip">${c}</div>`).join('');
   const ytWrap = document.getElementById('detail-yt-wrap');
-  ytWrap.style.display = (d.youtube || d.instagram) ? 'block' : 'none';
+  ytWrap.style.display = (d.youtube || d.instagram || d.facebook) ? 'block' : 'none';
   if (d.youtube) {
     const ytLink = document.getElementById('detail-yt-link');
     const ytBadge = document.getElementById('detail-yt-badge');
@@ -962,6 +976,11 @@ function openDrillDetail(id, fromScreen) {
     igLink.style.display = 'flex';
     igLink.href = d.instagram.url;
   } else { igLink.style.display = 'none'; }
+  const fbLink = document.getElementById('detail-fb-link');
+  if (d.facebook) {
+    fbLink.style.display = 'flex';
+    fbLink.href = d.facebook.url;
+  } else { fbLink.style.display = 'none'; }
   stopAnim();
   renderDiagram('detail-svg', d, false);
   updateAddBtn();
@@ -1903,6 +1922,109 @@ function animKingOfRing(svg, t, animated, state, w, h) {
 
   const lbl = mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});
   lbl.textContent = animated && t > 0.75 ? 'Ball knocked out - that player is out!' : 'Protect your ball, knock others out of the ring';
+  svg.appendChild(lbl);
+}
+
+// HEADS & SAVES
+function animHeadsSaves(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15;
+  svg.appendChild(mkSvg('rect',{x:gx-40,y:goalY,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:gx-70,y:goalY+16,width:140,height:60,rx:3,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.12)','stroke-width':'1'}));
+
+  // Both team lines stand on the goal line, either side of the goal itself
+  const lineY = goalY + 8;
+  const teamAx = gx - 90; // Team A line, left of goal
+  const teamBx = gx + 90; // Team B line, right of goal
+  const spacing = 20;
+
+  // Edge-of-box marker where the attacker meets the throw
+  const attackSpotX = gx, attackSpotY = goalY + 65;
+
+  const phase = animated ? t : 0;
+  // Phase timeline:
+  // 0.00-0.35  throw arcs in from Team B line to the attacker at the edge of the box
+  // 0.35-0.45  header contact
+  // 0.45-0.75  ball flies into the goal
+  // 0.75-1.00  rotation: B (scorer) runs into goal, old GK jogs to back of Team A line,
+  //            next Team A player steps up as the new attacker
+  const rotating = animated && phase > 0.75;
+  const rotT = rotating ? easeInOut((phase - 0.75) / 0.25) : 0;
+
+  // ── Team A line (goalkeepers' team) ──
+  // Player 0 starts as GK (out at the goal), players 1,2,3 queue behind on the line.
+  // During rotation: GK jogs from goal back to the END of the line, and player 1
+  // (next in line) steps up to become the new attacker for the following rep.
+  const teamACount = 4;
+  for (let i = 1; i < teamACount; i++) {
+    let px = teamAx, py = lineY + i * spacing;
+    if (rotating && i === 1) {
+      // next-in-line steps toward the attacking spot to become the new attacker
+      px = lerp(teamAx, attackSpotX - 25, rotT);
+      py = lerp(lineY + spacing, attackSpotY, rotT);
+    } else if (rotating) {
+      // everyone else shuffles up one position
+      py = lerp(lineY + i * spacing, lineY + (i - 1) * spacing, rotT);
+    }
+    svg.appendChild(playerCircle(svg, px, py, 'A', '#5ab4ff', 'white', 9));
+  }
+  // The GK: starts in goal, jogs to the back of Team A's line during rotation
+  let gkX = gx, gkY = goalY + 10;
+  if (rotating) {
+    gkX = lerp(gx, teamAx, rotT);
+    gkY = lerp(goalY + 10, lineY + teamACount * spacing, rotT);
+  }
+  svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#a8e63d', '#166534', 10));
+
+  // ── Team B line (attackers/throwers' team) ──
+  // Player 0 (front) is the thrower, standing on the goal line.
+  // The attacker started this rep already out at the edge of the box, and after
+  // scoring runs INTO goal to become Team B's next goalkeeper.
+  for (let i = 0; i < 3; i++) {
+    svg.appendChild(playerCircle(svg, teamBx, lineY + i * spacing, 'B', '#ef4444', 'white', 9));
+  }
+  // Thrower stands right on the goal line next to the line
+  const throwX = teamBx - 15, throwY = lineY;
+
+  // Attacker (Team B) — starts at the edge of the box, and after scoring
+  // sprints into goal to become the new Team B goalkeeper
+  let attX = attackSpotX, attY = attackSpotY;
+  if (rotating) {
+    attX = lerp(attackSpotX, gx, rotT);
+    attY = lerp(attackSpotY, goalY + 10, rotT);
+  }
+  svg.appendChild(playerCircle(svg, attX, attY, 'B', '#ef4444', 'white', 11));
+
+  // Labels
+  const lblA = mkSvg('text',{x:teamAx,y:h-6,'text-anchor':'middle',fill:'rgba(90,180,255,0.6)','font-size':'7'}); lblA.textContent='TEAM A'; svg.appendChild(lblA);
+  const lblB = mkSvg('text',{x:teamBx,y:h-6,'text-anchor':'middle',fill:'rgba(239,68,68,0.6)','font-size':'7'}); lblB.textContent='TEAM B'; svg.appendChild(lblB);
+
+  // Ball
+  if (animated) {
+    if (phase <= 0.35) {
+      const bt = easeInOut(phase / 0.35);
+      const ballX = lerp(throwX, attackSpotX, bt);
+      const arcY = lerp(throwY, attackSpotY, bt) - Math.sin(bt*Math.PI)*28;
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:arcY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else if (phase <= 0.45) {
+      svg.appendChild(mkSvg('circle',{cx:attackSpotX,cy:attackSpotY,r:6,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+    } else if (phase <= 0.75) {
+      const bt = easeInOut((phase-0.45) / 0.3);
+      const ballX = lerp(attackSpotX, gx, bt);
+      const ballY = lerp(attackSpotY, goalY+10, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    }
+    // no ball drawn during the rotation phase — it's already in the net
+  } else {
+    arrow(svg, throwX, throwY+6, attackSpotX-8, attackSpotY-6, 'rgba(239,68,68,0.5)', true);
+    arrow(svg, attackSpotX, attackSpotY-6, gx, goalY+16, 'rgba(255,184,48,0.6)');
+  }
+
+  const lblText = rotating
+    ? 'B runs into goal, GK to back of line, next A steps up'
+    : 'Throw in from the line, header at goal';
+  const lbl = mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = lblText;
   svg.appendChild(lbl);
 }
 
