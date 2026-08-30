@@ -666,6 +666,16 @@ const DRILLS = [
     facebook:{url:'https://www.facebook.com/share/r/1GV1MXazdq/',label:'See it on Facebook'},
     anim: animHeadsSaves
   },
+  {
+    id:'w13', cat:'warmup', name:'Changing Direction', duration:8,
+    setup:'Two teams line up at separate starting cones. On "go", the first player sprints to a cone 20 yards ahead, sharply changes direction to a cone 5 yards back and 5 yards to the side, changes direction again back past the first turning cone, then sprints the final 10 yards to the finish. Can be run as a straight race between the two teams, or with the coach shouting "go" to send the next pair one at a time.',
+    points:['Explode out of every change of direction — don\'t just jog through the turn','Get low and drop your hips on the cut for a sharper turn','Plant the outside foot firmly before changing direction','Eyes up, not down at your feet, throughout the run'],
+    progression:'Add a ball to dribble through the whole course. Run it as a knockout race — losers do 5 press-ups.',
+    cues:['Explode out of the turn!','Low hips on the cut','Plant and go','Eyes up'],
+    diagram:'changedir', viewBox:'0 0 300 200',
+    facebook:{url:'https://www.facebook.com/share/r/1Ba4LHxxL8/',label:'See it on Facebook'},
+    anim: animChangeDir
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
@@ -727,6 +737,26 @@ const DRILLS = [
     diagram:'shootcombo', viewBox:'0 0 300 200',
     instagram:{url:'https://www.instagram.com/reel/DVAeFg3EqB1/',label:'See it on Instagram'},
     anim: animShootCombo
+  },
+  {
+    id:'a9', cat:'attacking', name:'Overlapping Runs & Finishing', duration:13,
+    setup:'3 cones set 10 yards apart in a straight line leading to a goal, with the 3rd cone 10 yards from goal. Pairs (A and B) share one ball and start together to the left of cone 1. A dribbles toward cone 1 and, just before reaching it, lays the ball off left to B. A then runs right, around cone 1, and loops back behind B. B dribbles on toward cone 2 and repeats the same lay-off and overlap. This continues through cone 3, where the receiving player takes the final pass and shoots on goal.',
+    points:['Lay the ball off with the inside of the foot, weighted so the next player doesn\'t have to break stride','Time the overlapping run to arrive just as the ball is played — not too early, not late','Receiving player: take a positive first touch forward, don\'t stop and wait','Keep the pattern moving at pace — this is about rhythm as much as technique'],
+    progression:'Add a passive defender jogging alongside to add read-and-react pressure. Alternate which player finishes so both practice the shot.',
+    cues:['Lay it off early','Time your overlap','Positive first touch','Keep the rhythm'],
+    diagram:'overlapfinish', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DXsl5OBDsMc/',label:'See it on Instagram'},
+    anim: animOverlapFinish
+  },
+  {
+    id:'a10', cat:'attacking', name:'2v1 Attacking Decisions', duration:12,
+    setup:'Set up 3 cones facing a goal: Cone A is 30 yards from the centre of the goal, Cone B is on the left edge of the "D", Cone C is on the right edge of the "D". One attacker starts on Cone A, one attacker on Cone C, and one defender on Cone B. The attacker on A passes to the attacker on C to start the phase — the moment that pass is played, the defender on B becomes active. The two attackers combine to try to score against the single defender.',
+    points:['Attacker on A: weight the starting pass so C can attack goal on the front foot','Attacker on C: assess the defender\'s position immediately — run at them or combine?','Defender: react the instant the ball leaves A — don\'t anticipate early and cheat the start','Attackers: use the extra man — draw the defender then find the free player'],
+    progression:'Add a second defender starting deeper to recover and make it 2v2. Restrict attackers to 1-touch finishes only.',
+    cues:['React on the pass!','Draw and release','Use the extra man','Attack on the front foot'],
+    diagram:'twovonedecision', viewBox:'0 0 300 200',
+    facebook:{url:'https://www.facebook.com/share/r/1Db9gDSAZB/',label:'See it on Facebook'},
+    anim: animTwoVOneDecision
   },
     // ── EXTRA MOVEMENT ──
   {
@@ -2062,6 +2092,283 @@ function animHeadsSaves(svg, t, animated, state, w, h) {
     ? 'B runs into goal, GK to back of line, next A steps up'
     : 'Throw in from the line, header at goal';
   const lbl = mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = lblText;
+  svg.appendChild(lbl);
+}
+
+// CHANGING DIRECTION
+function animChangeDir(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+
+  // Course laid out top-to-bottom: start at bottom, run up 20yd to cone A,
+  // cut back-and-across to cone B (5yd back, 5yd to the side from A),
+  // cut again back past cone A's line, then sprint the final 10yd to finish.
+  // Both teams run the SAME shaped course side by side on their own cones.
+  const laneOffset = 65; // horizontal gap between Team A's lane and Team B's lane
+  const laneAX = w/2 - laneOffset/2;
+  const laneBX = w/2 + laneOffset/2;
+  const startY = h - 15;
+  const coneAY = startY - 100;                 // 20 yards up from start
+  const sideOffset = 30;                        // 5 yards across, mirrored outward per lane
+  const coneBY = coneAY + 25;                   // 5 yards back from the top cone
+  const finishY = coneAY - 55;                  // 10 yards further past the top cone
+
+  function cone(cx, cy) {
+    svg.appendChild(mkSvg('polygon',{points:`${cx},${cy-6} ${cx-4},${cy+6} ${cx+4},${cy+6}`, fill:'#ffb830'}));
+  }
+
+  // start and finish lines span both lanes
+  svg.appendChild(mkSvg('line',{x1:laneAX-25,y1:startY,x2:laneBX+25,y2:startY,stroke:'#a8e63d','stroke-width':'2'}));
+  const sLbl=mkSvg('text',{x:w/2,y:startY+13,'text-anchor':'middle',fill:'#a8e63d','font-size':'7'});sLbl.textContent='START';svg.appendChild(sLbl);
+  svg.appendChild(mkSvg('line',{x1:laneAX-25,y1:finishY,x2:laneBX+25,y2:finishY,stroke:'#ef4444','stroke-width':'2'}));
+  const fLbl=mkSvg('text',{x:w/2,y:finishY-8,'text-anchor':'middle',fill:'#ef4444','font-size':'7'});fLbl.textContent='FINISH';svg.appendChild(fLbl);
+
+  // Each lane's side cone kicks outward, away from the other lane, so the
+  // two courses sit side by side without overlapping.
+  const coneBX_A = laneAX - sideOffset;
+  const coneBX_B = laneBX + sideOffset;
+
+  cone(laneAX, coneAY); cone(coneBX_A, coneBY);
+  cone(laneBX, coneAY); cone(coneBX_B, coneBY);
+
+  function waypointsFor(laneX, coneBX) {
+    return [
+      [laneX, startY],
+      [laneX, coneAY],
+      [coneBX, coneBY],
+      [laneX, coneAY],
+      [laneX, finishY],
+    ];
+  }
+  const wpA = waypointsFor(laneAX, coneBX_A);
+  const wpB = waypointsFor(laneBX, coneBX_B);
+
+  if (!animated) {
+    // static: draw both paths as dashed arrows
+    [wpA, wpB].forEach(wp => {
+      for (let i = 0; i < wp.length - 1; i++) {
+        arrow(svg, wp[i][0], wp[i][1], wp[i+1][0], wp[i+1][1], 'rgba(168,230,61,0.5)', true);
+      }
+    });
+    svg.appendChild(playerCircle(svg, laneAX, startY, 'A', '#5ab4ff', 'white', 10));
+    svg.appendChild(playerCircle(svg, laneBX, startY, 'B', '#ef4444', 'white', 10));
+  } else {
+    // animated: both runners move through the 4 legs of their own course
+    // at the same time, side by side
+    const legT = t * 4;
+    const leg = Math.min(3, Math.floor(legT));
+    const localT = easeInOut(legT - leg);
+
+    const [ax1,ay1] = wpA[leg]; const [ax2,ay2] = wpA[leg+1];
+    const apx = lerp(ax1, ax2, localT); const apy = lerp(ay1, ay2, localT);
+    svg.appendChild(playerCircle(svg, apx, apy, 'A', '#5ab4ff', 'white', 11));
+
+    const [bx1,by1] = wpB[leg]; const [bx2,by2] = wpB[leg+1];
+    const bpx = lerp(bx1, bx2, localT); const bpy = lerp(by1, by2, localT);
+    svg.appendChild(playerCircle(svg, bpx, bpy, 'B', '#ef4444', 'white', 11));
+  }
+
+  const lbl = mkSvg('text',{x:w/2,y:h-2,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = 'Sprint, cut, cut again, sprint to finish - side by side';
+  svg.appendChild(lbl);
+}
+
+// OVERLAPPING RUNS & FINISHING
+function animOverlapFinish(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+
+  // Course runs bottom (start) to top (goal). 3 cones 10yd apart, goal 10yd past cone 3.
+  const laneX = w/2 - 15;   // the dribbling line, just right of the cones
+  const coneX = w/2 - 15;   // cones sit on the dribbling line
+  const sideX = w/2 - 50;   // the lay-off / left-side lane
+  const startY = h - 20;
+  const cone1Y = startY - 45;
+  const cone2Y = cone1Y - 45;
+  const cone3Y = cone2Y - 45;
+  const goalY = cone3Y - 45;
+
+  function cone(cy) {
+    svg.appendChild(mkSvg('polygon',{points:`${coneX},${cy-6} ${coneX-4},${cy+6} ${coneX+4},${cy+6}`, fill:'#ffb830'}));
+  }
+  cone(cone1Y); cone(cone2Y); cone(cone3Y);
+
+  // Goal
+  svg.appendChild(mkSvg('rect',{x:w/2-32,y:goalY-14,width:64,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+
+  const sLbl=mkSvg('text',{x:sideX-15,y:startY+4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});sLbl.textContent='START';svg.appendChild(sLbl);
+
+  // Phase timeline: 3 legs (cone1, cone2, cone3), each ~0.3 of the animation,
+  // final 0.1 is the shot. Players alternate who dribbles vs lays off + overlaps.
+  const phase = animated ? t : 0;
+  const legLen = 0.3;
+  const leg = Math.min(2, Math.floor(phase / legLen));
+  const legT = animated ? Math.min(1, (phase - leg*legLen) / legLen) : 0;
+
+  const coneYs = [cone1Y, cone2Y, cone3Y];
+  const fromY = leg === 0 ? startY : coneYs[leg-1];
+  const toY = coneYs[leg];
+
+  // Determine which player is dribbling this leg (alternates A, B, A) and which
+  // is receiving the lay-off and overlapping (alternates B, A, B).
+  const dribblerIsA = (leg % 2 === 0);
+  const dribblerLabel = dribblerIsA ? 'A' : 'B';
+  const receiverLabel = dribblerIsA ? 'B' : 'A';
+  const dribblerColor = dribblerIsA ? '#a8e63d' : '#5ab4ff';
+  const receiverColor = dribblerIsA ? '#5ab4ff' : '#a8e63d';
+
+  if (!animated) {
+    // Static overview: show start positions and the lay-off + overlap pattern once
+    svg.appendChild(playerCircle(svg, laneX, startY, 'A', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, sideX, startY, 'B', '#5ab4ff', 'white', 11));
+    arrow(svg, laneX, startY-10, laneX, cone1Y+10, '#a8e63d');
+    arrow(svg, laneX, cone1Y, sideX, cone1Y, 'rgba(168,230,61,0.5)', true);
+    arrow(svg, laneX, cone1Y-5, laneX+25, cone1Y-15, 'rgba(90,180,255,0.5)', true);
+    const lbl2 = mkSvg('text',{x:w/2+15,y:cone1Y-25,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'6'});
+    lbl2.textContent='overlap around cone'; svg.appendChild(lbl2);
+  } else {
+    const laySplitT = 0.65; // fraction of the leg where the lay-off happens
+
+    let dribX, dribY, recX, recY;
+    if (legT < laySplitT) {
+      // dribbler carries the ball up toward the cone; receiver trails on the side lane
+      const dt = easeInOut(legT / laySplitT);
+      dribX = laneX; dribY = lerp(fromY, toY, dt);
+      recX = sideX; recY = lerp(fromY, toY, dt * 0.7);
+    } else {
+      // lay-off played; receiver now on the dribbling line moving through the cone,
+      // dribbler loops right, around the cone, and back behind the receiver
+      const dt = easeInOut((legT - laySplitT) / (1 - laySplitT));
+      recX = lerp(sideX, laneX, dt);
+      recY = lerp(fromY, toY, lerp(0.7, 1, dt));
+      // dribbler's loop: out right, around the cone, tucking in behind the receiver
+      const loopOutX = laneX + 35;
+      if (dt < 0.5) {
+        const ldt = dt / 0.5;
+        dribX = lerp(laneX, loopOutX, easeInOut(ldt));
+        dribY = lerp(toY - 6, toY, easeInOut(ldt));
+      } else {
+        const ldt = (dt - 0.5) / 0.5;
+        dribX = lerp(loopOutX, sideX, easeInOut(ldt));
+        dribY = lerp(toY, toY + 10, easeInOut(ldt));
+      }
+    }
+
+    svg.appendChild(playerCircle(svg, dribX, dribY, dribblerLabel, dribblerColor, dribblerColor==='#a8e63d'?'#166534':'white', 11));
+    svg.appendChild(playerCircle(svg, recX, recY, receiverLabel, receiverColor, receiverColor==='#a8e63d'?'#166534':'white', 11));
+
+    // ball: with the dribbler until the lay-off point, then with the receiver
+    if (legT < laySplitT) {
+      svg.appendChild(mkSvg('circle',{cx:dribX+7,cy:dribY+7,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else {
+      svg.appendChild(mkSvg('circle',{cx:recX+7,cy:recY+7,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    }
+
+    // After cone 3, show the shot on goal
+    if (leg === 2 && legT > 0.85) {
+      const shotT = easeInOut((legT - 0.85) / 0.15);
+      const shotX = lerp(recX, w/2, shotT), shotY = lerp(recY, goalY-8, shotT);
+      svg.appendChild(mkSvg('circle',{cx:shotX,cy:shotY,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+    }
+  }
+
+  const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = 'Lay off, overlap around the cone, repeat, then finish';
+  svg.appendChild(lbl);
+}
+
+// 2v1 ATTACKING DECISIONS
+function animTwoVOneDecision(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15;
+  svg.appendChild(mkSvg('rect',{x:gx-32,y:goalY,width:64,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+  // the "D" / box arc, approximated with a rect + curve hint
+  svg.appendChild(mkSvg('rect',{x:gx-65,y:goalY+14,width:130,height:70,rx:4,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.1)','stroke-width':'1'}));
+
+  // Cone positions
+  const coneAX = gx, coneAY = h - 20;               // 30 yards out, central
+  const boxBottom = goalY + 14 + 70;                 // bottom edge of the box
+  const coneBX = gx - 55, coneBY = boxBottom + 12;    // left edge of the D, just outside the box
+  const coneCX = gx + 55, coneCY = boxBottom + 12;    // right edge of the D, just outside the box
+
+  function cone(cx, cy) {
+    svg.appendChild(mkSvg('polygon',{points:`${cx},${cy-6} ${cx-4},${cy+6} ${cx+4},${cy+6}`, fill:'#ffb830'}));
+  }
+  cone(coneAX, coneAY); cone(coneBX, coneBY); cone(coneCX, coneCY);
+
+  const aLbl=mkSvg('text',{x:coneAX,y:coneAY+16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});aLbl.textContent='Cone A - 30yd';svg.appendChild(aLbl);
+
+  const phase = animated ? t : 0;
+  // Phase timeline: 0-0.3 initial pass A->C (defender still inactive), 0.3-1 the 2v1 plays out.
+  // Which outcome plays (A2 shoots themselves, or lays it off to A1) alternates each
+  // time the animation loops — tracked via `state`, which persists across frames.
+  if (state) {
+    if (state.prevT === undefined) state.prevT = phase;
+    if (state.outcome === undefined) state.outcome = 0;
+    if (phase < state.prevT - 0.5) {
+      // wrapped back to the start of a new loop - flip the outcome
+      state.outcome = state.outcome === 0 ? 1 : 0;
+    }
+    state.prevT = phase;
+  }
+  const outcome = state ? state.outcome : 0; // 0 = A2 shoots, 1 = A2 lays off to A1 who shoots
+
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, coneAX, coneAY, 'A1', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, coneCX, coneCY, 'A2', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, coneBX, coneBY, 'D', '#ef4444', 'white', 11));
+    arrow(svg, coneAX, coneAY-8, coneCX+5, coneCY+8, '#a8e63d');
+    const trigLbl=mkSvg('text',{x:gx,y:coneAY-16,'text-anchor':'middle',fill:'#ffb830','font-size':'7'});
+    trigLbl.textContent='Pass starts it - defender then live'; svg.appendChild(trigLbl);
+  } else if (phase <= 0.3) {
+    // initial pass from A1 (on cone A) to A2 (on cone C), defender still static/inactive
+    const bt = easeInOut(phase / 0.3);
+    svg.appendChild(playerCircle(svg, coneAX, coneAY, 'A1', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, coneCX, coneCY, 'A2', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, coneBX, coneBY, 'D', '#ef4444', 'white', 11));
+    const ballX = lerp(coneAX, coneCX, bt), ballY = lerp(coneAY, coneCY, bt);
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  } else {
+    // 2v1 phase: A2 carries into the box, A1 supports centrally, D closes down A2
+    const pt = easeInOut((phase - 0.3) / 0.7);
+    const a2X = lerp(coneCX, gx + 15, pt), a2Y = lerp(coneCY, goalY + 25, pt);
+    const a1X = lerp(coneAX, gx - 25, pt), a1Y = lerp(coneAY, goalY + 45, pt);
+    const dX = lerp(coneBX, a2X - 12, pt * 0.9), dY = lerp(coneBY, a2Y + 6, pt * 0.9);
+
+    svg.appendChild(playerCircle(svg, a1X, a1Y, 'A1', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, a2X, a2Y, 'A2', '#a8e63d', '#166534', 11));
+    svg.appendChild(playerCircle(svg, dX, dY, 'D', '#ef4444', 'white', 11));
+
+    if (pt < 0.75) {
+      svg.appendChild(mkSvg('circle',{cx:a2X+7,cy:a2Y+7,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    } else if (outcome === 0) {
+      // Outcome A: A2 takes it on themselves and shoots
+      const st = easeInOut((pt - 0.75) / 0.25);
+      const ballX = lerp(a2X, gx, st), ballY = lerp(a2Y, goalY + 12, st);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+    } else {
+      // Outcome B: A2 lays it back to A1, who shoots instead
+      const st = easeInOut((pt - 0.75) / 0.25);
+      if (st < 0.5) {
+        const passT = st / 0.5;
+        const ballX = lerp(a2X, a1X, passT), ballY = lerp(a2Y, a1Y, passT);
+        svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+      } else {
+        const shotT = (st - 0.5) / 0.5;
+        const ballX = lerp(a1X, gx, shotT), ballY = lerp(a1Y, goalY + 12, shotT);
+        svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+      }
+    }
+  }
+
+  let lblText;
+  if (!animated || phase <= 0.3) {
+    lblText = 'A passes to trigger - defender then engages';
+  } else if (outcome === 0) {
+    lblText = 'A2 takes it on and shoots';
+  } else {
+    lblText = 'A2 lays off - A1 finishes';
+  }
+  const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
   lbl.textContent = lblText;
   svg.appendChild(lbl);
 }
