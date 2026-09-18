@@ -1021,6 +1021,46 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DckCd0dtTl0/',label:'See it on Instagram'},
     anim: animGKShapeK
   },
+  {
+    id:'gk14', cat:'goalkeeper', name:'Four Pole Cross-Goal Dive', duration:12,
+    setup:'Set 4 poles in a line, level with the keeper\'s right post, 1 yard apart from each other and running out from that post. The keeper starts at the post. On "go", the keeper side-runs around the first pole, then dives low across goal to save a shot from the coach heading for the keeper\'s left post. The keeper then side-runs around the next pole in the line and repeats the cross-goal dive, continuing until they\'ve worked around all 4 poles.',
+    points:['Quick side-shuffle around each pole — don\'t turn your back on the coach','Push off explosively into the cross-goal dive — it\'s a full-length save each time','Get your body fully behind the ball at the far post, not just a hand','Reset instantly after each rep, ready to shuffle to the next pole'],
+    progression:'Coach varies the timing of the strike after each pole. Mirror the whole set-up off the left post, working poles out from there instead.',
+    cues:['Quick side shuffle!','Explosive push-off','Full body behind it','Reset fast'],
+    diagram:'gkfourpolecross', viewBox:'0 0 300 200',
+    instagram:{url:'https://www.instagram.com/p/CV5LppslYTc/',label:'See it on Instagram'},
+    anim: animGKFourPoleCross
+  },
+  {
+    id:'gk15', cat:'goalkeeper', name:'Ground Seated Catching', duration:8,
+    setup:'The keeper sits on the ground facing the coach. The coach kicks or throws the ball to the keeper\'s left, right, or straight down the middle — the keeper must move quickly from the seated position to get their body behind the ball and catch it cleanly.',
+    points:['Use your hands and hips together to shift quickly across the ground','Get your whole body behind the ball, don\'t just reach with the arms','Catch it, don\'t just block it — secure possession every time','Reset to the central seated position quickly after each catch'],
+    progression:'Coach increases the pace and varies the height slightly. Add a quick throw back to the coach after each catch to build a second phase.',
+    cues:['Move quick from the ground!','Body behind it','Catch, don\'t block','Reset to centre'],
+    diagram:'gkgroundseated', viewBox:'0 0 300 200',
+    facebook:{url:'https://www.facebook.com/share/r/1Dfd5zdr3L/',label:'See it on Facebook'},
+    anim: animGKGroundSeated
+  },
+  {
+    id:'gk16', cat:'goalkeeper', name:'Catch & React Cross Dive', duration:10,
+    setup:'The keeper starts 2 yards outside either post of a small goal (not between the posts). The coach kicks a ball at varying heights directly at the keeper to catch. As soon as the keeper catches it, the coach immediately strikes a second ball at the small goal — the keeper must react instantly, dive low across the goal, and save it.',
+    points:['Catch the first ball cleanly and securely — don\'t fumble the start of the sequence','Get rid of any hesitation after the catch — the second ball comes immediately','React to the strike, not to the coach\'s run-up','Get full body behind the second ball, not just an outstretched arm'],
+    progression:'Coach varies the height of the first ball and the angle of the second. Switch the keeper\'s starting side each set.',
+    cues:['Catch it clean!','No hesitation','React fast','Full body behind it'],
+    diagram:'gkcatchreact', viewBox:'0 0 300 200',
+    facebook:{url:'https://www.facebook.com/share/r/186xTbft2U/',label:'See it on Facebook'},
+    anim: animGKCatchReact
+  },
+  {
+    id:'gk17', cat:'goalkeeper', name:'Tracking & 1v1 or Shot', duration:12,
+    setup:'Keeper starts in the middle of the goal. Two coaches stand 2 yards out from the middle of the goal, 4 yards apart, and pass the ball quickly between themselves — the keeper must track the ball, shuffling left and right in line with it. A third coach stands 8 yards out from goal with a ball. At a moment of their choosing, this coach either shoots or drives forward 1v1 at the keeper — the keeper must read which it is and react, either blocking the shot or standing up well to make the 1v1 save.',
+    points:['Stay on your toes tracking the passing — don\'t flat-foot between shuffles','Keep scanning for the third coach, don\'t fixate only on the passers','Read the shooter\'s body shape early to judge shot vs. drive','On the 1v1, stay big and patient — don\'t dive in early','On the shot, get your body behind it, set and balanced'],
+    progression:'Vary how long the passing phase runs before the third coach engages. Add a rebound: if saved, the first two coaches can follow in for a second ball.',
+    cues:['Track the ball!','Stay on your toes','Read the shooter','Stay big on the 1v1'],
+    diagram:'gktracking1v1', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/Dc_Zv_MOTuh/',label:'See it on Instagram'},
+    anim: animGKTracking1v1
+  },
 ];
 
 const GLOBAL_CUES = [
@@ -3708,6 +3748,290 @@ function animGKShapeK(svg, t, animated, state, w, h) {
     lblText = 'Shimmy together - GK mirrors the coach';
   } else {
     lblText = 'Struck! GK into the low K shape';
+  }
+  const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = lblText;
+  svg.appendChild(lbl);
+}
+
+// GOALKEEPER — FOUR POLE CROSS-GOAL DIVE
+function animGKFourPoleCross(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15, goalHalfW = 45, goalH = 26;
+  svg.appendChild(mkSvg('rect',{x:gx-goalHalfW,y:goalY,width:goalHalfW*2,height:goalH,fill:'none',stroke:'white','stroke-width':'2'}));
+
+  // Keeper faces the coach/viewer, so the keeper's own left/right is
+  // mirrored from the screen: keeper's RIGHT post is screen-LEFT, keeper's
+  // LEFT post is screen-RIGHT.
+  const keepersRightPostX = gx - goalHalfW; // screen-left
+  const keepersLeftPostX = gx + goalHalfW;  // screen-right
+  const lineY = goalY + goalH + 30;
+
+  // 4 poles in a VERTICAL line running straight out from the keeper's
+  // right post, 1 yard apart, each one further from goal than the last.
+  // All 4 share the same X (aligned with the post) — only Y changes.
+  const poleSpacing = 24;
+  const poles = [0, 1, 2, 3].map(i => ({ x: keepersRightPostX, y: lineY + poleSpacing * i }));
+  poles.forEach(p => svg.appendChild(mkSvg('circle',{cx:p.x,cy:p.y,r:3.5,fill:'#ffb830'})));
+
+  const gkStartX = keepersRightPostX, gkStartY = goalY + goalH - 8; // keeper starts at the right post
+
+  // Coach positioned out in front, central-ish, striking low across goal
+  // toward the keeper's left post (screen-right) each time.
+  const coachX = gx, coachY = h - 20;
+  svg.appendChild(playerCircle(svg, coachX, coachY, 'C', '#ffb830', '#8a5a00', 10));
+
+  const diveTargetX = keepersLeftPostX - 8, diveTargetY = goalY + goalH - 6;
+
+  const phase = animated ? t : 0;
+  // Phase timeline, one full loop shows the keeper progressing through all
+  // 4 poles in sequence:
+  //   each segment: side-shuffle around the working pole, then dive low
+  //   across goal to save at the keeper's left post
+  const segment = Math.min(3, Math.floor(phase * 4));
+  const segT = animated ? Math.min(1, (phase * 4) - segment) : 0;
+  const workPole = poles[segment];
+
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, gkStartX, gkStartY, 'GK', '#ffd23f', '#8a6d00', 10));
+    arrow(svg, gkStartX, gkStartY, poles[0].x, poles[0].y, '#ffd23f', true);
+    arrow(svg, poles[0].x, poles[0].y, diveTargetX, diveTargetY, 'rgba(255,210,63,0.5)', true);
+    const lbl2=mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});
+    lbl2.textContent='Side-run each pole, dive across to the far post'; svg.appendChild(lbl2);
+  } else {
+    const prevX = segment === 0 ? gkStartX : diveTargetX;
+    const prevY = segment === 0 ? gkStartY : diveTargetY;
+
+    if (segT <= 0.5) {
+      // side-shuffle straight out to the working pole's distance, bulging
+      // slightly wide of the post's line to go "around" the pole
+      const bt = segT / 0.5;
+      const path = [[prevX, prevY], [workPole.x - 12, workPole.y - 6], [workPole.x, workPole.y]];
+      const pos = pointAlongPath(path, easeInOut(bt));
+      svg.appendChild(playerCircle(svg, pos[0], pos[1], 'GK', '#ffd23f', '#8a6d00', 10));
+      svg.appendChild(playerCircle(svg, coachX, coachY, 'C', '#ffb830', '#8a5a00', 10));
+    } else {
+      // dive low across goal to the keeper's left post (screen-right)
+      const bt = easeInOut((segT - 0.5) / 0.5);
+      const gkX = lerp(workPole.x, diveTargetX, bt), gkY = lerp(workPole.y, diveTargetY, bt);
+      svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#ffd23f', '#8a6d00', 10));
+      svg.appendChild(playerCircle(svg, coachX, coachY, 'C', '#ffb830', '#8a5a00', 10));
+      const ballX = lerp(coachX, diveTargetX, bt), ballY = lerp(coachY - 10, diveTargetY, bt);
+      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    }
+  }
+
+  let lblText2;
+  if (!animated) {
+    lblText2 = 'GK at right post, ready';
+  } else if (segT <= 0.5) {
+    lblText2 = 'Pole ' + (segment + 1) + ' of 4 - side shuffle round';
+  } else {
+    lblText2 = 'Struck! GK dives across to the far post';
+  }
+  const lbl3 = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl3.textContent = lblText2;
+  svg.appendChild(lbl3);
+}
+
+// GOALKEEPER — GROUND SEATED CATCHING
+function animGKGroundSeated(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const gx = w/2;
+  const gkY = h/2 + 10, coachY = h - 20;
+  const coachX = gx;
+
+  // Which direction cycles each loop: 0 = middle, 1 = left, 2 = right
+  if (state) {
+    if (state.prevT === undefined) state.prevT = t;
+    if (state.dirIdx === undefined) state.dirIdx = 0;
+    if (t < state.prevT - 0.5) state.dirIdx = (state.dirIdx + 1) % 3;
+    state.prevT = t;
+  }
+  const dirIdx = state ? state.dirIdx : 0;
+  const targets = [gx, gx - 55, gx + 55]; // middle, left, right
+  const targetX = targets[dirIdx];
+  const dirNames = ['middle', 'left', 'right'];
+
+  svg.appendChild(playerCircle(svg, coachX, coachY, 'C', '#ffb830', '#8a5a00', 10));
+
+  const phase = animated ? t : 0;
+  // Phase timeline: 0-0.5 ball travels from coach to the target direction,
+  // 0.5-1 keeper shifts along the ground (seated) to catch it, arriving as
+  // the ball does.
+
+  if (!animated) {
+    svg.appendChild(mkSvg('ellipse',{cx:gx, cy:gkY, rx:11, ry:7, fill:'#ffd23f', stroke:'#8a6d00', 'stroke-width':'2'}));
+    const gkLbl=mkSvg('text',{x:gx,y:gkY+3,'text-anchor':'middle',fill:'#8a6d00','font-size':'7','font-weight':'bold'});gkLbl.textContent='GK';svg.appendChild(gkLbl);
+    const lbl2=mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});
+    lbl2.textContent='GK seated, shifts left/right/middle to catch'; svg.appendChild(lbl2);
+  } else if (phase <= 0.5) {
+    // GK stays central/seated while the ball approaches
+    svg.appendChild(mkSvg('ellipse',{cx:gx, cy:gkY, rx:11, ry:7, fill:'#ffd23f', stroke:'#8a6d00', 'stroke-width':'2'}));
+    const gkLbl=mkSvg('text',{x:gx,y:gkY+3,'text-anchor':'middle',fill:'#8a6d00','font-size':'7','font-weight':'bold'});gkLbl.textContent='GK';svg.appendChild(gkLbl);
+    const bt = easeInOut(phase / 0.5);
+    const ballX = lerp(coachX, targetX, bt), ballY = lerp(coachY - 10, gkY, bt);
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  } else {
+    // GK shifts along the ground to the target direction to catch it
+    const bt = easeInOut((phase - 0.5) / 0.5);
+    const gkX = lerp(gx, targetX, bt);
+    svg.appendChild(mkSvg('ellipse',{cx:gkX, cy:gkY, rx:11, ry:7, fill:'#ffd23f', stroke:'#8a6d00', 'stroke-width':'2'}));
+    const gkLbl=mkSvg('text',{x:gkX,y:gkY+3,'text-anchor':'middle',fill:'#8a6d00','font-size':'7','font-weight':'bold'});gkLbl.textContent='GK';svg.appendChild(gkLbl);
+    svg.appendChild(mkSvg('circle',{cx:targetX,cy:gkY,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2',opacity: 1-bt*0.4}));
+  }
+
+  let lblText;
+  if (!animated || phase <= 0.5) {
+    lblText = 'Coach sends it ' + dirNames[dirIdx];
+  } else {
+    lblText = 'GK shifts across and catches!';
+  }
+  const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = lblText;
+  svg.appendChild(lbl);
+}
+
+// GOALKEEPER — CATCH & REACT CROSS DIVE
+function animGKCatchReact(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15, goalHalfW = 40, goalH = 20;
+  svg.appendChild(mkSvg('rect',{x:gx-goalHalfW,y:goalY,width:goalHalfW*2,height:goalH,fill:'none',stroke:'white','stroke-width':'2'}));
+
+  // Keeper starts to ONE side of the small goal (not centrally) — which
+  // side alternates each loop.
+  if (state) {
+    if (state.prevT === undefined) state.prevT = t;
+    if (state.side === undefined) state.side = -1; // -1 = starts left, 1 = starts right
+    if (t < state.prevT - 0.5) state.side = -state.side;
+    state.prevT = t;
+  }
+  const side = state ? state.side : -1;
+  const gkStartX = gx + side * (goalHalfW + 16), gkStartY = goalY + goalH - 6; // 2 yards outside the post
+  const diveTargetX = gx - side * (goalHalfW - 8), diveTargetY = goalY + goalH - 6; // opposite post, inside the goal
+
+  const coachX = gx, coachY = h - 20;
+  svg.appendChild(playerCircle(svg, coachX, coachY, 'C', '#ffb830', '#8a5a00', 10));
+
+  const phase = animated ? t : 0;
+  // Phase timeline:
+  // 0.00-0.4  coach kicks the first ball, at a varying height, directly to
+  //           the keeper's starting position — keeper catches it
+  // 0.4-0.55  brief hold, ball secured
+  // 0.55-1.0  the instant the catch is made, coach strikes a second ball
+  //           at the OPPOSITE side of the small goal — keeper must react
+  //           immediately and dive low across to save it
+
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, gkStartX, gkStartY, 'GK', '#ffd23f', '#8a6d00', 11));
+    arrow(svg, coachX, coachY-10, gkStartX, gkStartY+4, 'rgba(255,184,48,0.5)', true);
+    arrow(svg, gkStartX, gkStartY, diveTargetX, diveTargetY, 'rgba(255,210,63,0.5)', true);
+    const lbl2=mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});
+    lbl2.textContent='Catch it, then react - dive across for the second ball'; svg.appendChild(lbl2);
+  } else if (phase <= 0.4) {
+    // first ball, varying height, travels to the keeper's starting position
+    const bt = easeInOut(phase / 0.4);
+    svg.appendChild(playerCircle(svg, gkStartX, gkStartY, 'GK', '#ffd23f', '#8a6d00', 11));
+    const ballX = lerp(coachX, gkStartX, bt), ballY = lerp(coachY-10, gkStartY, bt) - Math.sin(bt*Math.PI)*18;
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  } else if (phase <= 0.55) {
+    // catch secured, brief hold
+    svg.appendChild(playerCircle(svg, gkStartX, gkStartY, 'GK', '#ffd23f', '#8a6d00', 11));
+    svg.appendChild(mkSvg('circle',{cx:gkStartX,cy:gkStartY-6,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+  } else {
+    // second ball struck immediately toward the opposite side; keeper
+    // dives low across the goal, both starting at the same instant
+    const bt = easeInOut((phase - 0.55) / 0.45);
+    const gkX = lerp(gkStartX, diveTargetX, bt), gkY = lerp(gkStartY, diveTargetY, bt);
+    svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#ffd23f', '#8a6d00', 11));
+    const ballX = lerp(coachX, diveTargetX, bt), ballY = lerp(coachY-10, diveTargetY, bt);
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  }
+
+  let lblText;
+  if (!animated || phase <= 0.4) {
+    lblText = 'Coach feeds the first ball to catch';
+  } else if (phase <= 0.55) {
+    lblText = 'Catch secured!';
+  } else {
+    lblText = 'Second ball struck - GK dives across!';
+  }
+  const lbl3 = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl3.textContent = lblText;
+  svg.appendChild(lbl3);
+}
+
+// GOALKEEPER — TRACKING & 1v1 OR SHOT
+function animGKTracking1v1(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const gx = w/2, goalY = 15, goalHalfW = 45, goalH = 20;
+  svg.appendChild(mkSvg('rect',{x:gx-goalHalfW,y:goalY,width:goalHalfW*2,height:goalH,fill:'none',stroke:'white','stroke-width':'2'}));
+
+  const gkY = goalY + goalH - 6;
+  // Two passing coaches, 2 yards out from goal centre, 4 yards apart
+  const passLineY = goalY + goalH + 30;
+  const passLeftX = gx - 38, passRightX = gx + 38;
+  svg.appendChild(playerCircle(svg, passLeftX, passLineY, 'C', '#ffb830', '#8a5a00', 9));
+  svg.appendChild(playerCircle(svg, passRightX, passLineY, 'C', '#ffb830', '#8a5a00', 9));
+
+  // Third coach, 8 yards out, central
+  const thirdX = gx, thirdY = h - 25;
+  svg.appendChild(playerCircle(svg, thirdX, thirdY, 'C', '#ef4444', 'white', 10));
+
+  // Outcome alternates each loop: 0 = shot, 1 = 1v1 drive
+  if (state) {
+    if (state.prevT === undefined) state.prevT = t;
+    if (state.outcome === undefined) state.outcome = 0;
+    if (t < state.prevT - 0.5) state.outcome = state.outcome === 0 ? 1 : 0;
+    state.prevT = t;
+  }
+  const outcome = state ? state.outcome : 0;
+
+  const phase = animated ? t : 0;
+  // Phase timeline:
+  // 0.00-0.6  two coaches pass quickly between themselves; keeper tracks
+  //           the ball, shuffling left/right in line with it
+  // 0.6-1.0   third coach either shoots (outcome 0) or drives 1v1 (outcome 1)
+
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, gx, gkY, 'GK', '#ffd23f', '#8a6d00', 11));
+    arrow(svg, passLeftX, passLineY, passRightX, passLineY, 'rgba(255,184,48,0.4)', true);
+    const lbl2=mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'7'});
+    lbl2.textContent='Track the pass, then react to shot or 1v1'; svg.appendChild(lbl2);
+  } else if (phase <= 0.6) {
+    // ball pings between the two passing coaches; keeper shuffles to track it
+    const passT = (phase / 0.6) * 3; // 3 passes worth of oscillation
+    const legIdx = Math.floor(passT) % 2;
+    const legT = easeInOut(passT - Math.floor(passT));
+    const ballX = legIdx === 0 ? lerp(passLeftX, passRightX, legT) : lerp(passRightX, passLeftX, legT);
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:passLineY,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    const gkX = lerp(gx - 20, gx + 20, (Math.sin(passT * Math.PI) + 1) / 2);
+    svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#ffd23f', '#8a6d00', 11));
+  } else if (outcome === 0) {
+    // shot: third coach strikes on target, keeper reacts to block/save
+    const bt = easeInOut((phase - 0.6) / 0.4);
+    const gkX = lerp(gx, gx - 18, bt);
+    svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#ffd23f', '#8a6d00', 11));
+    const ballX = lerp(thirdX, gx - 18, bt), ballY = lerp(thirdY - 10, gkY, bt);
+    svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+  } else {
+    // 1v1: third coach drives forward with the ball at the keeper, who
+    // stands tall/advances to narrow the angle
+    const bt = easeInOut((phase - 0.6) / 0.4);
+    const attX = lerp(thirdX, gx, bt), attY = lerp(thirdY, gkY + 45, bt);
+    svg.appendChild(playerCircle(svg, attX, attY, 'C', '#ef4444', 'white', 10));
+    svg.appendChild(mkSvg('circle',{cx:attX+7,cy:attY+7,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    const gkAdvY = lerp(gkY, gkY + 20, bt);
+    svg.appendChild(playerCircle(svg, gx, gkAdvY, 'GK', '#ffd23f', '#8a6d00', 11));
+  }
+
+  let lblText;
+  if (!animated || phase <= 0.6) {
+    lblText = 'GK tracks the passing ball';
+  } else if (outcome === 0) {
+    lblText = 'Shot! GK reacts and saves';
+  } else {
+    lblText = '1v1! GK stands up and advances';
   }
   const lbl = mkSvg('text',{x:w/2,y:h-4,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
   lbl.textContent = lblText;
