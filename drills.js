@@ -13,7 +13,7 @@ const CATEGORIES = [
   { id:'setpiece',  name:'Set Pieces', icon:'🎯', color:'#b87fff', bg:'rgba(184,127,255,0.1)'  },
   { id:'match',     name:'Training Match', icon:'🏟️', color:'#ff8a5b', bg:'rgba(255,138,91,0.1)' },
   { id:'goalkeeper', name:'Goalkeeper', icon:'🧤', color:'#ffd23f', bg:'rgba(255,210,63,0.1)' },
-  { id:'attackdef', name:'Attack v Defence', icon:'⚔️', color:'#c084fc', bg:'rgba(192,132,252,0.1)' },
+  { id:'attackdef', name:'Attack v Defence', icon:'⚔️', color:'#cbd5e1', bg:'rgba(203,213,225,0.1)' },
 ];
 
 const DRILLS = [
@@ -721,7 +721,7 @@ const DRILLS = [
     id:'ad1', cat:'attackdef', name:'3v3 with 2 Small Goals', duration:15,
     setup:'Mark a pitch roughly 40 x 20 yards with a dashed centre line and cones at the corners and halfway points. Place two small goals on each end line, with spare balls beside them. Play 3v3: each team attacks the two small goals at the far end and defends the two at its own end. Remaining players wait beside the pitch and rotate in for the next game. Coach feeds a new ball from the spare balls when one goes dead.',
     points:['Attackers: pass and move, create 2v1 overloads around the goals','Defenders: stay goalside, communicate who marks who','Switch play quickly to the far goal when the near one is covered','Recover fast the moment possession is lost','Take a shot early when you see an open goal'],
-    progression:'Limit touches, or rotate players in on a timer. Award a bonus point for scoring in the far goal.',
+    progression:'Limit touches, or rotate players in on a timer.',
     cues:['Pass and move','Talk to your team','Switch play','Recover quickly'],
     diagram:'attackdefence', viewBox:'0 0 220 350',
     instagram:{url:'https://www.instagram.com/reel/DAF5Ny3tHpC/',label:'See it on Instagram'},
