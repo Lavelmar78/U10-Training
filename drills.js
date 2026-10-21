@@ -412,7 +412,7 @@ const DRILLS = [
     cues:['Listen for your number!','Round the outside','Touch and shoot','Hit the target'],
     diagram:'teamshootrace', viewBox:'0 0 300 220',
     instagram:{url:'https://www.instagram.com/reel/DKl-lQMtlYN/',label:'See it on Instagram'},
-    anim: 'animTeamShootRace'
+    anim: 'animTeamShootRace', animMs: 7000
   },
     // ── EXTRA MOVEMENT ──
   {
@@ -594,7 +594,7 @@ const DRILLS = [
     cues:['Quick feet!','Sprint back to goal!','Get set on arrival','Reset each time'],
     diagram:'gkdiagonalcones', viewBox:'0 0 300 220',
     instagram:{url:'https://www.instagram.com/reel/Dcb1ONHMueo/',label:'See it on Instagram'},
-    anim: 'animGKDiagonalCones'
+    anim: 'animGKDiagonalCones', animMs: 6000
   },
   {
     id:'gk6', cat:'goalkeeper', name:'Knee Block Progression', duration:10,
@@ -604,7 +604,7 @@ const DRILLS = [
     cues:['Stay down!','Body behind it','Shuffle low and fast','Reset quickly'],
     diagram:'gkkneeblock', viewBox:'0 0 300 200',
     instagram:{url:'https://www.instagram.com/reel/DaIqq8roPbg/',label:'See it on Instagram'},
-    anim: 'animGKKneeBlock'
+    anim: 'animGKKneeBlock', animMs: 7000
   },
   {
     id:'gk7', cat:'goalkeeper', name:'Race & Shoot', duration:12,
@@ -624,7 +624,7 @@ const DRILLS = [
     cues:['Sprint and round!','Down early','Controlled feet','Reset fast'],
     diagram:'gkfourconeprog', viewBox:'0 0 300 200',
     instagram:{url:'https://www.instagram.com/reel/DafJIW4Mqas/',label:'See it on Instagram'},
-    anim: 'animGKFourConeProgression'
+    anim: 'animGKFourConeProgression', animMs: 7000
   },
   {
     id:'gk9', cat:'goalkeeper', name:'Colour Cone Reaction Save', duration:10,
@@ -684,7 +684,7 @@ const DRILLS = [
     cues:['Quick side shuffle!','Explosive push-off','Full body behind it','Reset fast'],
     diagram:'gkfourpolecross', viewBox:'0 0 300 200',
     instagram:{url:'https://www.instagram.com/p/CV5LppslYTc/',label:'See it on Instagram'},
-    anim: 'animGKFourPoleCross'
+    anim: 'animGKFourPoleCross', animMs: 7000
   },
   {
     id:'gk15', cat:'goalkeeper', name:'Ground Seated Catching', duration:8,
@@ -725,7 +725,7 @@ const DRILLS = [
     cues:['Pass and move','Talk to your team','Switch play','Recover quickly'],
     diagram:'attackdefence', viewBox:'0 0 220 350',
     instagram:{url:'https://www.instagram.com/reel/DAF5Ny3tHpC/',label:'See it on Instagram'},
-    anim: 'animAttackDefence'
+    anim: 'animAttackDefence', animMs: 7000
   },
   {
     id:'ad2', cat:'attackdef', name:'2v2 Winner Stays On', duration:15,
