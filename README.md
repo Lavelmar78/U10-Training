@@ -2,7 +2,7 @@
 
 A phone-friendly web app for planning and running U10 soccer practices.
 
-- 68 drills in 8 categories (warm-up, defending, attacking, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
+- 71 drills in 9 categories (warm-up, defending, attacking, attack v defence, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
 - Build a session from drills and run it on the field with a timer.
 - Create a team, share its join code with other coaches, and save sessions to the team.
 
@@ -17,6 +17,7 @@ The drill library and session builder work offline. Teams and saved sessions nee
 | `firebase-client.js` | Talks to Firebase (anonymous sign-in, teams, sessions). Exposes `window.DrillAppCloud`. |
 | `firestore.rules` | Security rules for the Firestore database. |
 | `firestore.indexes.json` | Firestore indexes (none needed yet), for deploying with the Firebase CLI. |
+| `tools/check-animations.js` | Test script: plays every drill animation for 3 loops and reports errors. |
 | `docs/SETUP.md` | Longer Firebase setup walkthrough, including the Firebase CLI route and the Spark-tier trade-offs. |
 | `docs/coach-guide.md` | Quick guide to hand to other coaches. |
 
@@ -34,6 +35,17 @@ python3 -m http.server 8000
 Opening `index.html` straight from disk (`file://`) shows the drills, but Firebase sign-in needs the page served over `http://localhost` or `https://`.
 
 To try it on your phone, use the same Wi-Fi and open `http://<your-computer's-IP>:8000`, or deploy it (below).
+
+## Checking the animations
+
+Each drill's `anim` names a function in `index.html`. A drill can set `animMs` in `drills.js` to change how long one loop takes (default 4000 ms). After editing animations, run:
+
+```sh
+npm i -g playwright   # once
+node tools/check-animations.js            # add --shots out/ to save a picture strip per drill
+```
+
+It fails on script errors, NaN positions, a missing `animSprintSlow`, or non-ASCII SVG text (which crashes some mobile browsers). It warns about players jumping between frames or leaving the pitch.
 
 ## Firebase setup
 
