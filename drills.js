@@ -13,6 +13,7 @@ const CATEGORIES = [
   { id:'setpiece',  name:'Set Pieces', icon:'🎯', color:'#b87fff', bg:'rgba(184,127,255,0.1)'  },
   { id:'match',     name:'Training Match', icon:'🏟️', color:'#ff8a5b', bg:'rgba(255,138,91,0.1)' },
   { id:'goalkeeper', name:'Goalkeeper', icon:'🧤', color:'#ffd23f', bg:'rgba(255,210,63,0.1)' },
+  { id:'attackdef', name:'Attack v Defence', icon:'⚔️', color:'#c084fc', bg:'rgba(192,132,252,0.1)' },
 ];
 
 const DRILLS = [
@@ -714,6 +715,27 @@ const DRILLS = [
     diagram:'gktracking1v1', viewBox:'0 0 300 220',
     instagram:{url:'https://www.instagram.com/reel/Dc_Zv_MOTuh/',label:'See it on Instagram'},
     anim: 'animGKTracking1v1'
+  },
+  // ── ATTACK V DEFENCE ──
+  {
+    id:'ad1', cat:'attackdef', name:'3v3 with 2 Small Goals', duration:15,
+    setup:'Mark a pitch roughly 40 x 20 yards with a dashed centre line and cones at the corners and halfway points. Place two small goals on each end line, with spare balls beside them. Play 3v3: each team attacks the two small goals at the far end and defends the two at its own end. Remaining players wait beside the pitch and rotate in for the next game. Coach feeds a new ball from the spare balls when one goes dead.',
+    points:['Attackers: pass and move, create 2v1 overloads around the goals','Defenders: stay goalside, communicate who marks who','Switch play quickly to the far goal when the near one is covered','Recover fast the moment possession is lost','Take a shot early when you see an open goal'],
+    progression:'Limit touches, or rotate players in on a timer. Award a bonus point for scoring in the far goal.',
+    cues:['Pass and move','Talk to your team','Switch play','Recover quickly'],
+    diagram:'attackdefence', viewBox:'0 0 220 350',
+    instagram:{url:'https://www.instagram.com/reel/DAF5Ny3tHpC/',label:'See it on Instagram'},
+    anim: 'animAttackDefence'
+  },
+  {
+    id:'ad2', cat:'attackdef', name:'2v2 Winner Stays On', duration:15,
+    setup:'Mark a playing grid roughly 20 x 15 yards. Place two mini-goals on each of the four sides (8 goals in total). Four teams of two: one pair stands by the goals on each side. Two pairs play 2v2 inside the grid. The incoming pair always attacks the two goals on the opposite side of the grid from where they started. The pair that stayed on switches to defend those same goals, and when they win the ball they attack the goals on the side the incoming pair started from. The incoming pair always starts with the ball (coach or waiting pair passes it in). When a pair scores, they stay on and defend against a fresh pair from the waiting teams; the losing pair goes to the back of the queue. Keep it non-stop, with spare balls beside the goals.',
+    points:['Attack quickly: pass and move to create space for a shot','Defenders: stay goalside and talk, one presses, one covers','Switch your focus fast when possession changes','Fresh pairs enter on the coach\'s call or as soon as a goal is scored','Keep the tempo high and the decisions sharp'],
+    progression:'Add a two-touch limit, or award a bonus when the winners score twice in a row. Play to a set number of wins and rotate the pairs.',
+    cues:['Pass and move','Talk to your partner','Quick transitions','Go again!'],
+    diagram:'winnerstayson', viewBox:'0 0 260 300',
+    instagram:{url:'https://www.instagram.com/reel/DJooeTCMTvS/',label:'See it on Instagram'},
+    anim: 'animWinnerStaysOn'
   },
 ];
 
