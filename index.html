@@ -3337,14 +3337,14 @@ function animTeamShootRace(svg, t, animated, state, w, h) {
   // Goal, penalty box and the D
   svg.appendChild(mkSvg('line',{x1:8,y1:lineY,x2:w-8,y2:lineY,stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
   svg.appendChild(mkSvg('rect',{x:gx-25,y:lineY-10,width:50,height:10,fill:'none',stroke:'white','stroke-width':'2'}));
-  svg.appendChild(mkSvg('rect',{x:55,y:lineY,width:190,height:90,fill:'none',stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
-  const spotY = 80, dR = 40, boxY = lineY+90;
+  svg.appendChild(mkSvg('rect',{x:85,y:lineY,width:130,height:75,fill:'none',stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
+  const spotY = lineY+55, dR = 30, boxY = lineY+75;
   const dDx = Math.sqrt(dR*dR - (boxY-spotY)*(boxY-spotY));
   svg.appendChild(mkSvg('path',{d:`M${gx-dDx},${boxY} A${dR},${dR} 0 0 0 ${gx+dDx},${boxY}`,fill:'none',stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
   const dEdgeY = spotY + dR;
 
   // Semicircle of cones from goal line to goal line, round behind the D
-  const rx = 118, ry = 150;
+  const rx = 95, ry = 150;
   for (let i = 0; i <= 12; i++) {
     const a = Math.PI * i / 12;
     const cx = gx - rx*Math.cos(a), cy = lineY + 4 + ry*Math.sin(a);
@@ -3374,7 +3374,8 @@ function animTeamShootRace(svg, t, animated, state, w, h) {
   }
 
   // Two lines on the goal line; pair number 2 is called
-  const leftXs = [62, 77, 92], rightXs = [238, 223, 208];
+  // Lines stand on the goal line, outside the end cones
+  const leftXs = [14, 26, 38], rightXs = [286, 274, 262];
   const leftRoute = route(-1, leftXs[1]), rightRoute = route(1, rightXs[1]);
   if (!animated) {
     const toPath = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
@@ -3382,8 +3383,8 @@ function animTeamShootRace(svg, t, animated, state, w, h) {
     svg.appendChild(mkSvg('path',{d:toPath(rightRoute),fill:'none',stroke:'#ef4444','stroke-width':'2','stroke-dasharray':'5 4'}));
   }
   [0, 2].forEach(i => {
-    svg.appendChild(playerCircle(svg, leftXs[i], lineY+8, String(i+1), '#5ab4ff', 'white', 7));
-    svg.appendChild(playerCircle(svg, rightXs[i], lineY+8, String(i+1), '#ef4444', 'white', 7));
+    svg.appendChild(playerCircle(svg, leftXs[i], lineY+8, String(i+1), '#5ab4ff', 'white', 6));
+    svg.appendChild(playerCircle(svg, rightXs[i], lineY+8, String(i+1), '#ef4444', 'white', 6));
   });
 
   // Coach beside the right post
@@ -3415,16 +3416,19 @@ function animTeamShootRace(svg, t, animated, state, w, h) {
     } else {
       bx = touchX-2; by = touchY+8;
       const k = phase < 0.78 ? 0 : easeInOut(Math.min(1, (phase-0.78)/0.17));
-      ball = [lerp(touchX, gx-16, k), lerp(touchY, lineY-5, k)];
+      ball = [lerp(touchX, gx-21, k), lerp(touchY, lineY-5, k)];
     }
   } else {
     ball = [cX-6, cY+6];
     arrow(svg, cX-6, cY+10, recvX+2, recvY-8, '#ffffff', true);
-    arrow(svg, touchX, touchY-4, gx-16, lineY+3, '#a8e63d');
+    arrow(svg, touchX, touchY-4, gx-21, lineY+3, '#a8e63d');
   }
 
-  svg.appendChild(playerCircle(svg, rxp, ryp, '2', '#ef4444', 'white', 7));
-  svg.appendChild(playerCircle(svg, bx, by, '2', '#5ab4ff', 'white', 7));
+  // Keeper shuffles across towards the shot
+  const gkK = animated && phase > 0.78 ? easeInOut(Math.min(1, (phase-0.78)/0.17)) : 0;
+  svg.appendChild(playerCircle(svg, lerp(gx, gx-6, gkK), lineY+7, 'GK', '#ffd23f', '#a07800', 8));
+  svg.appendChild(playerCircle(svg, rxp, ryp, '2', '#ef4444', 'white', 6));
+  svg.appendChild(playerCircle(svg, bx, by, '2', '#5ab4ff', 'white', 6));
   if (ball) svg.appendChild(mkSvg('circle',{cx:ball[0],cy:ball[1],r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
 
   const lbl = mkSvg('text',{x:w/2,y:h-12,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'9'});
