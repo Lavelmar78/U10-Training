@@ -3436,6 +3436,180 @@ function animTeamShootRace(svg, t, animated, state, w, h) {
   svg.appendChild(lbl);
 }
 
+// Piecewise keyframes [[p, x, y], ...], eased between each pair
+function kfPos(keys, p) {
+  if (p <= keys[0][0]) return [keys[0][1], keys[0][2]];
+  for (let i = 1; i < keys.length; i++) {
+    if (p <= keys[i][0]) {
+      const a = keys[i-1], b = keys[i];
+      const k = easeInOut((p - a[0]) / (b[0] - a[0] || 1));
+      return [lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+    }
+  }
+  const last = keys[keys.length-1];
+  return [last[1], last[2]];
+}
+
+// 3v3 WITH 2 SMALL GOALS
+function animAttackDefence(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const L = 35, R = 185, T = 35, B = 315, midY = (T+B)/2;
+  svg.appendChild(mkSvg('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('line',{x1:L,y1:midY,x2:R,y2:midY,stroke:'rgba(255,255,255,0.45)','stroke-width':'1.5','stroke-dasharray':'6 5'}));
+  [[L,T],[R,T],[L,B],[R,B],[L,midY],[R,midY]].forEach(([cx,cy]) =>
+    svg.appendChild(mkSvg('polygon',{points:`${cx},${cy-5} ${cx-4},${cy+4} ${cx+4},${cy+4}`,fill:'#ffb830'})));
+  // Two small goals on each end line, spare balls between them
+  [70, 150].forEach(gx => {
+    svg.appendChild(mkSvg('rect',{x:gx-12,y:T-8,width:24,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+    svg.appendChild(mkSvg('rect',{x:gx-12,y:B,width:24,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+  });
+  [[103,T-5],[117,T-5],[103,B+5],[117,B+5]].forEach(([bx,by]) =>
+    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:3,fill:'white',stroke:'#166534','stroke-width':'1'})));
+  // Subs waiting beside the pitch, coach on the far side
+  [160, 190].forEach(sy => svg.appendChild(playerCircle(svg, 19, sy, '', '#64748b', 'white', 6)));
+  svg.appendChild(playerCircle(svg, 202, midY, 'C', '#ffb830', '#ff8800', 8));
+
+  // Blue's attack up the pitch. Red's attack down is the same move rotated
+  // half a turn, so the two teams take turns each loop.
+  const atk = [
+    [[0,110,255],[0.2,110,195],[0.5,118,150],[1,112,140]],
+    [[0,60,220],[0.2,55,165],[0.35,55,150],[0.45,58,145],[1,70,120]],
+    [[0,160,220],[0.35,165,140],[0.6,160,95],[0.72,155,80],[1,155,80]],
+  ];
+  const def = [
+    [[0,75,90],[0.35,62,70],[0.6,68,60],[1,68,60]],
+    [[0,150,95],[0.35,120,85],[0.6,135,80],[0.8,148,68],[1,148,68]],
+    [[0,110,130],[0.3,72,138],[0.6,85,132],[1,100,120]],
+  ];
+  const ballKeys = [[0,110,246],[0.2,110,186],[0.35,55,141],[0.45,58,136],[0.6,158,87],[0.72,154,72],[0.85,150,T-4],[1,150,T-4]];
+
+  const redTurn = animated && t >= 0.5;
+  const p = animated ? (t % 0.5) * 2 : 0.35;
+  const flip = ([x, y]) => redTurn ? [w-x, h-y] : [x, y];
+  const blue = ['11','12','13'], red = ['5','6','7'];
+  const atkTeam = redTurn ? red : blue, defTeam = redTurn ? blue : red;
+  const atkCol = redTurn ? '#ef4444' : '#5ab4ff', defCol = redTurn ? '#5ab4ff' : '#ef4444';
+
+  if (!animated) {
+    arrow(svg, 165, 132, 161, 106, '#ffffff', true);
+    arrow(svg, 64, 140, 150, 97, '#ffb830', true);
+    arrow(svg, 158, 86, 151, T+4, '#a8e63d');
+  }
+  def.forEach((k, i) => { const [x, y] = flip(kfPos(k, p)); svg.appendChild(playerCircle(svg, x, y, defTeam[i], defCol, 'white', 9)); });
+  atk.forEach((k, i) => { const [x, y] = flip(kfPos(k, p)); svg.appendChild(playerCircle(svg, x, y, atkTeam[i], atkCol, 'white', 9)); });
+  const [bx, by] = flip(kfPos(ballKeys, p));
+  svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+
+  if (animated && p > 0.85) {
+    const [gx, gy] = flip([150, T+18]);
+    const g = mkSvg('text',{x:gx,y:gy,'text-anchor':'middle',fill:atkCol,'font-size':'11','font-weight':'bold'});
+    g.textContent = 'GOAL!'; svg.appendChild(g);
+  }
+  const top = mkSvg('text',{x:w/2,y:20,'text-anchor':'middle',fill:atkCol,'font-size':'8','font-weight':'bold'});
+  top.textContent = !animated ? 'BLUE ATTACKS UP, RED ATTACKS DOWN' : redTurn ? 'RED ATTACKS DOWN' : 'BLUE ATTACKS UP';
+  svg.appendChild(top);
+  const lbl = mkSvg('text',{x:w/2,y:h-12,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = 'Switch play to the open goal';
+  svg.appendChild(lbl);
+}
+
+// 2v2 WINNER STAYS ON
+function animWinnerStaysOn(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const L = 55, R = 205, T = 90, B = 202, cx = (L+R)/2, cy = (T+B)/2;
+  const hw = (R-L)/2, hh = (B-T)/2;
+  svg.appendChild(mkSvg('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'rgba(255,255,255,0.5)','stroke-width':'1.5'}));
+
+  // Each side's frame: u runs across the side (-1..1), v runs from that
+  // side's edge (0) to the opposite edge (1), d is extra px outwards.
+  const sides = {
+    bottom: { name:'Red',    col:'#ef4444', stroke:'white',   pos:(u,v,d=0) => [cx - u*hw, B - v*(B-T) + d] },
+    top:    { name:'Blue',   col:'#5ab4ff', stroke:'white',   pos:(u,v,d=0) => [cx + u*hw, T + v*(B-T) - d] },
+    left:   { name:'Yellow', col:'#eab308', stroke:'#713f12', pos:(u,v,d=0) => [L + v*(R-L) - d, cy + u*hh] },
+    right:  { name:'Black',  col:'#1f2937', stroke:'white',   pos:(u,v,d=0) => [R - v*(R-L) + d, cy - u*hh] },
+  };
+  const order = ['bottom','top','left','right'];
+
+  // In the detail view the state survives between loops, so the queue
+  // keeps rotating: game k is order[k] staying on v order[k+1] coming in.
+  let k = 0;
+  if (animated && state) {
+    if (state.wsT !== undefined && t < state.wsT) state.wsK = ((state.wsK || 0) + 1) % 4;
+    state.wsT = t;
+    k = state.wsK || 0;
+  }
+  const stay = sides[order[k]], inc = sides[order[(k+1)%4]], next = sides[order[(k+2)%4]];
+  const opposite = { bottom:'top', top:'bottom', left:'right', right:'left' };
+  const target = sides[opposite[order[(k+1)%4]]];
+  const p = animated ? t : 0.1;
+
+  // Mini-goals: two per side, the pair being attacked lit in the attackers' colour
+  Object.values(sides).forEach(s => {
+    [-0.5, 0.5].forEach(u => {
+      const [gx, gy] = s.pos(u, 0);
+      const lit = s === target && p < 0.7;
+      const horiz = s === sides.top || s === sides.bottom;
+      const out = s === sides.top ? -1 : s === sides.bottom ? 1 : s === sides.left ? -1 : 1;
+      const attrs = horiz
+        ? {x:gx-11, y:out < 0 ? gy-7 : gy, width:22, height:7}
+        : {x:out < 0 ? gx-7 : gx, y:gy-11, width:7, height:22};
+      svg.appendChild(mkSvg('rect',Object.assign(attrs,{fill:'none',stroke:lit ? inc.col : 'white','stroke-width':lit ? '2.5' : '1.5'})));
+    });
+    const [sx, sy] = s.pos(0, 0, 6);
+    svg.appendChild(mkSvg('circle',{cx:sx,cy:sy,r:2.5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+  });
+  // Positions in the incoming pair's frame: they attack the goals at v=1
+  const P = (u, v, d) => inc.pos(u, v, d);
+
+  const home = s => [s.pos(-0.25, 0, 24), s.pos(0.25, 0, 24)];
+  const entry = s => [s.pos(-0.25, 0, 11), s.pos(0.25, 0, 11)];
+  const xy = (keys) => kfPos(keys, p);
+  const K = (pp, pt) => [pp, pt[0], pt[1]];
+
+  // Next game's defending spots for the winners, in the next pair's frame
+  const winSpots = [next.pos(-0.35, 0.75), next.pos(0.35, 0.75)];
+  const winGoalSpot = P(0.5, 1.02);
+
+  const a1 = xy([K(0,entry(inc)[0]),K(0.1,P(-0.25,0.1)),K(0.25,P(-0.3,0.35)),K(0.45,P(-0.35,0.6)),K(0.7,P(-0.3,0.62)),K(0.85,winSpots[0]),K(1,winSpots[0])]);
+  const a2 = xy([K(0,entry(inc)[1]),K(0.1,P(0.25,0.1)),K(0.35,P(0.3,0.5)),K(0.45,P(0.35,0.7)),K(0.7,P(0.33,0.74)),K(0.85,winSpots[1]),K(1,winSpots[1])]);
+  const d1 = xy([K(0,P(-0.35,0.75)),K(0.25,P(-0.12,0.5)),K(0.45,P(-0.1,0.55)),K(0.7,P(-0.1,0.55)),K(0.85,home(stay)[0]),K(1,home(stay)[0])]);
+  const d2 = xy([K(0,P(0.35,0.75)),K(0.2,P(0.1,0.65)),K(0.45,P(0.25,0.7)),K(0.55,P(0.32,0.8)),K(0.7,P(0.32,0.8)),K(0.85,home(stay)[1]),K(1,home(stay)[1])]);
+  const n1 = xy([K(0.85,home(next)[0]),K(1,entry(next)[0])]);
+  const n2 = xy([K(0.85,home(next)[1]),K(1,entry(next)[1])]);
+
+  // Pair still waiting at home this game
+  const idle = sides[order[(k+3)%4]];
+  home(idle).forEach((pt, i) => svg.appendChild(playerCircle(svg, pt[0], pt[1], String(i+1), idle.col, idle.stroke, 8)));
+  [n1, n2].forEach((pt, i) => svg.appendChild(playerCircle(svg, pt[0], pt[1], String(i+1), next.col, next.stroke, 8)));
+  [d1, d2].forEach((pt, i) => svg.appendChild(playerCircle(svg, pt[0], pt[1], String(i+1), stay.col, stay.stroke, 8)));
+  [a1, a2].forEach((pt, i) => svg.appendChild(playerCircle(svg, pt[0], pt[1], String(i+1), inc.col, inc.stroke, 8)));
+
+  // Ball: with A1, pass to A2, A2 shoots into the far goal
+  let ball = null;
+  const lead = (pt) => { const [ox, oy] = P(0, 0.05); const [zx, zy] = P(0, 0); return [pt[0] + (ox-zx), pt[1] + (oy-zy)]; };
+  if (!animated) {
+    ball = lead(a1);
+    const ra = P(0.3, 0.5), rb = winGoalSpot;
+    arrow(svg, a1[0], a1[1], ra[0], ra[1], '#ffffff', true);
+    arrow(svg, ra[0], ra[1], rb[0], rb[1], '#a8e63d');
+  } else if (p < 0.25) ball = lead(a1);
+  else if (p < 0.35) { const s = lead(xy([K(0.25,P(-0.3,0.35))])), e = lead(P(0.3,0.5)); const q = easeInOut((p-0.25)/0.1); ball = [lerp(s[0],e[0],q), lerp(s[1],e[1],q)]; }
+  else if (p < 0.45) ball = lead(a2);
+  else if (p < 0.7) { const s = lead(P(0.35,0.7)); const q = easeInOut(Math.min(1,(p-0.45)/0.1)); ball = [lerp(s[0],winGoalSpot[0],q), lerp(s[1],winGoalSpot[1],q)]; }
+  else if (p >= 0.85) ball = lead(n1);
+  if (ball) svg.appendChild(mkSvg('circle',{cx:ball[0],cy:ball[1],r:4,fill:'white',stroke:'#166534','stroke-width':'1'}));
+
+  const top = mkSvg('text',{x:w/2,y:22,'text-anchor':'middle',fill:'rgba(255,255,255,0.7)','font-size':'9','font-weight':'bold'});
+  top.textContent = !animated ? 'Incoming pair attacks the far goals'
+    : p < 0.55 ? inc.name + ' in: attack the far goals'
+    : p < 0.7 ? 'GOAL! ' + inc.name + ' stay on'
+    : stay.name + ' to the back, ' + next.name + ' in next';
+  svg.appendChild(top);
+  const lbl = mkSvg('text',{x:w/2,y:h-14,'text-anchor':'middle',fill:'rgba(255,255,255,0.4)','font-size':'8'});
+  lbl.textContent = 'Score and you stay on';
+  svg.appendChild(lbl);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
