@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// Firestore rules for Coach's Drill Library (Spark / free tier).
+//
+// There are no real user accounts. Every visitor signs in anonymously,
+// so "signedIn()" only proves the request came from the app, not who sent it.
+// The actual secret is the teamId: a random UUID that is never listed
+// and is only handed out through a join code.
+//
+//   teams/{teamId}                 the team (name, createdAt)
+//   teams/{teamId}/sessions/{id}   saved practice sessions
+//   teamAliases/{CODE}             join code -> teamId, e.g. FALCON-4821
+//   sharedSessions/{id}            read-only copies made by "Share"
+//
+// Teams, aliases and shared sessions can't be listed, so nobody can
+// enumerate them; you can only read a document whose ID you already know.
+// A team's sessions can be listed, but only under its (secret) teamId.
+//
+// Aliases are create-only. Anyone who knows a code can resolve it to a
+// teamId (that is what joining is), and because aliases can't be updated
+// or deleted, a regenerated code does not invalidate the old one.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /teams/{teamId} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+      allow update, delete: if false;
+
+      // Knowing the teamId is what grants access to its sessions.
+      match /sessions/{sessionId} {
+        allow read, create, update, delete: if signedIn();
+      }
+    }
+
+    match /teamAliases/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['teamId', 'teamName', 'createdAt'])
+        && request.resource.data.teamId is string
+        && exists(/databases/$(database)/documents/teams/$(request.resource.data.teamId));
+      allow update, delete: if false;
+    }
+
+    match /sharedSessions/{shareId} {
+      // Shared links should open without the app having to sign in first.
+      allow get: if true;
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+  }
+}
