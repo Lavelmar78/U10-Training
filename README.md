@@ -2,7 +2,7 @@
 
 A phone-friendly web app for planning and running U10 soccer practices.
 
-- About 50 drills in 8 categories (warm-up, defending, attacking, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
+- 68 drills in 8 categories (warm-up, defending, attacking, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
 - Build a session from drills and run it on the field with a timer.
 - Create a team, share its join code with other coaches, and save sessions to the team.
 
@@ -12,9 +12,13 @@ The drill library and session builder work offline. Teams and saved sessions nee
 
 | File | What it is |
 | --- | --- |
-| `index.html` | The whole app: layout, styles, drill data and the app code. |
+| `index.html` | The app: layout, styles, drill animations and the app code. |
+| `drills.js` | The drill data: `CATEGORIES`, `DRILLS` and `GLOBAL_CUES`. |
 | `firebase-client.js` | Talks to Firebase (anonymous sign-in, teams, sessions). Exposes `window.DrillAppCloud`. |
 | `firestore.rules` | Security rules for the Firestore database. |
+| `firestore.indexes.json` | Firestore indexes (none needed yet), for deploying with the Firebase CLI. |
+| `docs/SETUP.md` | Longer Firebase setup walkthrough, including the Firebase CLI route and the Spark-tier trade-offs. |
+| `docs/coach-guide.md` | Quick guide to hand to other coaches. |
 
 There is no build step and no dependencies to install. The Firebase SDK loads from Google's CDN.
 
@@ -69,4 +73,4 @@ sharedSessions/{id}            name, date, drills, sharedAt
 
 ## Deploying
 
-Any static host works (GitHub Pages, Firebase Hosting, Netlify). Upload `index.html` and `firebase-client.js`, then add the host's domain to Firebase's authorized domains (step 6 above).
+Any static host works (GitHub Pages, Firebase Hosting, Netlify). Upload `index.html`, `drills.js` and `firebase-client.js`, then add the host's domain to Firebase's authorized domains (step 6 above).
