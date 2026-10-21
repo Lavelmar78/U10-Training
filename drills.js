@@ -403,6 +403,16 @@ const DRILLS = [
     facebook:{url:'https://www.facebook.com/share/r/1Db9gDSAZB/',label:'See it on Facebook'},
     anim: 'animTwoVOneDecision'
   },
+  {
+    id:'a11', cat:'attacking', name:'Fun Team Shooting Drill', duration:12,
+    setup:'Lay out cones in a big semicircle: start on the goal line outside the box on one side, curve round behind the D, and finish on the goal line outside the box on the other side. Keeper in goal. Split the players into two teams, one lined up on the goal line just outside the end cone on each side. Pair each player with one on the other team and give the pair a number. The coach stands by the right-hand post and calls a number: those two players race out and round the outside of the cones to the edge of the D. As they come round, the coach rolls a ball in centrally towards the edge of the box. The first player to it takes a touch and shoots past the keeper. Winner scores a point for their team.',
+    points:['Go on the call: listen for your number, don\'t guess','Run round the OUTSIDE of every cone, no cutting corners','Slow down a little as you arrive so you can take a clean first touch','First touch out of your feet, setting up the shot','Pick a corner and hit the target, low and hard beats high and wild'],
+    progression:'The player who loses the race becomes a defender, making it 1v1 to goal. Coach varies the roll (firmer, bouncing, off-centre). Call two numbers at once for 2v2.',
+    cues:['Listen for your number!','Round the outside','Touch and shoot','Hit the target'],
+    diagram:'teamshootrace', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DKl-lQMtlYN/',label:'See it on Instagram'},
+    anim: 'animTeamShootRace'
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
