@@ -3456,6 +3456,29 @@ function kfPos(keys, p) {
   const last = keys[keys.length-1];
   return [last[1], last[2]];
 }
+// Ball and goal helpers for the keyframe animations
+function drawBall(svg, x, y, r=5) {
+  svg.appendChild(mkSvg('circle',{cx:x,cy:y,r,fill:'white',stroke:'#166534','stroke-width':'1'}));
+}
+function topGoal(svg, w, withBox) {
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:8,width:70,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
+  if (withBox) svg.appendChild(mkSvg('rect',{x:w/2-75,y:22,width:150,height:50,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.15)','stroke-width':'1'}));
+}
+// Short pointer showing which way a player is facing (angle in radians, 0 = right)
+function bodyFacing(svg, x, y, angle, r=13) {
+  const tx = x + Math.cos(angle)*(r+7), ty = y + Math.sin(angle)*(r+7);
+  const px = -Math.sin(angle)*4, py = Math.cos(angle)*4;
+  const bx = x + Math.cos(angle)*(r+1), by = y + Math.sin(angle)*(r+1);
+  svg.appendChild(mkSvg('polygon',{points:`${tx},${ty} ${bx+px},${by+py} ${bx-px},${by-py}`,fill:'#ffb830'}));
+}
+function captionText(svg, w, h, text, y) {
+  const l=mkSvg('text',{x:w/2,y:y===undefined?h-4:y,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});
+  l.textContent=text; svg.appendChild(l);
+}
+function calloutText(svg, x, y, text, col) {
+  const l=mkSvg('text',{x,y,'text-anchor':'middle',fill:col||'#ffb830','font-size':'11','font-weight':'900'});
+  l.textContent=text; svg.appendChild(l);
+}
 
 // 3v3 WITH 2 SMALL GOALS
 function animAttackDefence(svg, t, animated, state, w, h) {
@@ -3755,45 +3778,56 @@ function animChannel(svg, t, animated, state, w, h) {
 // ONE-TWO
 function animOneTwo(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
-  const A=[40,h-40], B=[w/2,h/2], C=[w-40,40];
-  const players=[[A,'A','#a8e63d','#166534'],[B,'B','#ef4444','white'],[C,'C','#5ab4ff','white']];
-  players.forEach(([[x,y],lbl,fill,stroke])=>svg.appendChild(playerCircle(svg,x,y,lbl,fill,stroke)));
-  if(animated){
-    const phase=Math.floor(t*3);
-    const pt=easeInOut((t*3)%1);
-    if(phase===0){const bx=lerp(A[0],B[0],pt),by=lerp(A[1],B[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    else if(phase===1){const bx=lerp(B[0],A[0]+10,pt),by=lerp(B[1],A[1]+10,pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    else{const bx=lerp(A[0],C[0],pt),by=lerp(A[1],C[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    arrow(svg,A[0],A[1],B[0],B[1],'rgba(168,230,61,0.5)',phase>0);
-    arrow(svg,B[0],B[1],A[0],A[1],'rgba(255,184,48,0.5)',phase<1);
-    arrow(svg,A[0],A[1],C[0],C[1],'rgba(90,180,255,0.5)',phase<2);
-  } else {
-    arrow(svg,A[0],A[1],B[0],B[1],'#a8e63d');
-    arrow(svg,B[0],B[1],A[0]-5,A[1]+5,'#ffb830',true);
-    arrow(svg,A[0],A[1],C[0],C[1],'#5ab4ff',true);
+  topGoal(svg, w, true);
+  // A passes to B, overlaps round the outside, B plays it back into A's run, A shoots
+  const p = animated ? t : 0;
+  const A = kfPos([[0,90,150],[0.12,92,148],[0.3,200,125],[0.5,205,68],[0.62,200,60],[0.85,200,60],[1,90,150]], p);
+  const B = [150,100];
+  const gk = kfPos([[0,150,20],[0.6,150,20],[0.7,168,22],[0.85,168,22],[1,150,20]], p);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#8a6d00', 10));
+  svg.appendChild(playerCircle(svg, B[0], B[1], 'B', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, A[0], A[1], 'A', '#ef4444', 'white', 12));
+  if (!animated) {
+    arrow(svg, 98, 142, 140, 108, '#a8e63d');
+    arrow(svg, 104, 152, 196, 128, 'rgba(255,255,255,0.5)', true);
+    arrow(svg, 200, 120, 204, 76, 'rgba(255,255,255,0.5)', true);
+    arrow(svg, 160, 96, 196, 66, '#ffb830');
+    arrow(svg, 198, 56, 172, 22, '#a8e63d');
+  } else if (p < 0.85) {
+    const b = kfPos([[0,100,158],[0.15,140,108],[0.42,140,108],[0.55,200,68],[0.62,198,66],[0.72,172,14],[1,172,14]], p);
+    drawBall(svg, b[0], b[1]);
+    if (p > 0.72) calloutText(svg, w/2, 44, 'GOAL!');
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='A->B, B back to A, A plays in to C';svg.appendChild(lbl);
+  captionText(svg, w, h, 'A passes, overlaps, gets it back from B and shoots');
 }
 
 // 2v1
 function animTwoVOne(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
-  svg.appendChild(mkSvg('rect',{x:w/2-35,y:8,width:70,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
-  const gl=mkSvg('text',{x:w/2,y:19,'text-anchor':'middle',fill:'white','font-size':'8'});gl.textContent='GOAL';svg.appendChild(gl);
-  const a1x=80,a2x=220;
-  let a1y=animated?lerp(h-30,50,easeInOut(t)):h-30;
-  let a2y=animated?lerp(h-30,70,easeInOut(t*0.8)):h-30;
-  let dy2=animated?lerp(h/2-10,h/2+20,easeInOut((t+0.3)%1)):h/2-10;
-  svg.appendChild(playerCircle(svg,a1x,a1y,'A1','#ef4444','white'));
-  svg.appendChild(playerCircle(svg,a2x,a2y,'A2','#ef4444','white'));
-  svg.appendChild(playerCircle(svg,w/2,dy2,'D','#1d4ed8','#60a5fa'));
-  svg.appendChild(mkSvg('circle',{cx:a1x+10,cy:a1y+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
-  if(animated){arrow(svg,a1x,a1y,a2x,a2y,'rgba(168,230,61,0.5)',true);}
-  else {
-    arrow(svg,a1x,a1y,a2x,a2y,'#a8e63d',true);
-    const lbl2=mkSvg('text',{x:w/2,y:a1y-10,'text-anchor':'middle',fill:'rgba(255,255,255,0.5)','font-size':'8'});lbl2.textContent='Draw defender, release';svg.appendChild(lbl2);
+  topGoal(svg, w, true);
+  // A1 dribbles at the defender, draws them in, releases A2 who finishes
+  const p = animated ? t : 0;
+  const a1 = kfPos([[0,110,160],[0.4,125,96],[0.85,125,96],[1,110,160]], p);
+  const a2 = kfPos([[0,210,160],[0.4,205,112],[0.6,190,76],[0.85,190,76],[1,210,160]], p);
+  const d = kfPos([[0,150,64],[0.38,133,82],[0.6,160,72],[0.85,160,72],[1,150,64]], p);
+  const gk = kfPos([[0,150,20],[0.55,158,20],[0.68,168,22],[0.85,168,22],[1,150,20]], p);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#8a6d00', 10));
+  svg.appendChild(playerCircle(svg, d[0], d[1], 'D', '#1d4ed8', '#60a5fa', 12));
+  svg.appendChild(playerCircle(svg, a1[0], a1[1], 'A1', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, a2[0], a2[1], 'A2', '#ef4444', 'white', 12));
+  if (!animated) {
+    arrow(svg, 112, 148, 124, 108, '#ffffff', true);
+    arrow(svg, 134, 100, 196, 94, '#ffb830');
+    arrow(svg, 192, 72, 172, 22, '#a8e63d');
+    captionText(svg, w, h, 'Draw the defender, release early, finish');
+    return;
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='2v1 - draw defender and release';svg.appendChild(lbl);
+  if (p < 0.85) {
+    const b = kfPos([[0,118,170],[0.4,133,106],[0.42,133,106],[0.52,197,93],[0.6,193,84],[0.7,172,14],[1,172,14]], p);
+    drawBall(svg, b[0], b[1]);
+    if (p > 0.7) calloutText(svg, w/2, 44, 'GOAL!');
+  }
+  captionText(svg, w, h, p < 0.4 ? 'A1 runs at the defender' : p < 0.55 ? 'Defender commits - release!' : 'A2 finishes');
 }
 
 // FINISHING
@@ -3898,24 +3932,31 @@ function animShootCombo(svg, t, animated, state, w, h) {
 // PRESSING
 function animPressing(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
-  svg.appendChild(mkSvg('rect',{x:w/2-40,y:8,width:80,height:14,fill:'none',stroke:'white','stroke-width':'2'}));
-  const triggered=animated&&t>0.5;
-  const attackers=[[60,100],[130,70],[200,100],[260,70]];
-  const defenders=[[80,50],[160,40],[220,50],[290,40]];
-  attackers.forEach(([x,y],i)=>{
-    let ax=x,ay=y;
-    if(animated){ax=x+Math.sin(t*Math.PI*2+i)*8;ay=y+Math.sin(t*Math.PI*1.5+i)*6;}
-    svg.appendChild(playerCircle(svg,ax,ay,'A','#ef4444','white',11));
-  });
-  defenders.forEach(([x,y],i)=>{
-    let dx2=x,dy2=y;
-    if(triggered){const target=attackers[i];dx2=lerp(x,target[0]*0.7+x*0.3,easeInOut((t-0.5)*2));dy2=lerp(y,target[1]*0.7+y*0.3,easeInOut((t-0.5)*2));}
-    svg.appendChild(playerCircle(svg,dx2,dy2,'D','#1d4ed8','#60a5fa',11));
-  });
-  if(triggered){
-    const tl=mkSvg('text',{x:w/2,y:30,'text-anchor':'middle',fill:'#ef4444','font-size':'11','font-weight':'900'});tl.textContent='TRIGGER - PRESS!';svg.appendChild(tl);
+  // blue presses toward red's goal at the bottom; red builds from their keeper
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:8,width:70,height:12,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:h-20,width:70,height:12,fill:'none',stroke:'white','stroke-width':'2'}));
+  const p = animated ? t : 0;
+  const hold = (x, y, kx, ky) => [[0,x,y],[0.35,x,y],[0.6,kx,ky],[0.85,kx,ky],[1,x,y]];
+  const reds = [[70,128],[230,128],[110,92],[190,92]];
+  const blues = [
+    hold(80,62, 90,104),   // nearest: closes the heavy touch
+    hold(150,96, 118,112), // cuts the pass inside
+    hold(150,48, 120,80),  // compresses behind
+    hold(220,62, 175,100), // shifts across
+  ];
+  svg.appendChild(playerCircle(svg, 150, h-28, 'GK', '#ffd23f', '#8a6d00', 10));
+  svg.appendChild(playerCircle(svg, 150, 26, 'GK', '#ffd23f', '#8a6d00', 10));
+  reds.forEach(([x,y]) => svg.appendChild(playerCircle(svg, x, y, 'A', '#ef4444', 'white', 11)));
+  blues.forEach(k => { const [x,y] = kfPos(k, p); svg.appendChild(playerCircle(svg, x, y, 'D', '#1d4ed8', '#60a5fa', 11)); });
+  if (!animated) {
+    blues.forEach(k => arrow(svg, k[0][1], k[0][2]+10, k[2][1], k[2][2]-8, 'rgba(96,165,250,0.7)', true));
+    const tl=mkSvg('text',{x:236,y:h-14,'text-anchor':'middle',fill:'rgba(255,255,255,0.75)','font-size':'9'});tl.textContent='Trigger = press together';svg.appendChild(tl);
+    return;
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='Press together on trigger - compress as unit';svg.appendChild(lbl);
+  const b = kfPos([[0,150,h-40],[0.18,78,138],[0.22,78,138],[0.34,94,116],[0.6,94,116],[0.66,98,110],[0.85,98,110],[1,150,h-40]], p);
+  drawBall(svg, b[0], b[1]);
+  if (p > 0.22 && p < 0.6) calloutText(svg, 236, h-14, 'TRIGGER - PRESS!', '#ef4444');
+  else if (p >= 0.6 && p < 0.85) calloutText(svg, 236, h-14, 'Won it back!', '#60a5fa');
 }
 
 // SHADOW
@@ -3964,22 +4005,28 @@ function animLadder(svg, t, animated, state, w, h) {
 // THIRD MAN
 function animThirdMan(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
-  const A=[40,h-30],B=[w/2,h/2],C=[w-50,30],D2=[w-30,h-30];
-  [[A,'A','#a8e63d','#166534'],[B,'B','#ef4444','white'],[C,'C','#5ab4ff','white'],[D2,'D','#ffb830','white']].forEach(([[x,y],l,f,s])=>svg.appendChild(playerCircle(svg,x,y,l,f,s,12)));
-  if(animated){
-    const ph=Math.floor(t*3);const pt=easeInOut((t*3)%1);
-    if(ph===0){arrow(svg,A[0],A[1],B[0],B[1],'rgba(168,230,61,0.7)');const bx=lerp(A[0],B[0],pt),by=lerp(A[1],B[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    else if(ph===1){arrow(svg,B[0],B[1],C[0],C[1],'rgba(90,180,255,0.7)');const bx=lerp(B[0],C[0],pt),by=lerp(B[1],C[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    else{arrow(svg,C[0],C[1],D2[0],D2[1],'rgba(255,184,48,0.7)',true);const bx=lerp(C[0],D2[0],pt),by=lerp(C[1],D2[1],pt);svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-    const runX=animated&&t>0.2?lerp(C[0]+20,C[0],easeInOut((t-0.2)/0.5)):C[0]+20;
-    const groups = svg.querySelectorAll('g');
-    if (groups[2]) movePlayer(groups[2], runX, C[1]);
+  // A passes to B; the moment it goes, C runs diagonally; B plays C in; D follows up
+  const p = animated ? t : 0;
+  const A = [60,150], B = [150,108];
+  const C = kfPos([[0,235,140],[0.12,235,140],[0.55,185,52],[0.85,185,52],[1,235,140]], p);
+  const D = kfPos([[0,40,100],[0.2,40,100],[0.7,110,72],[0.85,110,72],[1,40,100]], p);
+  svg.appendChild(playerCircle(svg, A[0], A[1], 'A', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, B[0], B[1], 'B', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, C[0], C[1], 'C', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, D[0], D[1], 'D', '#ef4444', 'white', 12));
+  if (!animated) {
+    arrow(svg, 70, 144, 138, 112, '#a8e63d');
+    arrow(svg, 230, 128, 190, 62, 'rgba(255,255,255,0.6)', true);
+    arrow(svg, 160, 100, 180, 64, '#ffb830');
+    arrow(svg, 46, 92, 102, 74, 'rgba(255,255,255,0.4)', true);
+    const rl=mkSvg('text',{x:236,y:100,'text-anchor':'middle',fill:'rgba(255,255,255,0.75)','font-size':'8'});rl.textContent='3rd man run';svg.appendChild(rl);
   } else {
-    arrow(svg,A[0],A[1],B[0],B[1],'#a8e63d');
-    arrow(svg,B[0],B[1],C[0],C[1],'#5ab4ff',true);
-    const rl=mkSvg('text',{x:w-60,y:50,fill:'#5ab4ff','font-size':'8'});rl.textContent='3rd man run';svg.appendChild(rl);
+    const b = kfPos([[0,68,158],[0.18,140,116],[0.42,140,116],[0.58,180,62],[0.85,180,62],[1,68,158]], p);
+    if (p < 0.85) drawBall(svg, b[0], b[1]);
+    if (p > 0.12 && p < 0.55) arrow(svg, C[0]-4, C[1]-8, 188, 60, 'rgba(255,255,255,0.35)', true);
+    if (p >= 0.58 && p < 0.85) calloutText(svg, 185, 30, 'Through!');
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='A to B, C makes diagonal run, B plays through';svg.appendChild(lbl);
+  captionText(svg, w, h, 'A to B, C runs as A passes, B plays C in, D follows');
 }
 
 // COERVERS
@@ -4023,24 +4070,31 @@ function animWeakFoot(svg, t, animated, state, w, h) {
 // RECEIVING
 function animReceiving(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
-  const cx=w/2,cy=h/2,r=65;
-  const feeders=[[cx,cy-r],[cx+r*Math.sin(2.1),cy-r*Math.cos(2.1)],[cx+r*Math.sin(4.2),cy-r*Math.cos(4.2)]];
-  feeders.forEach(([x,y],i)=>{svg.appendChild(playerCircle(svg,x,y,'F','#ffb830','white',12));});
-  svg.appendChild(playerCircle(svg,cx,cy,'R','#a8e63d','#166534',14));
-  if(animated){
-    const feeder=Math.floor(t*3)%3;
-    const [fx,fy]=feeders[feeder];
-    const bt=easeInOut((t*3)%1);
-    const bx=lerp(fx,cx,bt),by=lerp(fy,cy,bt);
-    svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:6,fill:'white',stroke:'#166534','stroke-width':'1'}));
-    arrow(svg,fx,fy,cx,cy,'rgba(255,184,48,0.5)',true);
-    const target=feeders[(feeder+1)%3];
-    if(bt>0.8) arrow(svg,cx,cy,target[0],target[1],'rgba(168,230,61,0.5)',true);
-  } else {
-    feeders.forEach(([fx,fy])=>arrow(svg,fx,fy,cx,cy,'rgba(255,184,48,0.4)',true));
-    feeders.forEach(([fx,fy],i)=>{const next=feeders[(i+1)%3];arrow(svg,cx,cy,next[0],next[1],'rgba(168,230,61,0.3)',true);});
+  const cx=w/2, cy=h/2-4, r=62;
+  const feeders=[0,1,2].map(i=>{const a=-Math.PI/2+i*Math.PI*2/3;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];});
+  // Each loop the next feeder serves, so the drill rotates round the triangle
+  let k = 0;
+  if (animated && state) {
+    if (state.rvT !== undefined && t < state.rvT) state.rvK = ((state.rvK || 0) + 1) % 3;
+    state.rvT = t; k = state.rvK || 0;
   }
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='R receives from F, controls and plays to next F';svg.appendChild(lbl);
+  const from = feeders[k], to = feeders[(k+1)%3];
+  const angTo = ([x,y]) => Math.atan2(y-cy, x-cx);
+  feeders.forEach(([x,y])=>svg.appendChild(playerCircle(svg,x,y,'F','#ffb830','white',12)));
+  const p = animated ? t : 0.25;
+  // turn from facing the server to facing the next feeder as the touch is taken
+  const turn = easeInOut(Math.max(0, Math.min(1, (p-0.22)/0.25)));
+  let a0 = angTo(from), a1 = angTo(to);
+  if (a1 - a0 > Math.PI) a1 -= 2*Math.PI; if (a0 - a1 > Math.PI) a1 += 2*Math.PI;
+  svg.appendChild(playerCircle(svg,cx,cy,'R','#ef4444','white',13));
+  bodyFacing(svg, cx, cy, lerp(a0, a1, turn));
+  const side = [cx + Math.cos(a1)*16, cy + Math.sin(a1)*16];
+  const b = kfPos([[0,from[0],from[1]],[0.25,cx+Math.cos(a0)*14,cy+Math.sin(a0)*14],[0.42,side[0],side[1]],[0.55,side[0],side[1]],[0.8,to[0],to[1]],[1,to[0],to[1]]], p);
+  if (!animated) {
+    arrow(svg, from[0], from[1]+12, cx, cy-18, 'rgba(255,184,48,0.6)', true);
+    arrow(svg, cx+14, cy+8, to[0]-12, to[1]-6, 'rgba(168,230,61,0.6)', true);
+  } else drawBall(svg, b[0], b[1]);
+  captionText(svg, w, h, !animated ? 'Open up, touch across your body, turn, pass to a new feeder' : p < 0.45 ? 'Open body - first touch across you' : 'Turn and pass to a different feeder');
 }
 
 // CORNER
@@ -4103,25 +4157,32 @@ function animFreeKick(svg, t, animated, state, w, h) {
 // THROW-IN
 function animThrowIn(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h, '#111a11');
-  // touchline
   svg.appendChild(mkSvg('line',{x1:30,y1:10,x2:30,y2:h-10,stroke:'white','stroke-width':'2'}));
-  // thrower
-  svg.appendChild(playerCircle(svg,20,h/2,'T','#ffb830','white',11));
-  // receiver
-  const rx=120,ry=h/2;
-  svg.appendChild(playerCircle(svg,rx,ry,'R','#a8e63d','#166534',12));
-  // gate
-  svg.appendChild(mkSvg('line',{x1:200,y1:h/2-15,x2:200,y2:h/2+15,stroke:'#ffb830','stroke-width':'3'}));
-  const gl=mkSvg('text',{x:210,y:h/2+4,fill:'#ffb830','font-size':'8'});gl.textContent='Gate';svg.appendChild(gl);
-  if(animated){
-    const bt=easeInOut(t);
-    if(t<0.5){const bx=lerp(20,rx,bt*2),by=h/2-20+Math.sin(bt*2*Math.PI)*-20;svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));}
-    else{const pt=easeInOut((t-0.5)*2);const px2=lerp(rx,200,pt),py2=h/2;svg.appendChild(mkSvg('circle',{cx:px2,cy:py2,r:5,fill:'white',stroke:'#111a11','stroke-width':'1'}));}
-  } else {
-    arrow(svg,25,h/2,rx-12,h/2,'rgba(255,184,48,0.6)');
-    arrow(svg,rx+12,h/2,195,h/2,'rgba(168,230,61,0.6)',true);
+  // gate 5m away, up and to the right
+  svg.appendChild(mkSvg('line',{x1:225,y1:28,x2:225,y2:62,stroke:'#ffb830','stroke-width':'3'}));
+  svg.appendChild(mkSvg('line',{x1:225,y1:28,x2:233,y2:28,stroke:'#ffb830','stroke-width':'3'}));
+  svg.appendChild(mkSvg('line',{x1:225,y1:62,x2:233,y2:62,stroke:'#ffb830','stroke-width':'3'}));
+  const gl=mkSvg('text',{x:250,y:48,'text-anchor':'middle',fill:'#ffb830','font-size':'8'});gl.textContent='Gate';svg.appendChild(gl);
+  const p = animated ? t : 0;
+  const R = [110,84];
+  const D = kfPos([[0,195,112],[0.32,195,112],[0.72,138,96],[0.85,138,96],[1,195,112]], p);
+  svg.appendChild(playerCircle(svg,20,h/2,'T','#ef4444','white',11));
+  svg.appendChild(playerCircle(svg,D[0],D[1],'D','#1d4ed8','#60a5fa',11));
+  svg.appendChild(playerCircle(svg,R[0],R[1],'R','#ef4444','white',12));
+  // back to play facing the thrower, turns toward the gate after the first touch
+  const turn = easeInOut(Math.max(0, Math.min(1, (p-0.32)/0.12)));
+  bodyFacing(svg, R[0], R[1], lerp(Math.PI, Math.PI*2 - 0.35, turn));
+  if (!animated) {
+    arrow(svg, 30, h/2-6, R[0]-16, R[1], 'rgba(255,184,48,0.6)');
+    arrow(svg, R[0]+16, R[1]-6, 220, 46, 'rgba(168,230,61,0.6)', true);
+    arrow(svg, 186, 108, 146, 98, 'rgba(96,165,250,0.6)', true);
+  } else if (p < 0.85) {
+    const lift = p < 0.3 ? Math.sin(p/0.3*Math.PI)*22 : 0;
+    const b = kfPos([[0,26,70],[0.3,98,86],[0.42,112,74],[0.47,112,74],[0.66,232,45],[1,232,45]], p);
+    drawBall(svg, b[0], b[1]-lift);
+    if (p > 0.66) calloutText(svg, 180, 22, 'Through the gate!');
   }
-  const lbl=mkSvg('text',{x:w/2+20,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='T throws, R controls and plays through gate';svg.appendChild(lbl);
+  captionText(svg, w, h, 'Back to play: control, turn away from D, through the gate');
 }
 
 // PROTECT THE KING
