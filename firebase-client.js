@@ -5,7 +5,7 @@
 //
 // SETUP: paste your firebaseConfig below (Firebase console →
 // Project Settings → General → Your apps). This is safe to expose
-// publicly — see SETUP.md for why.
+// publicly — see README.md for why.
 // ─────────────────────────────────────────────────────────────────
 
 const firebaseConfig = {
@@ -216,7 +216,7 @@ async function fbRegenerateCode(teamId) {
   // alias document is intentionally left in place — it still resolves
   // to the same teamId. This means regenerating does NOT invalidate
   // the old code on Spark (a real limitation vs. Blaze). Document
-  // this clearly for the coach in the UI (see SETUP.md).
+  // this clearly for the coach in the UI (see README.md).
   storeTeam(teamId, stored.teamName, newCode);
   return newCode;
 }
