@@ -3665,6 +3665,206 @@ function animWinnerStaysOn(svg, t, animated, state, w, h) {
   svg.appendChild(lbl);
 }
 
+// TAIL TAG
+function animTailTag(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // P1 sneaks up and steals P2's tail; P2 does 5 toe-taps and gets a new tail from the coach
+  const p = animated ? t : 0;
+  const tail = (x, y, col) => svg.appendChild(mkSvg('rect',{x:x-3,y:y+9,width:6,height:10,rx:1,fill:col}));
+  const P1 = kfPos([[0,70,60],[0.3,138,96],[0.4,150,104],[0.6,190,70],[0.85,120,48],[1,70,60]], p);
+  const P2 = kfPos([[0,120,120],[0.38,156,116],[0.85,156,116],[1,120,120]], p);
+  const others = [[240,130],[60,140],[230,50]].map(([x,y],i) => animated ? [x+Math.sin(t*Math.PI*2+i*2)*14, y+Math.cos(t*Math.PI*2+i)*10] : [x,y]);
+  svg.appendChild(playerCircle(svg, w-24, h/2, 'C', '#ffb830', '#8a5a00', 10));
+  others.forEach(([x,y]) => { tail(x, y, '#ffb830'); svg.appendChild(playerCircle(svg, x, y, 'P', '#ef4444', 'white', 11)); drawBall(svg, x+9, y+9, 4); });
+  // P2 loses the tail at 0.4 and gets a new one at 0.8
+  const hasTail = !animated || p < 0.4 || p >= 0.8;
+  if (hasTail) tail(P2[0], P2[1], '#ffb830');
+  const taps = animated && p >= 0.42 && p < 0.8;
+  const bob = taps ? Math.abs(Math.sin((p-0.42)/0.38*5*Math.PI))*3 : 0;
+  svg.appendChild(playerCircle(svg, P2[0], P2[1]-bob, 'P2', '#ef4444', 'white', 11));
+  drawBall(svg, P2[0]+9, P2[1]+9, 4);
+  tail(P1[0], P1[1], '#ffb830');
+  svg.appendChild(playerCircle(svg, P1[0], P1[1], 'P1', '#ef4444', 'white', 11));
+  drawBall(svg, P1[0]+9, P1[1]+9, 4);
+  if (animated && p >= 0.4 && p < 0.85) svg.appendChild(mkSvg('rect',{x:P1[0]+12,y:P1[1]-8,width:6,height:10,rx:1,fill:'#ffb830',transform:`rotate(30 ${P1[0]+15} ${P1[1]-3})`}));
+  if (!animated) arrow(svg, 80, 66, 136, 104, 'rgba(255,255,255,0.5)', true);
+  if (taps) calloutText(svg, 156, 148, 'Toe-taps ' + Math.min(5, 1 + Math.floor((p-0.42)/0.38*5)) + '/5');
+  if (animated && p >= 0.38 && p < 0.42) calloutText(svg, 150, 90, 'Got it!');
+  captionText(svg, w, h, 'Steal tails, protect yours; lose it = 5 toe-taps for a new one', h-5);
+}
+
+// PAC-MAN
+function animPacMan(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  // cone blocks; players may only move along the corridors between them
+  const xs = [40, 110, 180, 250], ys = [30, 80, 130];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+    const x1 = xs[i]+12, x2 = xs[i+1]-12, y1 = ys[j]+12, y2 = ys[j+1]-12;
+    svg.appendChild(mkSvg('rect',{x:x1,y:y1,width:x2-x1,height:y2-y1,fill:'rgba(255,184,48,0.08)',stroke:'#ffb830','stroke-width':'2','stroke-dasharray':'2 6','stroke-linecap':'round'}));
+  }
+  const p = animated ? t : 0;
+  const K = (pp, x, y) => [pp, x, y];
+  // G tags P1, who freezes; P2 dribbles through P1's corridor and frees them
+  const frozen = animated && p >= 0.38 && p < 0.6;
+  const P1 = kfPos([K(0,40,30),K(0.2,110,30),K(0.36,110,80),K(0.6,110,80),K(0.8,40,80),K(1,40,30)], p);
+  const P2 = kfPos([K(0,40,130),K(0.42,110,130),K(0.6,110,90),K(0.75,180,80),K(0.88,180,130),K(1,40,130)], p);
+  const P3 = kfPos([K(0,250,130),K(0.5,195,130),K(1,250,130)], p);
+  const G = kfPos([K(0,250,80),K(0.36,124,80),K(0.45,124,80),K(0.55,180,80),K(0.7,180,30),K(0.85,250,30),K(1,250,80)], p);
+  [[P3,'P'],[P2,'P']].forEach(([q,l]) => { svg.appendChild(playerCircle(svg, q[0], q[1], l, '#ef4444', 'white', 11)); drawBall(svg, q[0]+9, q[1]+9, 4); });
+  if (frozen) svg.appendChild(playerCircle(svg, P1[0], P1[1], 'P', '#bfdbfe', '#60a5fa', 11));
+  else { svg.appendChild(playerCircle(svg, P1[0], P1[1], 'P', '#ef4444', 'white', 11)); drawBall(svg, P1[0]+9, P1[1]+9, 4); }
+  svg.appendChild(playerCircle(svg, G[0], G[1], 'G', '#1d4ed8', '#60a5fa', 11));
+  if (!animated) {
+    arrow(svg, 240, 80, 136, 80, 'rgba(96,165,250,0.7)', true);
+    arrow(svg, 52, 30, 98, 30, 'rgba(255,255,255,0.5)', true);
+  } else {
+    if (frozen) { const fl=mkSvg('text',{x:P1[0]+14,y:P1[1]-14,'text-anchor':'start',fill:'#bfdbfe','font-size':'8','font-weight':'700'});fl.textContent='FROZEN';svg.appendChild(fl); }
+    if (p >= 0.6 && p < 0.72) calloutText(svg, 150, 62, 'Freed!');
+  }
+  captionText(svg, w, h, 'Corridors only; ghosts (G) tag, a teammate passing frees you', h-4);
+}
+
+// COVERING PAIRS
+function animCoveringPairs(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-25,y:8,width:50,height:12,fill:'none',stroke:'white','stroke-width':'2'}));
+  // first defender presses the ball, second covers behind; when the ball switches, they swap jobs
+  const p = animated ? t : 0;
+  const A1 = kfPos([[0,105,128],[0.4,108,124],[0.85,96,118],[1,105,128]], p);
+  const A2 = kfPos([[0,205,122],[0.5,200,112],[0.85,206,118],[1,205,122]], p);
+  const D1 = kfPos([[0,108,62],[0.3,112,98],[0.5,112,98],[0.75,150,70],[0.85,150,70],[1,108,62]], p);
+  const D2 = kfPos([[0,192,62],[0.3,152,72],[0.5,152,72],[0.75,196,88],[0.85,196,88],[1,192,62]], p);
+  const ballOnLeft = !animated || p < 0.5 || p >= 0.92;
+  svg.appendChild(playerCircle(svg, A1[0], A1[1], 'A1', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, A2[0], A2[1], 'A2', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, D1[0], D1[1], 'D1', '#1d4ed8', '#60a5fa', 12));
+  svg.appendChild(playerCircle(svg, D2[0], D2[1], 'D2', '#1d4ed8', '#60a5fa', 12));
+  const tag = (q, txt, col) => { const l=mkSvg('text',{x:q[0],y:q[1]-16,'text-anchor':'middle',fill:col,'font-size':'8','font-weight':'700'});l.textContent=txt;svg.appendChild(l); };
+  if (!animated) {
+    arrow(svg, 108, 76, 110, 94, '#a8e63d');
+    arrow(svg, 182, 64, 160, 70, '#ffb830', true);
+    tag([108,62], 'PRESS', '#a8e63d'); tag([192,62], 'COVER', '#ffb830');
+    drawBall(svg, A1[0]+10, A1[1]-12);
+    captionText(svg, w, h, 'Nearest presses, partner covers behind', h-5);
+    return;
+  }
+  tag(D1, ballOnLeft ? 'PRESS' : 'COVER', ballOnLeft ? '#a8e63d' : '#ffb830');
+  tag(D2, ballOnLeft ? 'COVER' : 'PRESS', ballOnLeft ? '#ffb830' : '#a8e63d');
+  const b = kfPos([[0,112,116],[0.4,114,114],[0.52,196,104],[0.85,198,108],[0.95,112,116],[1,112,116]], p);
+  drawBall(svg, b[0], b[1]);
+  captionText(svg, w, h, p < 0.5 ? 'D1 presses the ball, D2 covers behind' : 'Ball switched - swap: D2 presses, D1 covers', h-5);
+}
+
+// GOAL KICK BUILD-UP
+function animGoalKick(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-35,y:h-20,width:70,height:12,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:8,y1:34,x2:w-8,y2:34,stroke:'rgba(255,255,255,0.35)','stroke-width':'1','stroke-dasharray':'6 4'}));
+  const hl=mkSvg('text',{x:w-14,y:28,'text-anchor':'end',fill:'rgba(255,255,255,0.65)','font-size':'8'});hl.textContent='Halfway';svg.appendChild(hl);
+  // GK -> R -> C -> L -> C -> R, then over halfway; two defenders press the ball
+  const p = animated ? t : 0;
+  const GK = [150,h-30];
+  const L = kfPos([[0,70,128],[0.4,64,118],[0.85,64,118],[1,70,128]], p);
+  const R = kfPos([[0,230,128],[0.5,232,110],[0.66,226,96],[0.85,214,22],[0.9,214,22],[1,230,128]], p);
+  const C = kfPos([[0,150,96],[0.45,150,92],[0.55,160,78],[0.85,158,72],[1,150,96]], p);
+  const D1 = kfPos([[0,120,58],[0.2,190,98],[0.32,160,88],[0.45,96,104],[0.56,140,84],[0.68,196,90],[0.85,196,64],[1,120,58]], p);
+  const D2 = kfPos([[0,186,58],[0.25,168,78],[0.4,120,96],[0.6,150,70],[0.85,170,56],[1,186,58]], p);
+  svg.appendChild(playerCircle(svg, GK[0], GK[1], 'GK', '#ffd23f', '#8a6d00', 11));
+  [[L,'L'],[R,'R'],[C,'C']].forEach(([q,l]) => svg.appendChild(playerCircle(svg, q[0], q[1], l, '#ef4444', 'white', 12)));
+  svg.appendChild(playerCircle(svg, D1[0], D1[1], 'D', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, D2[0], D2[1], 'D', '#1d4ed8', '#60a5fa', 11));
+  if (!animated) {
+    drawBall(svg, GK[0], GK[1]-14);
+    arrow(svg, 140, h-36, 80, 136, 'rgba(255,255,255,0.4)', true);
+    arrow(svg, 160, h-36, 220, 136, 'rgba(255,255,255,0.4)', true);
+    arrow(svg, 150, h-42, 150, 110, 'rgba(255,255,255,0.4)', true);
+    captionText(svg, w, h, 'Short left, short right, deep middle: 5 passes to get out', 14);
+    return;
+  }
+  const passes = [0.12, 0.26, 0.4, 0.52, 0.64];
+  const done = passes.filter(x => p >= x).length;
+  const b = kfPos([[0,150,h-44],[0.04,150,h-44],[0.12,222,122],[0.18,222,118],[0.26,152,104],[0.3,152,104],[0.4,74,122],[0.44,74,118],[0.52,158,86],[0.56,160,84],[0.64,226,104],[0.85,214,32],[0.9,214,32],[1,150,h-44]], p);
+  drawBall(svg, b[0], b[1]);
+  const cnt=mkSvg('text',{x:16,y:56,'text-anchor':'start',fill:'#ffb830','font-size':'11','font-weight':'900'});cnt.textContent='Passes: '+done+' / 5';svg.appendChild(cnt);
+  if (p >= 0.82 && p < 0.92) calloutText(svg, 90, 76, 'Out from the back!');
+}
+
+// WALL PASS STREET SOCCER
+function animWallPass(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const L = 60, R = 240, T = 22, B = 158;
+  svg.appendChild(mkSvg('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'rgba(255,255,255,0.35)','stroke-width':'1.5'}));
+  // side walls the ball can be played off
+  [L, R].forEach(x => svg.appendChild(mkSvg('line',{x1:x,y1:T,x2:x,y2:B,stroke:'#cbd5e1','stroke-width':'5'})));
+  [[L-6,90,'end'],[R+6,90,'start']].forEach(([x,y,a]) => { const l=mkSvg('text',{x,y,'text-anchor':a,fill:'#cbd5e1','font-size':'8'});l.textContent='wall';svg.appendChild(l); });
+  svg.appendChild(mkSvg('rect',{x:w/2-20,y:T-8,width:40,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-20,y:B,width:40,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+  // A1 plays the ball off the wall past D1, runs round to collect, and shoots
+  const p = animated ? t : 0;
+  const A1 = kfPos([[0,120,132],[0.15,116,126],[0.3,96,100],[0.42,104,70],[0.5,112,62],[0.85,112,62],[1,120,132]], p);
+  const A2 = kfPos([[0,192,124],[0.5,196,104],[0.85,190,90],[1,192,124]], p);
+  const D1 = kfPos([[0,112,96],[0.15,116,108],[0.4,120,96],[0.85,120,90],[1,112,96]], p);
+  const D2 = kfPos([[0,184,70],[0.45,170,58],[0.6,160,46],[0.85,160,46],[1,184,70]], p);
+  svg.appendChild(playerCircle(svg, D1[0], D1[1], 'D', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, D2[0], D2[1], 'D', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, A1[0], A1[1], 'A', '#ef4444', 'white', 11));
+  svg.appendChild(playerCircle(svg, A2[0], A2[1], 'A', '#ef4444', 'white', 11));
+  if (!animated) {
+    arrow(svg, 112, 124, L+6, 96, '#ffb830');
+    arrow(svg, L+6, 92, 98, 72, '#ffb830');
+    arrow(svg, 116, 128, 96, 104, 'rgba(255,255,255,0.4)', true);
+    captionText(svg, w, h, 'Use the wall as a teammate: wall pass before you shoot', h-4);
+    return;
+  }
+  if (p < 0.85) {
+    const b = kfPos([[0,128,122],[0.15,124,120],[0.27,L+5,94],[0.4,104,72],[0.5,114,58],[0.6,150,T-2],[1,150,T-2]], p);
+    drawBall(svg, b[0], b[1]);
+    if (p > 0.6) calloutText(svg, 206, 44, 'GOAL!');
+  }
+  captionText(svg, w, h, p < 0.45 ? 'Off the wall and round the defender' : 'Wall pass done - now shoot', h-4);
+}
+
+// 4-GOAL GAME
+function animFourGoal(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const L = 30, R = 270, T = 22, B = 158, cy = (T+B)/2;
+  svg.appendChild(mkSvg('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'rgba(255,255,255,0.35)','stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-16,y:T-8,width:32,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-16,y:B,width:32,height:8,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:L-8,y:cy-16,width:8,height:32,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:R,y:cy-16,width:8,height:32,fill:'none',stroke:'white','stroke-width':'2'}));
+  // reds are crowded near the left goal, switch play quickly and score in the open right goal
+  const p = animated ? t : 0;
+  const K = (pp, x, y) => [pp, x, y];
+  const reds = [
+    [K(0,76,110),K(0.85,72,106),K(1,76,110)],
+    [K(0,150,100),K(0.3,152,96),K(0.85,170,92),K(1,150,100)],
+    [K(0,222,70),K(0.45,228,78),K(0.58,248,88),K(0.85,248,88),K(1,222,70)],
+    [K(0,120,48),K(0.85,140,52),K(1,120,48)],
+  ];
+  const blues = [
+    [K(0,60,90),K(0.3,64,96),K(0.85,96,96),K(1,60,90)],
+    [K(0,96,124),K(0.85,130,120),K(1,96,124)],
+    [K(0,110,80),K(0.4,140,84),K(0.85,190,88),K(1,110,80)],
+    [K(0,170,130),K(0.85,210,120),K(1,170,130)],
+  ];
+  blues.forEach(k => { const [x,y] = kfPos(k, p); svg.appendChild(playerCircle(svg, x, y, 'B', '#1d4ed8', '#60a5fa', 11)); });
+  reds.forEach(k => { const [x,y] = kfPos(k, p); svg.appendChild(playerCircle(svg, x, y, 'R', '#ef4444', 'white', 11)); });
+  if (!animated) {
+    arrow(svg, 88, 106, 138, 100, '#ffb830');
+    arrow(svg, 162, 96, 212, 74, '#ffb830');
+    arrow(svg, 232, 78, R-2, cy, '#a8e63d');
+    captionText(svg, w, h, 'Score in any of the 4 goals - switch to the open one', h-4);
+    return;
+  }
+  if (p < 0.85) {
+    const b = kfPos([[0,84,118],[0.12,84,116],[0.25,150,108],[0.32,152,106],[0.45,226,82],[0.52,236,86],[0.62,R-2,cy],[1,R-2,cy]], p);
+    drawBall(svg, b[0], b[1]);
+    if (p > 0.62) calloutText(svg, 226, 60, 'Switch - score!');
+  }
+  captionText(svg, w, h, 'Crowded? Move it quickly to the open goal', h-4);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

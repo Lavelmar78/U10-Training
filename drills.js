@@ -247,7 +247,7 @@ const DRILLS = [
     cues:['Protect your tail!','Head up','Use your body'],
     diagram:'traffic', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=O8Vk3sBsPa8',label:'Tail Tag dribbling drill'},
-    anim: 'animTraffic'
+    anim: 'animTailTag'
   },
   {
     id:'w7', cat:'warmup', name:'Pac-Man', duration:7,
@@ -257,7 +257,7 @@ const DRILLS = [
     cues:['Quick feet','Head up','Sharp turns'],
     diagram:'bumper', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=QMjbiNrJGMU',label:'Pac-Man football warm-up'},
-    anim: 'animBumper'
+    anim: 'animPacMan'
   },
   {
     id:'w8', cat:'warmup', name:'Protect the King', duration:8,
@@ -331,7 +331,7 @@ const DRILLS = [
     cues:['Press and cover','Drop and angle','Who has ball?'],
     diagram:'game', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=Bo3mEAN0OZM',label:'Defending pairs cover & press'},
-    anim: 'animGame'
+    anim: 'animCoveringPairs'
   },
   {
     id:'d7', cat:'defending', name:'Zonal 3v3 — Split Pitch', duration:14,
@@ -352,7 +352,7 @@ const DRILLS = [
     cues:['Play and move!','Angle the pass','First touch forward'],
     diagram:'onetwo', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=bev-srStVsQ',label:'Wall pass combination play'},
-    anim: 'animOneTwo'
+    anim: 'animWallPass'
   },
   {
     id:'a6', cat:'attacking', name:'4-Goal Game', duration:15,
@@ -362,7 +362,7 @@ const DRILLS = [
     cues:['Switch play!','Head up','Quick ball'],
     diagram:'gates', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'4-Goal Game'},
-    anim: 'animGates'
+    anim: 'animFourGoal'
   },
   {
     id:'a7', cat:'attacking', name:'Crossing & Finishing', duration:15,
@@ -475,7 +475,7 @@ const DRILLS = [
     cues:['Check and show','Create the angle','Support the GK'],
     diagram:'pressing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'Goal kick build-up play'},
-    anim: 'animPressing'
+    anim: 'animGoalKick'
   },
     // ── SET PIECES ──
   {
