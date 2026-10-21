@@ -3865,6 +3865,212 @@ function animFourGoal(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Crowded? Move it quickly to the open goal', h-4);
 }
 
+// Counts completed loops in state so a drill can rotate through variations
+function loopIndex(state, t, key, n) {
+  if (!state) return 0;
+  if (state[key+'T'] !== undefined && t < state[key+'T']) state[key] = ((state[key] || 0) + 1) % n;
+  state[key+'T'] = t;
+  return state[key] || 0;
+}
+
+// CROSSING & FINISHING
+function animCrossing(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  topGoal(svg, w, true);
+  // crosses alternate from the left and right wing each loop; striker finishes first time
+  const side = animated && loopIndex(state, t, 'cr', 2) ? -1 : 1; // 1 = cross from the left
+  const X = x => w/2 + side*(x - w/2);
+  const p = animated ? t : 0;
+  const S = [X(30), 96], S2 = [X(270), 96];
+  const F = kfPos([[0,150,150],[0.2,150,130],[0.45,X(136),56],[0.85,X(136),56],[1,150,150]], p);
+  const gk = kfPos([[0,150,20],[0.4,X(140),20],[0.5,X(130),22],[0.85,X(130),22],[1,150,20]], p);
+  svg.appendChild(playerCircle(svg, S[0], S[1], 'S', '#ffb830', '#8a5a00', 11));
+  svg.appendChild(playerCircle(svg, S2[0], S2[1], 'S', '#ffb830', '#8a5a00', 11));
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#8a6d00', 10));
+  svg.appendChild(playerCircle(svg, F[0], F[1], 'A', '#ef4444', 'white', 12));
+  if (!animated) {
+    arrow(svg, 42, 90, 128, 60, '#ffb830', true);
+    arrow(svg, 150, 138, 138, 70, 'rgba(255,255,255,0.4)', true);
+    arrow(svg, 138, 48, 170, 18, '#a8e63d');
+    captionText(svg, w, h, 'Cross from either wing - finish first time', h-4);
+    return;
+  }
+  if (p < 0.85) {
+    const travel = Math.max(0, Math.min(1, (p-0.25)/0.2));
+    const b = kfPos([[0,S[0]+side*10,S[1]+8],[0.25,S[0]+side*10,S[1]+8],[0.45,X(136),46],[0.55,X(176),14],[1,X(176),14]], p);
+    drawBall(svg, b[0], b[1] - Math.sin(travel*Math.PI)*18);
+    if (p > 0.55) calloutText(svg, 150, 90, 'First time - GOAL!');
+  }
+  captionText(svg, w, h, 'Cross from the ' + (side > 0 ? 'left' : 'right') + ' - one-touch finish', h-4);
+}
+
+// PENALTY PRESSURE SHOOTOUT
+function animPenalty(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  svg.appendChild(mkSvg('rect',{x:w/2-50,y:8,width:100,height:18,fill:'none',stroke:'white','stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect',{x:w/2-90,y:26,width:180,height:84,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.2)','stroke-width':'1'}));
+  svg.appendChild(mkSvg('circle',{cx:w/2,cy:86,r:2,fill:'white'}));
+  // coach counts down from 5, a teammate shouts, another distracts, then the kick; keeper must dive
+  const n = animated ? loopIndex(state, t, 'pk', 2) : 0;
+  const scores = n === 0;
+  const p = animated ? t : 0;
+  const shotX = scores ? w/2+40 : w/2-38, diveX = scores ? w/2-30 : w/2-34;
+  const taker = kfPos([[0,w/2,128],[0.55,w/2,128],[0.62,w/2+2,98],[0.85,w/2+2,98],[1,w/2,128]], p);
+  const gk = kfPos([[0,w/2,22],[0.62,w/2,22],[0.72,diveX,24],[0.88,diveX,24],[1,w/2,22]], p);
+  const wob = animated ? Math.sin(t*Math.PI*16)*4 : 0;
+  svg.appendChild(playerCircle(svg, 54, 140, 'C', '#ffb830', '#8a5a00', 10));
+  svg.appendChild(playerCircle(svg, 250+wob, 70, 'X', '#ef4444', 'white', 10));
+  svg.appendChild(playerCircle(svg, 236, 140, 'T', '#ef4444', 'white', 10));
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#8a6d00', 11));
+  svg.appendChild(playerCircle(svg, taker[0], taker[1], 'P', '#ef4444', 'white', 12));
+  const say = (x, y, s, col) => { const l=mkSvg('text',{x,y,'text-anchor':'middle',fill:col,'font-size':'9','font-weight':'700'});l.textContent=s;svg.appendChild(l); };
+  if (!animated) {
+    drawBall(svg, w/2, 86);
+    say(54, 124, '5..4..3..', '#ffb830'); say(236, 124, '"You got this!"', '#fca5a5'); say(250, 54, 'distract', '#fca5a5');
+    arrow(svg, w/2, 80, w/2+38, 18, '#a8e63d', true);
+    captionText(svg, w, h, 'Countdown, shouts and a distraction - then score', h-4);
+    return;
+  }
+  if (p < 0.55) say(54, 124, String(5 - Math.min(4, Math.floor(p/0.11))), '#ffb830');
+  if (p > 0.15 && p < 0.6) say(236, 124, '"You got this!"', '#fca5a5');
+  if (p < 0.6) say(250, 54, 'distract', '#fca5a5');
+  if (p < 0.9) {
+    const b = kfPos([[0,w/2,86],[0.62,w/2,86],[0.72,shotX,18],[1,shotX,18]], p);
+    drawBall(svg, b[0], b[1]);
+  }
+  if (p > 0.72 && p < 0.9) calloutText(svg, w/2, 60, scores ? 'GOAL!' : 'SAVED!', scores ? '#ffb830' : '#ffd23f');
+  captionText(svg, w, h, 'Keeper must dive; sudden death for the last 4', h-4);
+}
+
+// OVERLAPPING RUNS
+function animOverlapRuns(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  topGoal(svg, w, true);
+  // A passes inside to B and overlaps; B holds until A is level, plays A in; A crosses for C
+  const p = animated ? t : 0;
+  const A = kfPos([[0,262,150],[0.12,262,146],[0.32,280,104],[0.5,270,58],[0.6,262,48],[0.85,262,48],[1,262,150]], p);
+  const B = kfPos([[0,214,116],[0.4,220,110],[0.85,214,106],[1,214,116]], p);
+  const C = kfPos([[0,130,128],[0.35,130,118],[0.7,146,44],[0.85,146,44],[1,130,128]], p);
+  const gk = kfPos([[0,150,20],[0.66,158,20],[0.76,164,22],[0.9,164,22],[1,150,20]], p);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#8a6d00', 10));
+  svg.appendChild(playerCircle(svg, A[0], A[1], 'A', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, B[0], B[1], 'B', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, C[0], C[1], 'C', '#ef4444', 'white', 12));
+  if (!animated) {
+    arrow(svg, 256, 140, 224, 122, '#ffb830');
+    arrow(svg, 272, 140, 278, 70, 'rgba(255,255,255,0.5)', true);
+    arrow(svg, 224, 104, 258, 62, '#ffb830');
+    arrow(svg, 252, 48, 156, 46, '#a8e63d', true);
+    captionText(svg, w, h, 'Pass inside, overlap outside, B plays A in, cross for C', h-4);
+    return;
+  }
+  if (p < 0.88) {
+    const cross = Math.max(0, Math.min(1, (p-0.6)/0.12));
+    const b = kfPos([[0,256,158],[0.12,222,124],[0.38,224,120],[0.52,262,58],[0.6,252,54],[0.72,150,36],[0.8,174,14],[1,174,14]], p);
+    drawBall(svg, b[0], b[1] - Math.sin(cross*Math.PI)*14);
+    if (p > 0.8) calloutText(svg, 150, 90, 'GOAL!');
+  }
+  captionText(svg, w, h, p < 0.4 ? 'Pass inside and overlap - B holds it' : p < 0.6 ? 'A is level - play it into the space' : 'Cross for C', h-4);
+}
+
+// TURNING DRILL - 4 TURNS
+function animTurning(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  // coach calls a turn each loop; every player turns at their cone and dribbles back
+  const turns = ['Inside hook','Outside hook','Cruyff','Drag-back'];
+  const k = animated ? loopIndex(state, t, 'tn', 4) : 0;
+  const lanes = [44, 84, 124];
+  const coneX = 232, startX = 34;
+  lanes.forEach(y => {
+    svg.appendChild(mkSvg('line',{x1:startX,y1:y+14,x2:startX,y2:y-14,stroke:'rgba(168,230,61,0.6)','stroke-width':'2'}));
+    svg.appendChild(mkSvg('polygon',{points:`${coneX},${y-7} ${coneX-5},${y+5} ${coneX+5},${y+5}`,fill:'#ffb830'}));
+  });
+  svg.appendChild(playerCircle(svg, 272, 84, 'C', '#ffb830', '#8a5a00', 10));
+  const p = animated ? t : 0;
+  // turn shape: a small loop beside the cone (hooks curve to opposite sides, Cruyff cuts behind, drag-back pulls straight back)
+  const bend = [-14, 14, 6, 0][k];
+  lanes.forEach(y => {
+    let x, yy = y;
+    if (p < 0.4) x = lerp(startX+12, coneX-14, easeInOut(p/0.4));
+    else if (p < 0.55) { const a = (p-0.4)/0.15; x = coneX-14 + Math.sin(a*Math.PI)*8; yy = y + Math.sin(a*Math.PI)*bend; }
+    else x = lerp(coneX-14, startX+12, easeInOut((p-0.55)/0.45));
+    svg.appendChild(playerCircle(svg, x, yy, 'P', '#ef4444', 'white', 10));
+    const dir = p < 0.47 ? 1 : -1;
+    drawBall(svg, x + dir*12, yy + 4, 4);
+  });
+  if (!animated) {
+    arrow(svg, 50, 30, 214, 30, 'rgba(255,255,255,0.4)', true);
+    captionText(svg, w, h, 'Coach calls the turn: inside hook, outside hook, Cruyff, drag-back', h-4);
+    return;
+  }
+  if (p > 0.2 && p < 0.6) calloutText(svg, 150, 18, '"' + turns[k] + '!"');
+  captionText(svg, w, h, 'Turn ' + (k+1) + ' of 4: ' + turns[k], h-4);
+}
+
+// BALL MASTERY CIRCUIT
+function animBallMastery(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+  const moves = ['Toe-taps','Inside-outside','Sole rolls','Scissors','Step-overs','Pull-push','Maradona','Figure-8'];
+  const k = animated ? loopIndex(state, t, 'bm', 8) : 0;
+  moves.forEach((m, i) => {
+    const on = i === k;
+    if (on) svg.appendChild(mkSvg('rect',{x:196,y:14+i*16,width:92,height:14,rx:3,fill:'rgba(255,184,48,0.2)'}));
+    const l=mkSvg('text',{x:202,y:25+i*16,'text-anchor':'start',fill:on?'#ffb830':'rgba(255,255,255,0.65)','font-size':'9','font-weight':on?'700':'400'});
+    l.textContent=(i+1)+'. '+m; svg.appendChild(l);
+  });
+  // close-up from above: player, two feet and the ball; each move has its own ball and foot pattern
+  const cx = 100, cy = 70, p = animated ? t : 0, a = p*Math.PI*2;
+  let bx = cx, by = cy+30, lf = [cx-9, cy+18], rf = [cx+9, cy+18], rot = 0;
+  const tap = (i) => Math.max(0, Math.sin(a*4 + i*Math.PI));
+  switch (k) {
+    case 0: lf = [cx-9, cy+18+tap(0)*7]; rf = [cx+9, cy+18+tap(1)*7]; break;
+    case 1: bx = cx + Math.sin(a*3)*12; lf[0] = cx-9 + Math.min(0, Math.sin(a*3))*4; rf[0] = cx+9 + Math.max(0, Math.sin(a*3))*4; break;
+    case 2: bx = cx + Math.sin(a*2)*14; (Math.sin(a*2) < 0 ? lf : rf)[1] = cy+26; break;
+    case 3: case 4: { const s = Math.sin(a*2); const f = s < 0 ? lf : rf; f[0] = cx + Math.cos(a*4)*16*(s<0?-1:1); f[1] = cy+30 - Math.abs(Math.sin(a*4))*12; bx = cx + (k===4 ? s*10 : 0); break; }
+    case 5: by = cy+30 + Math.sin(a*3)*10; rf[1] = by-6; break;
+    case 6: rot = a; break;
+    case 7: bx = cx + Math.sin(a)*22; by = cy+24 + Math.sin(a*2)*10; break;
+  }
+  const g = mkSvg('g',{transform:`rotate(${rot*180/Math.PI} ${cx} ${cy+20})`});
+  svg.appendChild(g);
+  [lf, rf].forEach(([x,y]) => g.appendChild(mkSvg('ellipse',{cx:x,cy:y,rx:4,ry:7,fill:'#ef4444',stroke:'white','stroke-width':'1'})));
+  g.appendChild(playerCircle(svg, cx, cy, 'P', '#ef4444', 'white', 13));
+  if (k === 6) { const bb = [cx, cy+32]; g.appendChild(mkSvg('circle',{cx:bb[0],cy:bb[1],r:6,fill:'white',stroke:'#166534','stroke-width':'1'})); }
+  else drawBall(svg, bx, by, 6);
+  calloutText(svg, cx, 132, animated ? moves[k] : '8 moves x 30 sec');
+  captionText(svg, w, h, '30 seconds each move, then the next', h-4);
+}
+
+// DIRECTIONAL FIRST TOUCH
+function animDirectionalTouch(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  const cx = w/2, cy = h/2-4, r = 62;
+  svg.appendChild(mkSvg('rect',{x:cx-r,y:cy-r,width:2*r,height:2*r,fill:'none',stroke:'rgba(255,255,255,0.3)','stroke-width':'1.5','stroke-dasharray':'5 4'}));
+  const feeders = [[cx,cy-r-6],[cx+r+6,cy],[cx,cy+r+6],[cx-r-6,cy]];
+  const k = animated ? loopIndex(state, t, 'dt', 4) : 0;
+  const from = feeders[k], to = feeders[(k+1)%4];
+  feeders.forEach(([x,y]) => svg.appendChild(playerCircle(svg, x, y, 'F', '#ffb830', 'white', 11)));
+  const ang = ([x,y]) => Math.atan2(y-cy, x-cx);
+  let a0 = ang(from), a1 = ang(to);
+  if (a1 - a0 > Math.PI) a1 -= 2*Math.PI; if (a0 - a1 > Math.PI) a1 += 2*Math.PI;
+  // first touch goes out of the feet toward the next feeder, not dead under the body
+  const touch = [cx + Math.cos(a1)*14, cy + Math.sin(a1)*14];
+  const p = animated ? t : 0.25;
+  const R = kfPos([[0,cx,cy],[0.3,cx,cy],[0.45,cx+Math.cos(a1)*10,cy+Math.sin(a1)*10],[0.8,cx+Math.cos(a1)*10,cy+Math.sin(a1)*10],[1,cx,cy]], p);
+  const turn = easeInOut(Math.max(0, Math.min(1, (p-0.22)/0.25)));
+  svg.appendChild(playerCircle(svg, R[0], R[1], 'P', '#ef4444', 'white', 13));
+  bodyFacing(svg, R[0], R[1], lerp(a0, a1, turn));
+  if (!animated) {
+    arrow(svg, from[0], from[1]+12, cx, cy-18, 'rgba(255,184,48,0.6)', true);
+    arrow(svg, cx+16, cy-4, to[0]-14, to[1], 'rgba(168,230,61,0.6)', true);
+    captionText(svg, w, h, 'First touch out of your feet, then pass to a different feeder', h-3);
+    return;
+  }
+  const b = kfPos([[0,from[0],from[1]+(k===0?12:0)],[0.28,cx+Math.cos(a0)*14,cy+Math.sin(a0)*14],[0.42,touch[0]+Math.cos(a1)*6,touch[1]+Math.sin(a1)*6],[0.55,touch[0]+Math.cos(a1)*6,touch[1]+Math.sin(a1)*6],[0.8,to[0],to[1]],[1,to[0],to[1]]], p);
+  drawBall(svg, b[0], b[1]);
+  captionText(svg, w, h, p < 0.45 ? 'First touch out of your feet, toward the next feeder' : 'Pass to a different feeder', h-3);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

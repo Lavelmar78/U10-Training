@@ -372,7 +372,7 @@ const DRILLS = [
     cues:['Attack the ball!','Far corner','Arrive with pace'],
     diagram:'finishing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=mFhfexVwcvI',label:'Crossing & finishing drill'},
-    anim: 'animFinishing'
+    anim: 'animCrossing'
   },
   {
     id:'a8', cat:'attacking', name:'Shooting Drill — Combination Finish', duration:14,
@@ -423,7 +423,7 @@ const DRILLS = [
     cues:['Open up early','Touch away from pressure','See the picture first'],
     diagram:'receiving', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=q2hBd6O6Zss',label:'Directional first touch drill'},
-    anim: 'animReceiving'
+    anim: 'animDirectionalTouch'
   },
   {
     id:'m5', cat:'movement', name:'Overlapping Runs', duration:12,
@@ -433,7 +433,7 @@ const DRILLS = [
     cues:['Go on the pass!','Hold... now!','Run at pace'],
     diagram:'thirdman', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=9J8EyEvoZ4Y',label:'Overlapping runs drill'},
-    anim: 'animThirdMan'
+    anim: 'animOverlapRuns'
   },
     // ── EXTRA SKILLS ──
   {
@@ -444,7 +444,7 @@ const DRILLS = [
     cues:['Feint first!','Quick exit','Sell it!'],
     diagram:'coervers', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=IeMYh7roBjk',label:'Turning drill — 4 turns'},
-    anim: 'animCoervers'
+    anim: 'animTurning'
   },
   {
     id:'s5', cat:'skills', name:'Ball Mastery Circuit', duration:10,
@@ -454,7 +454,7 @@ const DRILLS = [
     cues:['On your toes','Soft feet','Speed up!'],
     diagram:'coervers', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=nab4UqS_2iM',label:'50 ball mastery drills — U9 to U12'},
-    anim: 'animCoervers'
+    anim: 'animBallMastery'
   },
     // ── EXTRA SET PIECES ──
   {
@@ -465,7 +465,7 @@ const DRILLS = [
     cues:['Pick your spot','Commit!','Head down'],
     diagram:'finishing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=y-X_t1KVO7o',label:'Finishing & shooting under pressure'},
-    anim: 'animFinishing'
+    anim: 'animPenalty'
   },
   {
     id:'sp5', cat:'setpiece', name:'Goal Kick Build-Up', duration:10,
