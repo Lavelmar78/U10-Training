@@ -4252,16 +4252,33 @@ function animFinishing(svg, t, animated, state, w, h) {
   const gx=w/2;
   svg.appendChild(mkSvg('rect',{x:gx-40,y:8,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
   svg.appendChild(mkSvg('rect',{x:gx-60,y:24,width:120,height:55,rx:3,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.15)','stroke-width':'1'}));
-  [[gx,60,'1pt','#a8e63d'],[gx,72,'2pt','#ffb830'],[gx,90,'3pt','#ef4444']].forEach(([x,y,lbl,color])=>{
-    svg.appendChild(mkSvg('line',{x1:gx-70,y1:y,x2:gx+70,y2:y,stroke:color+'55','stroke-width':'1','stroke-dasharray':'5 4'}));
-    const t2=mkSvg('text',{x:gx+72,y:y+3,fill:color,'font-size':'8','font-weight':'700'});t2.textContent=lbl;svg.appendChild(t2);
+  // Zone 1 round the penalty spot, zone 2 across the edge of the box, zone 3 outside it
+  const zones = [
+    { y1:44, y2:62, pts:1, col:'#a8e63d', name:'Zone 1 - 1pt' },
+    { y1:70, y2:88, pts:2, col:'#ffb830', name:'Zone 2 - 2pts' },
+    { y1:98, y2:122, pts:3, col:'#ef4444', name:'Zone 3 - 3pts' },
+  ];
+  // each loop the shooter takes the next zone: 1, 2, 3, then round again
+  const zi = animated ? loopIndex(state, t, 'fz', 3) : 2;
+  zones.forEach((z, i) => {
+    svg.appendChild(mkSvg('rect',{x:gx-55,y:z.y1,width:110,height:z.y2-z.y1,rx:3,fill:z.col,'fill-opacity':i===zi?'0.22':'0.08',stroke:z.col,'stroke-opacity':'0.5','stroke-dasharray':'4 3'}));
+    const l=mkSvg('text',{x:gx+60,y:(z.y1+z.y2)/2+3,fill:z.col,'font-size':'8','font-weight':'700'}); l.textContent=z.name; svg.appendChild(l);
   });
-  // shooter
-  let sy=animated?lerp(h-30,80,easeInOut(t)):h-30;
+  const z = zones[zi], spotY = (z.y1 + z.y2) / 2, startY = h - 30;
+  const corner = gx + (zi === 1 ? -28 : 28);
+  // 0-0.35 dribble into the zone, 0.35-0.6 shot into the corner, 0.6-1 points scored
+  let sy = startY, ball = null;
+  if (!animated) { sy = spotY; arrow(svg, gx+6, spotY-12, corner, 22, 'rgba(255,184,48,0.6)'); }
+  else if (t < 0.35) { sy = lerp(startY, spotY, easeInOut(t / 0.35)); ball = [gx+8, sy-10]; }
+  else {
+    sy = spotY;
+    const k = easeInOut(Math.min(1, (t - 0.35) / 0.25));
+    ball = [lerp(gx+8, corner, k), lerp(spotY-10, 18, k)];
+  }
   svg.appendChild(playerCircle(svg,gx,sy,'P','#a8e63d','#166534'));
-  svg.appendChild(mkSvg('circle',{cx:gx+10,cy:sy+10,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
-  if(animated&&t>0.5){const bx=lerp(gx,gx+20,easeInOut((t-0.5)*2)),by=lerp(sy-10,20,easeInOut((t-0.5)*2));svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));}
-  const lbl=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='Zones: near=1pt, box edge=2pt, outside=3pt';svg.appendChild(lbl);
+  if (ball) drawBall(svg, ball[0], ball[1]);
+  if (animated && t > 0.6) calloutText(svg, gx - 95, spotY + 4, 'GOAL! +' + z.pts, z.col);
+  captionText(svg, w, h, 'Shoot from each zone in turn - further out scores more', h - 4);
 }
 
 // SHOOTING DRILL — COMBINATION FINISH
@@ -4646,28 +4663,48 @@ function animProtectKing(svg, t, animated, state, w, h) {
 function animDroppedEgg(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h, '#111a11');
   svg.appendChild(mkSvg('rect', {x:15, y:15, width:w-30, height:h-30, rx:6, fill:'none', stroke:'rgba(255,255,255,0.15)', 'stroke-width':'1.5'}));
-  // pairs holding ball between them
+  // pairs holding a ball (egg) between them, one palm each
   const pairs = [
-    [[80,70],[110,70],'#a8e63d'],
-    [[190,80],[220,80],'#5ab4ff'],
-    [[70,130],[100,130],'#ffb830'],
-    [[200,140],[230,140],'#b87fff'],
+    [95,60,'#a8e63d'], [205,65,'#5ab4ff'], [85,125,'#ffb830'], [215,130,'#b87fff'],
   ];
-  pairs.forEach(([[x1,y1],[x2,y2],color], pi) => {
-    let ox=0, oy=0;
-    if (animated) { ox=Math.sin(t*Math.PI*2+pi*1.5)*12; oy=Math.cos(t*Math.PI*1.7+pi)*10; }
-    // line between pair (arms)
-    svg.appendChild(mkSvg('line', {x1:x1+ox, y1:y1+oy, x2:x2+ox, y2:y2+oy, stroke:'rgba(255,255,255,0.2)', 'stroke-width':'2'}));
-    // ball (egg) between them
-    const mx=(x1+x2)/2+ox, my=(y1+y2)/2+oy;
-    svg.appendChild(mkSvg('ellipse', {cx:mx, cy:my, rx:9, ry:11, fill:'white', stroke:color, 'stroke-width':'2'}));
-    // players
-    svg.appendChild(playerCircle(svg, x1+ox, y1+oy, 'P', color, 'white', 11));
-    svg.appendChild(playerCircle(svg, x2+ox, y2+oy, 'P', color, 'white', 11));
+  // each loop a different pair goes hunting and knocks the next pair's egg down
+  const k = animated ? loopIndex(state, t, 'egg', 4) : 0;
+  const hunter = k, target = (k + 1) % 4;
+  const pos = pairs.map(([x, y], pi) => {
+    if (!animated || pi === hunter || pi === target) return [x, y];
+    return [x + Math.sin(t*Math.PI*2 + pi*1.5)*10, y + Math.cos(t*Math.PI*2 + pi)*8];
   });
-  const lbl = mkSvg('text', {x:w/2, y:h-5, 'text-anchor':'middle', fill:'rgba(255,255,255,0.65)', 'font-size': '9'});
-  lbl.textContent = 'Pairs hold egg - knock others away without dropping!';
-  svg.appendChild(lbl);
+  // hunter closes in (0.05-0.4), knocks the egg (0.4-0.5), backs off (0.55-0.9)
+  const [tx, ty] = pos[target], [hx, hy] = pairs[hunter];
+  const d = Math.hypot(hx - tx, hy - ty) || 1;
+  const nx = tx + (hx - tx) / d * 56, ny = ty + (hy - ty) / d * 34;
+  if (animated) {
+    const a = t < 0.4 ? easeInOut(Math.max(0, (t - 0.05) / 0.35)) : t < 0.55 ? 1 : 1 - easeInOut(Math.min(1, (t - 0.55) / 0.35));
+    pos[hunter] = [lerp(hx, nx, a), lerp(hy, ny, a)];
+  }
+  const dropped = animated && t >= 0.45 && t < 0.97;
+  pos.forEach(([x, y], pi) => {
+    const col = pairs[pi][2];
+    // dropped pair does 5 jumping jacks before rejoining
+    let jy = 0;
+    if (dropped && pi === target && t > 0.55) jy = -Math.abs(Math.sin((t - 0.55) / 0.4 * Math.PI * 5)) * 5;
+    svg.appendChild(mkSvg('line', {x1:x-15, y1:y+jy, x2:x+15, y2:y+jy, stroke:'rgba(255,255,255,0.2)', 'stroke-width':'2'}));
+    if (dropped && pi === target) {
+      const f = Math.min(1, (t - 0.45) / 0.1);
+      svg.appendChild(mkSvg('ellipse', {cx:x + 6*f, cy:y + 18*f, rx:9, ry:11, fill:'rgba(255,255,255,0.5)', stroke:col, 'stroke-width':'2'}));
+    } else {
+      svg.appendChild(mkSvg('ellipse', {cx:x, cy:y, rx:9, ry:11, fill:'white', stroke:col, 'stroke-width':'2'}));
+    }
+    svg.appendChild(playerCircle(svg, x-15, y+jy, 'P', col, 'white', 11));
+    svg.appendChild(playerCircle(svg, x+15, y+jy, 'P', col, 'white', 11));
+  });
+  if (animated && t >= 0.4 && t < 0.55) calloutText(svg, pos[target][0], pos[target][1] - 20, 'Dropped!');
+  if (dropped && t >= 0.55) {
+    const n = Math.min(5, Math.floor((t - 0.55) / 0.4 * 5) + 1);
+    calloutText(svg, pos[target][0], pos[target][1] - 20, 'Jumping jacks ' + n + '/5', '#ffffff');
+  }
+  if (!animated) arrow(svg, hx, hy + 14, nx, ny + 10, 'rgba(255,184,48,0.6)');
+  captionText(svg, w, h, 'Keep your egg up - knock other pairs\' eggs down with your free hand', h - 4);
 }
 
 // FROG JUMP RACE
