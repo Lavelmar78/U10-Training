@@ -247,7 +247,7 @@ const DRILLS = [
     cues:['Protect your tail!','Head up','Use your body'],
     diagram:'traffic', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=O8Vk3sBsPa8',label:'Tail Tag dribbling drill'},
-    anim: 'animTraffic'
+    anim: 'animTailTag'
   },
   {
     id:'w7', cat:'warmup', name:'Pac-Man', duration:7,
@@ -257,7 +257,7 @@ const DRILLS = [
     cues:['Quick feet','Head up','Sharp turns'],
     diagram:'bumper', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=QMjbiNrJGMU',label:'Pac-Man football warm-up'},
-    anim: 'animBumper'
+    anim: 'animPacMan'
   },
   {
     id:'w8', cat:'warmup', name:'Protect the King', duration:8,
@@ -331,7 +331,7 @@ const DRILLS = [
     cues:['Press and cover','Drop and angle','Who has ball?'],
     diagram:'game', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=Bo3mEAN0OZM',label:'Defending pairs cover & press'},
-    anim: 'animGame'
+    anim: 'animCoveringPairs'
   },
   {
     id:'d7', cat:'defending', name:'Zonal 3v3 — Split Pitch', duration:14,
@@ -352,7 +352,7 @@ const DRILLS = [
     cues:['Play and move!','Angle the pass','First touch forward'],
     diagram:'onetwo', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=bev-srStVsQ',label:'Wall pass combination play'},
-    anim: 'animOneTwo'
+    anim: 'animWallPass'
   },
   {
     id:'a6', cat:'attacking', name:'4-Goal Game', duration:15,
@@ -362,7 +362,7 @@ const DRILLS = [
     cues:['Switch play!','Head up','Quick ball'],
     diagram:'gates', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'4-Goal Game'},
-    anim: 'animGates'
+    anim: 'animFourGoal'
   },
   {
     id:'a7', cat:'attacking', name:'Crossing & Finishing', duration:15,
@@ -372,7 +372,7 @@ const DRILLS = [
     cues:['Attack the ball!','Far corner','Arrive with pace'],
     diagram:'finishing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=mFhfexVwcvI',label:'Crossing & finishing drill'},
-    anim: 'animFinishing'
+    anim: 'animCrossing'
   },
   {
     id:'a8', cat:'attacking', name:'Shooting Drill — Combination Finish', duration:14,
@@ -423,7 +423,7 @@ const DRILLS = [
     cues:['Open up early','Touch away from pressure','See the picture first'],
     diagram:'receiving', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=q2hBd6O6Zss',label:'Directional first touch drill'},
-    anim: 'animReceiving'
+    anim: 'animDirectionalTouch'
   },
   {
     id:'m5', cat:'movement', name:'Overlapping Runs', duration:12,
@@ -433,7 +433,7 @@ const DRILLS = [
     cues:['Go on the pass!','Hold... now!','Run at pace'],
     diagram:'thirdman', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=9J8EyEvoZ4Y',label:'Overlapping runs drill'},
-    anim: 'animThirdMan'
+    anim: 'animOverlapRuns'
   },
     // ── EXTRA SKILLS ──
   {
@@ -444,7 +444,7 @@ const DRILLS = [
     cues:['Feint first!','Quick exit','Sell it!'],
     diagram:'coervers', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=IeMYh7roBjk',label:'Turning drill — 4 turns'},
-    anim: 'animCoervers'
+    anim: 'animTurning'
   },
   {
     id:'s5', cat:'skills', name:'Ball Mastery Circuit', duration:10,
@@ -454,7 +454,7 @@ const DRILLS = [
     cues:['On your toes','Soft feet','Speed up!'],
     diagram:'coervers', viewBox:'0 0 300 160',
     youtube:{url:'https://www.youtube.com/watch?v=nab4UqS_2iM',label:'50 ball mastery drills — U9 to U12'},
-    anim: 'animCoervers'
+    anim: 'animBallMastery'
   },
     // ── EXTRA SET PIECES ──
   {
@@ -465,7 +465,7 @@ const DRILLS = [
     cues:['Pick your spot','Commit!','Head down'],
     diagram:'finishing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=y-X_t1KVO7o',label:'Finishing & shooting under pressure'},
-    anim: 'animFinishing'
+    anim: 'animPenalty'
   },
   {
     id:'sp5', cat:'setpiece', name:'Goal Kick Build-Up', duration:10,
@@ -475,7 +475,7 @@ const DRILLS = [
     cues:['Check and show','Create the angle','Support the GK'],
     diagram:'pressing', viewBox:'0 0 300 180',
     youtube:{url:'https://www.youtube.com/watch?v=vzWLn5WlAGY',label:'Goal kick build-up play'},
-    anim: 'animPressing'
+    anim: 'animGoalKick'
   },
     // ── SET PIECES ──
   {
