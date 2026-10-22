@@ -1487,100 +1487,70 @@ function animHeadsSaves(svg, t, animated, state, w, h) {
   svg.appendChild(mkSvg('rect',{x:gx-40,y:goalY,width:80,height:16,fill:'none',stroke:'white','stroke-width':'2'}));
   svg.appendChild(mkSvg('rect',{x:gx-70,y:goalY+16,width:140,height:60,rx:3,fill:'rgba(255,255,255,0.04)',stroke:'rgba(255,255,255,0.12)','stroke-width':'1'}));
 
-  // Both team lines stand on the goal line, either side of the goal itself
-  const lineY = goalY + 8;
-  const teamAx = gx - 90; // Team A line, left of goal
-  const teamBx = gx + 90; // Team B line, right of goal
-  const spacing = 20;
+  // Turns alternate each loop: Team B heads at Team A's keeper, then Team A heads
+  // at Team B's keeper (the last B header becomes that keeper), and so on.
+  const turn = animated ? loopIndex(state, t, 'hs', 2) : 0;
+  const teams = [
+    { name:'A', x:gx - 90, col:'#5ab4ff', dir:1 },  // Team A line, left of goal
+    { name:'B', x:gx + 90, col:'#ef4444', dir:-1 }, // Team B line, right of goal
+  ];
+  const att = teams[turn === 0 ? 1 : 0], def = teams[turn === 0 ? 0 : 1];
+  const lineY = goalY + 8, spacing = 20;
+  const slotY = i => lineY + i * spacing;
+  const spotX = gx, spotY = goalY + 65;   // edge of the box, where the header happens
+  const gkX = gx, gkY = goalY + 10;
 
-  // Edge-of-box marker where the attacker meets the throw
-  const attackSpotX = gx, attackSpotY = goalY + 65;
+  // 0.00-0.35 throw, 0.35-0.45 header, 0.45-0.75 ball into goal,
+  // 0.75-1.00 rotation: header runs into goal, keeper to back of own line,
+  // next player from the keeper's team steps up to attack
+  const rotating = animated && t > 0.75;
+  const rotT = rotating ? easeInOut((t - 0.75) / 0.25) : 0;
 
-  const phase = animated ? t : 0;
-  // Phase timeline:
-  // 0.00-0.35  throw arcs in from Team B line to the attacker at the edge of the box
-  // 0.35-0.45  header contact
-  // 0.45-0.75  ball flies into the goal
-  // 0.75-1.00  rotation: B (scorer) runs into goal, old GK jogs to back of Team A line,
-  //            next Team A player steps up as the new attacker
-  const rotating = animated && phase > 0.75;
-  const rotT = rotating ? easeInOut((phase - 0.75) / 0.25) : 0;
-
-  // ── Team A line (goalkeepers' team) ──
-  // Player 0 starts as GK (out at the goal), players 1,2,3 queue behind on the line.
-  // During rotation: GK jogs from goal back to the END of the line, and player 1
-  // (next in line) steps up to become the new attacker for the following rep.
-  const teamACount = 4;
-  for (let i = 1; i < teamACount; i++) {
-    let px = teamAx, py = lineY + i * spacing;
-    if (rotating && i === 1) {
-      // next-in-line steps toward the attacking spot to become the new attacker
-      px = lerp(teamAx, attackSpotX - 25, rotT);
-      py = lerp(lineY + spacing, attackSpotY, rotT);
-    } else if (rotating) {
-      // everyone else shuffles up one position
-      py = lerp(lineY + i * spacing, lineY + (i - 1) * spacing, rotT);
-    }
-    svg.appendChild(playerCircle(svg, px, py, 'A', '#5ab4ff', 'white', 9));
-  }
-  // The GK: starts in goal, jogs to the back of Team A's line during rotation
-  let gkX = gx, gkY = goalY + 10;
-  if (rotating) {
-    gkX = lerp(gx, teamAx, rotT);
-    gkY = lerp(goalY + 10, lineY + teamACount * spacing, rotT);
-  }
-  svg.appendChild(playerCircle(svg, gkX, gkY, 'GK', '#a8e63d', '#166534', 10));
-
-  // ── Team B line (attackers/throwers' team) ──
-  // Player 0 (front) is the thrower, standing on the goal line.
-  // The attacker started this rep already out at the edge of the box, and after
-  // scoring runs INTO goal to become Team B's next goalkeeper.
+  // Attacking team: front player throws, two queue behind
   for (let i = 0; i < 3; i++) {
-    svg.appendChild(playerCircle(svg, teamBx, lineY + i * spacing, 'B', '#ef4444', 'white', 9));
+    const px = i === 0 ? att.x + att.dir * 15 : att.x;
+    svg.appendChild(playerCircle(svg, px, slotY(i), att.name, att.col, 'white', 9));
   }
-  // Thrower stands right on the goal line next to the line
-  const throwX = teamBx - 15, throwY = lineY;
-
-  // Attacker (Team B) — starts at the edge of the box, and after scoring
-  // sprints into goal to become the new Team B goalkeeper
-  let attX = attackSpotX, attY = attackSpotY;
-  if (rotating) {
-    attX = lerp(attackSpotX, gx, rotT);
-    attY = lerp(attackSpotY, goalY + 10, rotT);
+  // Keeper's team: front player steps up to attack next, the rest shuffle up
+  for (let i = 0; i < 3; i++) {
+    let px = def.x, py = slotY(i);
+    if (rotating && i === 0) { px = lerp(def.x, spotX, rotT); py = lerp(slotY(0), spotY, rotT); }
+    else if (rotating) py = lerp(slotY(i), slotY(i - 1), rotT);
+    svg.appendChild(playerCircle(svg, px, py, def.name, def.col, 'white', 9));
   }
-  svg.appendChild(playerCircle(svg, attX, attY, 'B', '#ef4444', 'white', 11));
+  // Keeper jogs to the back of their own line
+  let kx = gkX, ky = gkY;
+  if (rotating) { kx = lerp(gkX, def.x, rotT); ky = lerp(gkY, slotY(2), rotT); }
+  svg.appendChild(playerCircle(svg, kx, ky, 'GK', def.col, '#a8e63d', 10));
+  // Header runs into goal to be the next keeper
+  let ax = spotX, ay = spotY;
+  if (rotating) { ax = lerp(spotX, gkX, rotT); ay = lerp(spotY, gkY, rotT); }
+  svg.appendChild(playerCircle(svg, ax, ay, att.name, att.col, 'white', 11));
 
-  // Labels
-  const lblA = mkSvg('text',{x:teamAx,y:h-6,'text-anchor':'middle',fill:'rgba(90,180,255,0.6)','font-size':'7'}); lblA.textContent='TEAM A'; svg.appendChild(lblA);
-  const lblB = mkSvg('text',{x:teamBx,y:h-6,'text-anchor':'middle',fill:'rgba(239,68,68,0.6)','font-size':'7'}); lblB.textContent='TEAM B'; svg.appendChild(lblB);
+  teams.forEach(tm => {
+    const l = mkSvg('text',{x:tm.x,y:h-6,'text-anchor':'middle',fill:tm.col,'fill-opacity':'0.7','font-size':'7'});
+    l.textContent = 'TEAM ' + tm.name; svg.appendChild(l);
+  });
 
-  // Ball
+  const throwX = att.x + att.dir * 15, throwY = lineY;
   if (animated) {
-    if (phase <= 0.35) {
-      const bt = easeInOut(phase / 0.35);
-      const ballX = lerp(throwX, attackSpotX, bt);
-      const arcY = lerp(throwY, attackSpotY, bt) - Math.sin(bt*Math.PI)*28;
-      svg.appendChild(mkSvg('circle',{cx:ballX,cy:arcY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
-    } else if (phase <= 0.45) {
-      svg.appendChild(mkSvg('circle',{cx:attackSpotX,cy:attackSpotY,r:6,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
-    } else if (phase <= 0.75) {
-      const bt = easeInOut((phase-0.45) / 0.3);
-      const ballX = lerp(attackSpotX, gx, bt);
-      const ballY = lerp(attackSpotY, goalY+10, bt);
-      svg.appendChild(mkSvg('circle',{cx:ballX,cy:ballY,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
+    if (t <= 0.35) {
+      const bt = easeInOut(t / 0.35);
+      drawBall(svg, lerp(throwX, spotX, bt), lerp(throwY, spotY, bt) - Math.sin(bt*Math.PI)*28);
+    } else if (t <= 0.45) {
+      svg.appendChild(mkSvg('circle',{cx:spotX,cy:spotY,r:6,fill:'white',stroke:'#ffb830','stroke-width':'2'}));
+    } else if (t <= 0.75) {
+      const bt = easeInOut((t - 0.45) / 0.3);
+      drawBall(svg, lerp(spotX, gx, bt), lerp(spotY, goalY + 10, bt));
     }
-    // no ball drawn during the rotation phase — it's already in the net
   } else {
-    arrow(svg, throwX, throwY+6, attackSpotX-8, attackSpotY-6, 'rgba(239,68,68,0.5)', true);
-    arrow(svg, attackSpotX, attackSpotY-6, gx, goalY+16, 'rgba(255,184,48,0.6)');
+    arrow(svg, throwX, throwY+6, spotX + att.dir * 8, spotY-6, 'rgba(239,68,68,0.5)', true);
+    arrow(svg, spotX, spotY-6, gx, goalY+16, 'rgba(255,184,48,0.6)');
   }
 
-  const lblText = rotating
-    ? 'B runs into goal, GK to back of line, next A steps up'
-    : 'Throw in from the line, header at goal';
-  const lbl = mkSvg('text',{x:w/2,y:h-16,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'8'});
-  lbl.textContent = lblText;
-  svg.appendChild(lbl);
+  captionText(svg, w, h, rotating
+    ? att.name + ' header goes in goal, GK to back of line, next ' + def.name + ' steps up'
+    : 'Team ' + att.name + ' throw and head, Team ' + def.name + ' in goal', h - 16);
 }
 
 // CHANGING DIRECTION
