@@ -189,14 +189,14 @@ const DRILLS = [
     anim: 'animShadow'
   },
   {
-    id:'m2', cat:'movement', name:'Agility Ladder Passing', duration:10,
-    setup:'Lay an agility ladder flat (or use cones 30cm apart in a row). Player does ladder footwork (in-in-out-out) while a partner feeds passes at the end. Control, pass back, continue through.',
-    points:['Quick light feet through the ladder','Head up — watch for the pass WHILE doing footwork','Clean first touch out of feet before passing back'],
-    progression:'Two-touch, then one-touch return pass.',
-    cues:['Light feet','Eyes up','Quick touch'],
+    id:'m2', cat:'movement', name:'Agility Ladder Footwork', duration:10,
+    setup:'Lay an agility ladder flat (or cones 40cm apart in two lines). No ball. One player at a time goes through, the next starts when they reach halfway. 8 drills, 2 or 3 goes each: 1 Classic - one foot in each box, one step at a time. 2 Two feet in - both feet in every box, one at a time. 3 Side to side - one foot at a time in each box, moving laterally to the right then back to the left (zig-zag). 4 In and out - jump and land both feet in a box, jump again and land with legs either side of the ladder, then back into the next box. 5 One foot in - like the classic but only one foot goes in the ladder, the other stays outside. Do both feet. 6 Backwards side to side - the side-to-side zig-zag moving backwards. 7 Sideways - stand side-on (facing left or right) and step one foot at a time into each box. 8 Twist - one foot inside, one outside; jump and rotate the hips so the outside foot lands inside and the inside foot outside.',
+    points:['Technique first - get the pattern right before going faster','Light and quick on the balls of the feet, arms pumping','Do every drill with both feet leading (and facing both ways for Sideways)'],
+    progression:'Once the pattern is clean, go faster. Advanced: race a partner on a second ladder, or finish with a sprint to a ball and a shot.',
+    cues:['Light feet','Pattern first, then speed','Both feet'],
     diagram:'ladder', viewBox:'0 0 300 160',
-    youtube:{url:'https://www.youtube.com/watch?v=hlJW5q8s2z0',label:'Agility ladder passing drill'},
-    anim: 'animLadder'
+    youtube:{url:'https://www.youtube.com/watch?v=hlJW5q8s2z0',label:'Ladder drills for youth players (8 drills)'},
+    anim: 'animLadder', animMs: 6000
   },
   {
     id:'m3', cat:'movement', name:'Third Man Runs', duration:12,
