@@ -395,6 +395,7 @@ function resetSessionDuration(drillId) {
 let currentCatFilter = null;
 let currentDrillId = null;
 let detailBackScreen = 'screen-library';
+let libScrollY = 0;
 let prevScreenBeforeCues = 'screen-home';
 let runIdx = 0;
 let runTimeLeft = 0;
@@ -410,9 +411,15 @@ function showScreen(id, libTitle, catId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-library') {
-    currentCatFilter = catId || null;
-    document.getElementById('lib-title').textContent = libTitle || 'All Drills';
+    // No title passed means "go back" (e.g. from a drill), so keep the
+    // category and scroll position the coach was already looking at
+    const returning = libTitle === undefined;
+    if (!returning) {
+      currentCatFilter = catId || null;
+      document.getElementById('lib-title').textContent = libTitle || 'All Drills';
+    }
     renderDrillList();
+    window.scrollTo(0, returning ? libScrollY : 0);
   }
   if (id === 'screen-home') renderHome();
   if (id === 'screen-session') renderSession();
@@ -473,6 +480,8 @@ function renderDrillList() {
 function openDrillDetail(id, fromScreen) {
   currentDrillId = id;
   detailBackScreen = fromScreen;
+  if (fromScreen === 'screen-library') libScrollY = window.scrollY;
+  window.scrollTo(0, 0);
   const d = DRILLS.find(x => x.id === id);
   const cat = CATEGORIES.find(c => c.id === d.cat);
   document.getElementById('detail-nav-title').textContent = d.name;
