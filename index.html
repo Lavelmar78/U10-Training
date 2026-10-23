@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Coach's Drill Library</title>
+<title>Football Coach Drill Library</title>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0e0a">
 <style>
@@ -140,7 +140,7 @@ body { background:#1a1f1a; color:#e8f0e8; font-family:'Trebuchet MS',sans-serif;
 <!-- HOME SCREEN -->
 <div id="screen-home" class="screen active">
   <div class="home-hero">
-    <div class="home-eyebrow">U10 · Football Coach</div>
+    <div class="home-eyebrow">Football Coach</div>
     <h1 class="home-title">Drill<br>Library</h1>
     <div class="home-sub">Tap a category to browse drills · Build your session</div>
     <div class="session-bar"><div class="session-fill" id="home-sess-fill"></div></div>
@@ -829,7 +829,7 @@ function exitRun() {
 function shareSession() {
   if (session.length === 0) return;
   const lines = [];
-  lines.push('⚽ U10 COACHING SESSION');
+  lines.push('⚽ COACHING SESSION');
   lines.push('─────────────────────');
   let total = 0;
   session.forEach((id, i) => {
