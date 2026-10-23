@@ -1,4 +1,4 @@
-# Coach's Drill Library
+# Football Coach Drill Library
 
 A phone-friendly web app for planning and running U10 soccer practices.
 

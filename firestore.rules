@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Firestore rules for Coach's Drill Library (Spark / free tier).
+// Firestore rules for Football Coach Drill Library (Spark / free tier).
 //
 // There are no real user accounts. Every visitor signs in anonymously,
 // so "signedIn()" only proves the request came from the app, not who sent it.
