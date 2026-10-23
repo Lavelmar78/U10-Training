@@ -4437,30 +4437,65 @@ function animShadow(svg, t, animated, state, w, h) {
   const lbl=mkSvg('text',{x:w/2,y:h-5,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl.textContent='No ball - mirror attacker\'s every move';svg.appendChild(lbl);
 }
 
-// LADDER
+// LADDER: 8 footwork patterns, one per loop (KS Performance video order)
+function ladderPatterns(startX, stepW) {
+  const cx = i => startX + stepW*(i+0.5), rung = i => startX + stepW*(i+1);
+  const IN_T=72, IN_B=88, OUT_T=44, OUT_B=116, out = [];
+  const each = f => { const m=[]; for (let i=0;i<8;i++) m.push(...f(i)); return m; };
+  const zigzag = i => i%2===0
+    ? [[[cx(i)-5,IN_T,'L']],[[cx(i)+5,IN_B,'R']],[[cx(i)+7,OUT_B,'R']]]
+    : [[[cx(i)-5,IN_B,'R']],[[cx(i)+5,IN_T,'L']],[[cx(i)+7,OUT_T,'L']]];
+  out.push({name:'Classic', cue:'One foot in each box, one step at a time', face:0,
+    moves: each(i => [[[cx(i), i%2?84:76, i%2?'R':'L']]])});
+  out.push({name:'Two Feet In', cue:'Both feet in every box, one at a time', face:0,
+    moves: each(i => [[[cx(i)-5,74,'L']],[[cx(i)+5,86,'R']]])});
+  out.push({name:'Side to Side', cue:'In, in, out - zig-zag right then left', face:0, moves: each(zigzag)});
+  out.push({name:'In and Out', cue:'Jump both feet in, jump out either side', face:0,
+    moves: each(i => [[[cx(i)-4,74,'L'],[cx(i)+4,86,'R']],[[rung(i),OUT_T,'L'],[rung(i),OUT_B,'R']]])});
+  out.push({name:'One Foot In', cue:'Only one foot drives through - swap feet', face:0,
+    moves: each(i => [[[cx(i),78,'L']],[[cx(i)+4,OUT_B,'R']]])});
+  out.push({name:'Backwards Side to Side', cue:'Zig-zag again, moving backwards', face:Math.PI, moves: each(zigzag)});
+  out.push({name:'Sideways', cue:'Side-on, one foot at a time in each box', face:-Math.PI/2,
+    moves: each(i => [[[cx(i)+4,82,'R']],[[cx(i)-4,78,'L']]])});
+  out.push({name:'Twist', cue:'One foot in, one out - jump and turn hips', face:Math.PI/2, twist:true,
+    moves: each(i => i%2===0 ? [[[cx(i)-5,OUT_T,'L'],[cx(i)+5,IN_T-4,'R']]] : [[[cx(i)-5,IN_T-4,'L'],[cx(i)+5,OUT_T,'R']]])});
+  return out;
+}
 function animLadder(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h, '#111a11');
-  const startX=50,steps=8,stepW=22,endX=startX+steps*stepW;
-  for(let i=0;i<=steps;i++){
-    svg.appendChild(mkSvg('line',{x1:startX+i*stepW,y1:50,x2:startX+i*stepW,y2:110,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
-  }
-  svg.appendChild(mkSvg('line',{x1:startX,y1:50,x2:endX,y2:50,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
-  svg.appendChild(mkSvg('line',{x1:startX,y1:110,x2:endX,y2:110,stroke:'rgba(255,255,255,0.3)','stroke-width':'2'}));
-  const lbl=mkSvg('text',{x:w/2-20,y:40,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'8'});lbl.textContent='Agility Ladder';svg.appendChild(lbl);
-  // footwork along the ladder, staying between the rails; control the feed, pass back, jog round
-  const fx=endX+25, fy=80;
-  let px=startX-12, py=80;
-  if(animated){
-    if(t<0.65){const k=t/0.65;px=lerp(startX-12,endX+2,k);py=80+Math.sin(k*steps*Math.PI)*18;}
-    else if(t<0.9){px=endX+2;py=80;}
-    else{px=lerp(endX+2,startX-12,easeInOut((t-0.9)/0.1));py=80+Math.sin(easeInOut((t-0.9)/0.1)*Math.PI)*45;}
-  }
-  svg.appendChild(playerCircle(svg,px,py,'P','#a8e63d','#166534',11));
-  svg.appendChild(playerCircle(svg,fx,fy,'F','#ffb830','white',11));
-  const bx=animated?kfPos([[0,fx-10,fy+8],[0.65,fx-10,fy+8],[0.75,endX+12,88],[0.78,endX+12,88],[0.88,fx-10,fy+8],[1,fx-10,fy+8]],t)[0]:fx-10;
-  const by=animated?kfPos([[0,fx-10,fy+8],[0.65,fx-10,fy+8],[0.75,endX+12,88],[0.78,endX+12,88],[0.88,fx-10,fy+8],[1,fx-10,fy+8]],t)[1]:fy+8;
-  svg.appendChild(mkSvg('circle',{cx:bx,cy:by,r:5,fill:'white',stroke:'#166534','stroke-width':'1'}));
-  const lbl2=mkSvg('text',{x:w/2,y:h-3,'text-anchor':'middle',fill:'rgba(255,255,255,0.65)','font-size':'9'});lbl2.textContent='Footwork through, control the feed, pass back';svg.appendChild(lbl2);
+  const startX=44, stepW=26, endX=startX+8*stepW;
+  for (let i=0;i<=8;i++) svg.appendChild(mkSvg('line',{x1:startX+i*stepW,y1:58,x2:startX+i*stepW,y2:102,stroke:'rgba(255,255,255,0.35)','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:startX,y1:58,x2:endX,y2:58,stroke:'rgba(255,255,255,0.35)','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:startX,y1:102,x2:endX,y2:102,stroke:'rgba(255,255,255,0.35)','stroke-width':'2'}));
+  const pats = ladderPatterns(startX, stepW);
+  const n = animated ? loopIndex(state, t, 'lad', pats.length) : 0;
+  const pat = pats[n], moves = pat.moves;
+  const LC='#ffb830', RC='#38bdf8';
+  // feet start just before the ladder; each move lands one foot (step) or both (jump)
+  const feet = {L:[startX-16,74], R:[startX-16,86]};
+  const a=0.04, b=0.9, d=(b-a)/moves.length, p = animated ? t : 1;
+  let k = 0;
+  moves.forEach((m, mi) => {
+    const s = a + mi*d, e = s + d;
+    if (p >= e) {
+      m.forEach(f => { feet[f[2]] = [f[0], f[1]]; svg.appendChild(mkSvg('ellipse',{cx:f[0],cy:f[1],rx:4,ry:2.5,fill:f[2]==='L'?LC:RC,opacity:'0.35'})); });
+      k = mi + 1;
+    } else if (p > s) {
+      const q = easeInOut((p - s)/d);
+      m.forEach(f => { const o = feet[f[2]]; feet[f[2]] = [lerp(o[0], f[0], q), lerp(o[1], f[1], q)]; });
+      k = mi + q;
+    }
+  });
+  const bx = (feet.L[0]+feet.R[0])/2, by = (feet.L[1]+feet.R[1])/2;
+  const pc = playerCircle(svg, bx, by, '', '#a8e63d', '#166534', 7); pc.setAttribute('opacity','0.6'); svg.appendChild(pc);
+  ['L','R'].forEach(f => svg.appendChild(mkSvg('ellipse',{cx:feet[f][0],cy:feet[f][1],rx:4.5,ry:3,fill:f==='L'?LC:RC,stroke:'white','stroke-width':'0.8'})));
+  const face = pat.twist ? pat.face + (Math.floor(k)%2 ? 0.6 : -0.6) : pat.face;
+  bodyFacing(svg, bx, by, face, 7);
+  const title = mkSvg('text',{x:w/2,y:26,'text-anchor':'middle',fill:'white','font-size':'11','font-weight':'bold'});
+  title.textContent = 'Drill '+(n+1)+' of 8: '+pat.name; svg.appendChild(title);
+  const lg = mkSvg('text',{x:24,y:140,fill:LC,'font-size':'8'}); lg.textContent='Left foot'; svg.appendChild(lg);
+  const rg = mkSvg('text',{x:76,y:140,fill:RC,'font-size':'8'}); rg.textContent='Right foot'; svg.appendChild(rg);
+  captionText(svg, w, h, animated ? pat.cue : 'Plays all 8 ladder drills in turn');
 }
 
 // THIRD MAN
