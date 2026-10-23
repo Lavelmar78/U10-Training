@@ -114,7 +114,7 @@ const DRILLS = [
     cues:['Transition!','Press instantly!','Drive forward!','React, don\'t jog'],
     diagram:'transitionpress', viewBox:'0 0 300 200',
     youtube:{url:'https://www.youtube.com/watch?v=Hh-P-BF0VAM',label:'Transition press — 2 goal counter'},
-    anim: 'animTransitionPress'
+    anim: 'animTransitionPress', animMs: 8000
   },
   {
     id:'d4', cat:'defending', name:'Gates Defending', duration:12,

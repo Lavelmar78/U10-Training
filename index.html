@@ -4833,73 +4833,98 @@ function animTransitionPress(svg, t, animated, state, w, h) {
   var zoneTop = 15, zoneBottom = h - 15;
   var cgx = w / 2;
   var leftZoneX = w * 0.24, rightZoneX = w * 0.76;
+  var laneL = leftZoneX / 2, laneR = (w + rightZoneX) / 2;
 
-  // Central goal (top middle) - this is what reds attack
+  // Central goal (top middle) - this is what the A team attacks first
   svg.appendChild(mkSvg('rect', {x:cgx-30, y:zoneTop, width:60, height:14, fill:'none', stroke:'white', 'stroke-width':'2'}));
   var cgl = mkSvg('text', {x:cgx, y:zoneTop-3, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
   cgl.textContent = 'MAIN GOAL'; svg.appendChild(cgl);
 
-  // Zone boundaries (vertical dashed lines either side of the central area)
-  svg.appendChild(mkSvg('line', {x1:leftZoneX, y1:zoneTop, x2:leftZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
-  svg.appendChild(mkSvg('line', {x1:rightZoneX, y1:zoneTop, x2:rightZoneX, y2:zoneBottom, stroke:'rgba(90,180,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
-  var tzl = mkSvg('text', {x:leftZoneX/2+8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
-  tzl.textContent = 'TRANSITION ZONE'; svg.appendChild(tzl);
-  var tzr = mkSvg('text', {x:(w+rightZoneX)/2-8, y:zoneTop+12, 'text-anchor':'middle', fill:'rgba(90,180,255,0.5)', 'font-size':'7'});
-  tzr.textContent = 'TRANSITION ZONE'; svg.appendChild(tzr);
+  // Transition zones either side, each with a small goal at the far end
+  [leftZoneX, rightZoneX].forEach(function(zx) {
+    svg.appendChild(mkSvg('line', {x1:zx, y1:zoneTop, x2:zx, y2:zoneBottom, stroke:'rgba(90,180,255,0.35)', 'stroke-width':'1', 'stroke-dasharray':'3 3'}));
+  });
+  [laneL, laneR].forEach(function(lx) {
+    var zl = mkSvg('text', {x:lx, y:zoneTop+8, 'text-anchor':'middle', fill:'rgba(90,180,255,0.6)', 'font-size':'7'});
+    zl.textContent = 'B LANE'; svg.appendChild(zl);
+    svg.appendChild(mkSvg('rect', {x:lx-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+  });
 
-  // Small goals at the far end of each transition zone (extra blues' target)
-  svg.appendChild(mkSvg('rect', {x:leftZoneX/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
-  svg.appendChild(mkSvg('rect', {x:(w+rightZoneX)/2-13, y:zoneBottom-8, width:26, height:10, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+  // Each loop the A who wins it back swaps sides, and the shot alternates goal / save
+  var k = animated ? loopIndex(state, t, 'tp', 2) : 0;
+  var s = k ? -1 : 1;                       // 1 = left A wins it back, right B scores
+  var X = function(x) { return cgx + s * (x - cgx); };
+  var p = animated ? t : 0.5;
+  var K = function(pp, x, y) { return [pp, x, y]; };
 
-  var phase = animated ? (t < 0.5 ? 'attack' : 'transition') : 'attack';
-  var localT = animated ? (phase === 'attack' ? t * 2 : (t - 0.5) * 2) : 0;
+  // Phase 1 (0 - 0.36): coach feeds, A1 drives, passes to A2, A2 shoots.
+  // Phase 2 (0.36 - 0.9): both lane Bs dribble at their small goals, both As track back.
+  // A1 tracks back into the left lane, A2 into the right. One wins the ball back, one is just too late.
+  var start1 = [K(0,125,125),K(0.08,125,125),K(0.2,118,78),K(0.36,120,72)];
+  var start2 = [K(0,175,125),K(0.12,175,125),K(0.24,182,74),K(0.36,182,72)];
+  var wins = function(lx, d) { return [K(0.52,lx+d*34,100),K(0.66,lx+d*8,134),K(0.72,lx+d*6,128),K(0.88,lx+d*6,128)]; };
+  var late = function(lx, d) { return [K(0.55,lx+d*32,104),K(0.8,lx+d*20,146),K(0.88,lx+d*20,146)]; };
+  var A1 = kfPos(start1.concat(s > 0 ? wins(laneL, 1) : late(laneL, 1), [K(1,125,125)]), p);
+  var A2 = kfPos(start2.concat(s > 0 ? late(laneR, -1) : wins(laneR, -1), [K(1,175,125)]), p);
+  var winX = s > 0 ? laneL : laneR, scoreX = s > 0 ? laneR : laneL;
+  var winner = s > 0 ? A1 : A2;
+  // Lane Bs: wait near the main goal end, then dribble the length of their lane
+  var bWin = kfPos([K(0,winX,42),K(0.38,winX,42),K(0.66,winX,128),K(0.72,winX-s*12,122),K(0.88,winX-s*12,122),K(1,winX,42)], p);
+  var bScore = kfPos([K(0,scoreX,42),K(0.38,scoreX,42),K(0.78,scoreX,160),K(0.88,scoreX,160),K(1,scoreX,42)], p);
+  // Main-zone Bs and keeper react to the attack
+  var D1 = kfPos([K(0,130,52),K(0.2,124,60),K(0.36,136,56),K(0.9,136,56),K(1,130,52)], p);
+  var D2 = kfPos([K(0,170,52),K(0.24,176,58),K(0.36,172,54),K(0.9,172,54),K(1,170,52)], p);
+  var gkX = kfPos([K(0,cgx,22),K(0.26,cgx,22),K(0.32,k ? 168 : 140,22),K(0.9,k ? 168 : 140,22),K(1,cgx,22)], p);
 
-  // --- Phase 1: Reds attack the main goal, 2 blue defenders + keeper defend ---
-  var r1x = cgx - 25, r2x = cgx + 25;
-  var r1y = zoneTop + 55 + (phase==='attack' ? localT*10 : 0);
-  var r2y = zoneTop + 60 - (phase==='attack' ? localT*8 : 0);
+  svg.appendChild(playerCircle(svg, cgx, 172, 'C', '#ffb830', '#ff8800', 9));
+  svg.appendChild(playerCircle(svg, gkX[0], gkX[1], 'GK', '#ffb830', '#ff8800', 10));
+  svg.appendChild(playerCircle(svg, D1[0], D1[1], 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, D2[0], D2[1], 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, bWin[0], bWin[1], 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, bScore[0], bScore[1], 'B', '#1d4ed8', '#60a5fa', 11));
+  svg.appendChild(playerCircle(svg, A1[0], A1[1], 'A', '#ef4444', 'white', 12));
+  svg.appendChild(playerCircle(svg, A2[0], A2[1], 'A', '#ef4444', 'white', 12));
 
-  // Keeper on the goal line
-  svg.appendChild(playerCircle(svg, cgx, zoneTop+7, 'GK', '#ffb830', '#ff8800', 10));
-  // 2 blue defenders in the main zone shielding the goal
-  var def1x = cgx - 20, def1y = zoneTop + 32;
-  var def2x = cgx + 20, def2y = zoneTop + 32;
-  svg.appendChild(playerCircle(svg, def1x, def1y, 'B', '#1d4ed8', '#60a5fa', 12));
-  svg.appendChild(playerCircle(svg, def2x, def2y, 'B', '#1d4ed8', '#60a5fa', 12));
-
-  // Reds (attackers) working the ball in the main zone
-  svg.appendChild(playerCircle(svg, r1x, r1y, 'A', '#ef4444', 'white', 12));
-  svg.appendChild(playerCircle(svg, r2x, r2y, 'A', '#ef4444', 'white', 12));
-  if (phase === 'attack') {
-    svg.appendChild(mkSvg('circle', {cx:r1x, cy:r1y-14, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  if (!animated) {
+    // Static diagram: the attack, then the counter and the A's recovery runs
+    drawBall(svg, 125, 112);
+    arrow(svg, 125, 110, 120, 80, 'rgba(255,184,48,0.7)', true);
+    arrow(svg, 182, 72, 160, 30, '#ef4444');
+    arrow(svg, laneL, 56, laneL, 158, '#60a5fa', true);
+    arrow(svg, laneR, 56, laneR, 158, '#60a5fa', true);
+    arrow(svg, 112, 72, laneL+14, 128, 'rgba(239,68,68,0.7)', true);
+    arrow(svg, 188, 72, laneR-14, 128, 'rgba(239,68,68,0.7)', true);
+    captionText(svg, w, h, "A's attack, then track back to stop the B's", h-4);
+    return;
   }
 
-  // --- Extra blues: one waiting near the main goal end of EACH transition zone ---
-  var blLx = leftZoneX / 2, blRx = (w + rightZoneX) / 2;
-  var waitY = zoneTop + 30;
-  var goalY = zoneBottom - 14;
+  // Ball in the main game
+  var shotEnd = k ? [168, 30] : [140, zoneTop+4];
+  if (p < 0.38) {
+    var mb = kfPos([K(0,cgx,162),K(0.08,125,135),K(0.2,118,66),K(0.24,180,62),K(0.26,180,62),K(0.32,shotEnd[0],shotEnd[1]),K(0.38,shotEnd[0],shotEnd[1])], p);
+    drawBall(svg, mb[0], mb[1]);
+  }
+  if (p > 0.32 && p < 0.42) calloutText(svg, cgx, 50, k ? 'SAVED!' : 'GOAL!', k ? '#ffb830' : '#ef4444');
 
-  // Both extra blues dribble down their zone together on transition
-  var exLy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
-  var exRy = animated && phase === 'transition' ? lerp(waitY, goalY, localT) : waitY;
-  svg.appendChild(playerCircle(svg, blLx, exLy, 'B', '#1d4ed8', '#60a5fa', 11));
-  svg.appendChild(playerCircle(svg, blRx, exRy, 'B', '#1d4ed8', '#60a5fa', 11));
-  if (phase === 'transition') {
-    svg.appendChild(mkSvg('circle', {cx:blLx, cy:exLy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
-    svg.appendChild(mkSvg('circle', {cx:blRx, cy:exRy+12, r:5, fill:'white', stroke:'#166534', 'stroke-width':'1'}));
+  // Lane balls: at the Bs' feet while they wait and dribble
+  if (p < 0.92) {
+    if (p < 0.68) drawBall(svg, bWin[0], bWin[1] + 12);
+    else if (p < 0.88) { drawBall(svg, winner[0], winner[1] - 13); calloutText(svg, winX + s*6, 104, 'WON IT!', '#ef4444'); }
+    var sb = p < 0.78 ? [bScore[0], bScore[1] + 12] : kfPos([K(0.78,scoreX,172),K(0.82,scoreX,zoneBottom-3),K(1,scoreX,zoneBottom-3)], p);
+    drawBall(svg, sb[0], sb[1]);
+    if (p > 0.82 && p < 0.9) calloutText(svg, scoreX, 128, 'GOAL!', '#60a5fa');
   }
 
-  // --- Both reds become defenders during transition: one sprints to press each zone ---
-  if (phase === 'transition') {
-    var pressLX = lerp(r1x, blLx, localT), pressLY = lerp(r1y, exLy - 20, localT);
-    var pressRX = lerp(r2x, blRx, localT), pressRY = lerp(r2y, exRy - 20, localT);
-    arrow(svg, r1x, r1y, pressLX, pressLY, 'rgba(239,68,68,0.5)', true);
-    arrow(svg, r2x, r2y, pressRX, pressRY, 'rgba(239,68,68,0.5)', true);
+  // Recovery-run arrows as the As track back
+  if (p > 0.36 && p < 0.6) {
+    arrow(svg, A1[0], A1[1], A1[0] - 22, A1[1] + 22, 'rgba(239,68,68,0.6)', true);
+    arrow(svg, A2[0], A2[1], A2[0] + 22, A2[1] + 22, 'rgba(239,68,68,0.6)', true);
   }
+  if (p > 0.34 && p < 0.46) calloutText(svg, cgx, 100, 'TRANSITION!', '#ffb830');
 
-  var phaseLbl = mkSvg('text', {x:w/2, y:h-6, 'text-anchor':'middle', fill: phase==='attack' ? '#ef4444' : '#a8e63d', 'font-size':'9', 'font-weight':'700'});
-  phaseLbl.textContent = phase === 'attack' ? 'REDS ATTACK THE MAIN GOAL' : 'BLUES COUNTER, REDS PRESS!';
-  svg.appendChild(phaseLbl);
+  var lbl = mkSvg('text', {x:cgx, y:h-4, 'text-anchor':'middle', fill: p < 0.36 ? '#ef4444' : '#60a5fa', 'font-size':'9', 'font-weight':'700'});
+  lbl.textContent = p < 0.36 ? "1. A's ATTACK THE MAIN GOAL" : "2. B's COUNTER - A's TRACK BACK";
+  svg.appendChild(lbl);
 }
 
 // ZONAL 3v3 - SPLIT PITCH
