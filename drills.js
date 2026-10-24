@@ -322,6 +322,16 @@ const DRILLS = [
     facebook:{url:'https://www.facebook.com/share/r/1Ba4LHxxL8/',label:'See it on Facebook'},
     anim: 'animChangeDir'
   },
+  {
+    id:'w14', cat:'warmup', name:'Team Cone Race', duration:7,
+    setup:'Split the players into 2 even teams. Both teams line up behind the same start line and go 1 by 1. Set a pole 15 yards ahead of each team, with an even number of small cones spread out on the ground at the foot of each pole. On "go", the first player in each team, holding a cone, races to their pole and puts the cone onto it, picks up another cone from the ground, then races back and hands it to the next player in line. This continues until all the cones are on the pole and the last player is back over the start line. First team back wins.',
+    points:['Full sprint both ways - the race is won on the way back','Slow down just enough to drop the cone on cleanly - a missed cone costs more time','Next in line: hand out, ready to take the cone and go','Cheer your team on - everyone stays on the line until it is their go'],
+    progression:'Add a ball to dribble out and back. Spread the ground cones wider so players have to search and turn to pick one up.',
+    cues:['Sprint!','Cone on, grab one, go','Hand ready','First team back wins'],
+    diagram:'teamconerace', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DEFn6ECoPOm/',label:'See it on Instagram'},
+    anim: 'animTeamConeRace', animMs: 12000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
