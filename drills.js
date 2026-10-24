@@ -435,6 +435,16 @@ const DRILLS = [
     youtube:{url:'https://www.youtube.com/watch?v=9J8EyEvoZ4Y',label:'Overlapping runs drill'},
     anim: 'animOverlapRuns'
   },
+  {
+    id:'m6', cat:'movement', name:'1v1 Gate Dodge', duration:8,
+    setup:'No ball. Set out a 2-cone start gate for the attacker. 15 yards ahead, put a central gate where the defender starts, with two more gates on the same line 10 yards to its left and right. The attacker jumps to start, then runs at the defender and tries to get through either side gate without being tagged. The trick is to sell a move one way so the defender commits to that side, then cut and run through the gate on the other side. The defender leaves the central gate as soon as the attacker jumps and tries to tag them before they get through. 3 goes each, then swap roles.',
+    points:['Attacker: run at the defender, then sell the fake with a big step and your shoulders','Attacker: once the defender leans, plant and explode the other way','Defender: stay patient and on your toes, do not jump at the first fake','Defender: stay between the two gates until you see where they really go'],
+    progression:'Add a ball so the attacker has to dribble through the gate. Or make the side gates narrower, or move them closer together.',
+    cues:['Sell the fake!','Plant and go','Patient feet','Make them commit'],
+    diagram:'gatedodge', viewBox:'0 0 300 200',
+    instagram:{url:'https://www.instagram.com/reel/DHXAkGAyw3H/',label:'See it on Instagram'},
+    anim: 'animGateDodge', animMs: 5000
+  },
     // ── EXTRA SKILLS ──
   {
     id:'s4', cat:'skills', name:'Turning Drill — 4 Turns', duration:10,

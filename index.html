@@ -4066,6 +4066,72 @@ function animDirectionalTouch(svg, t, animated, state, w, h) {
   captionText(svg, w, h, p < 0.45 ? 'First touch out of your feet, toward the next feeder' : 'Pass to a different feeder', h-3);
 }
 
+// 1v1 GATE DODGE
+function animGateDodge(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: attacker starts at the bottom, the three gates sit 15 yards up.
+  // About 8 units per yard: side gates 10 yards (80 units) either side of the middle one.
+  var gy = 50, sy = 172, mx = w / 2, lx = mx - 80, rx = mx + 80;
+  function cone(cx, cy) {
+    svg.appendChild(mkSvg('polygon', {points:(cx)+','+(cy-5)+' '+(cx-4)+','+(cy+4)+' '+(cx+4)+','+(cy+4), fill:'#ffb830'}));
+  }
+  function gate(cx, cy, col) {
+    svg.appendChild(mkSvg('line', {x1:cx-12, y1:cy, x2:cx+12, y2:cy, stroke:col, 'stroke-width':'1.5', 'stroke-dasharray':'3 3'}));
+    cone(cx - 12, cy); cone(cx + 12, cy);
+  }
+  gate(lx, gy, '#a8e63d'); gate(rx, gy, '#a8e63d'); gate(mx, gy, 'rgba(255,255,255,0.5)'); gate(mx, sy + 6, 'rgba(255,255,255,0.5)');
+
+  // Distance markers
+  svg.appendChild(mkSvg('line', {x1:28, y1:gy, x2:28, y2:sy, stroke:'rgba(255,255,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'2 3'}));
+  var yl = mkSvg('text', {x:32, y:(gy+sy)/2, fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  yl.textContent = '15 yds'; svg.appendChild(yl);
+  svg.appendChild(mkSvg('line', {x1:mx+14, y1:gy-16, x2:rx-14, y2:gy-16, stroke:'rgba(255,255,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'2 3'}));
+  var xl = mkSvg('text', {x:(mx+rx)/2, y:gy-20, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  xl.textContent = '10 yds'; svg.appendChild(xl);
+  var stl = mkSvg('text', {x:mx+20, y:sy+10, fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  stl.textContent = 'START'; svg.appendChild(stl);
+
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, mx, gy + 12, 'D', '#1d4ed8', '#60a5fa', 12));
+    svg.appendChild(playerCircle(svg, mx, sy, 'A', '#ef4444', 'white', 12));
+    arrow(svg, mx, sy - 14, lx + 40, 104, 'rgba(239,68,68,0.6)', true);
+    arrow(svg, lx + 40, 104, rx, gy + 8, '#ef4444');
+    arrow(svg, mx - 4, gy + 26, mx - 30, gy + 30, 'rgba(96,165,250,0.7)', true);
+    captionText(svg, w, h, 'Fake one way, go through the gate on the other side', h - 6);
+    return;
+  }
+
+  // Loop 1: fake left, go right. Loop 2: fake right, go left.
+  // Loop 3: no fake, the defender just reads the run and tags.
+  var k = loopIndex(state, t, 'gd', 3);
+  var s = k === 1 ? -1 : 1;
+  var X = function(x) { return mx + s * (x - mx); };
+  var A, D;
+  if (k < 2) {
+    A = kfPos([K(0,mx,sy),K(0.1,mx,sy),K(0.38,X(118),112),K(0.46,X(110),104),K(0.74,X(rx),gy),K(0.8,X(rx),gy-14),K(0.9,X(rx),gy-14),K(1,mx,sy)], t);
+    D = kfPos([K(0,mx,gy),K(0.1,mx,gy),K(0.38,mx,gy+22),K(0.52,X(122),gy+30),K(0.8,X(rx-30),gy+14),K(0.9,X(rx-30),gy+14),K(1,mx,gy)], t);
+  } else {
+    A = kfPos([K(0,mx,sy),K(0.1,mx,sy),K(0.4,mx+36,112),K(0.62,rx-22,gy+18),K(0.9,rx-22,gy+18),K(1,mx,sy)], t);
+    D = kfPos([K(0,mx,gy),K(0.1,mx,gy),K(0.4,mx+22,gy+20),K(0.62,rx-38,gy+12),K(0.9,rx-38,gy+12),K(1,mx,gy)], t);
+  }
+  // Little hop on the start jump
+  var hop = t > 0.02 && t < 0.1 ? -Math.sin((t - 0.02) / 0.08 * Math.PI) * 6 : 0;
+  svg.appendChild(playerCircle(svg, D[0], D[1], 'D', '#1d4ed8', '#60a5fa', 12));
+  svg.appendChild(playerCircle(svg, A[0], A[1] + hop, 'A', '#ef4444', 'white', 12));
+
+  if (t < 0.12) calloutText(svg, mx, sy - 22, 'JUMP!', '#ffffff');
+  if (k < 2) {
+    if (t > 0.36 && t < 0.56) calloutText(svg, X(84), 128, 'FAKE!', '#ffb830');
+    if (t > 0.44 && t < 0.6) arrow(svg, X(130), 92, X(170), 72, 'rgba(239,68,68,0.7)', true);
+    if (t > 0.76 && t < 0.92) calloutText(svg, X(rx), gy - 30, 'THROUGH!', '#a8e63d');
+  } else if (t > 0.6 && t < 0.92) {
+    calloutText(svg, mx + 50, gy + 44, 'TAGGED!', '#60a5fa');
+  }
+  var cap = k === 2 ? 'No fake - easy for D to tag' : (k === 0 ? 'Sell it left, go right' : 'Sell it right, go left');
+  captionText(svg, w, h, cap, h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
