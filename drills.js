@@ -454,6 +454,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DADUafLO5Ls/',label:'See it on Instagram'},
     anim: 'anim1v1Shooting', animMs: 6000
   },
+  {
+    id:'a13', cat:'attacking', name:'Penetrating Passes', duration:12,
+    setup:'Mark out a grid about 15m wide and 20m long with a small goal at the top end. Split it into three equal zones across the grid with cones or dashed lines. One attacker starts in the bottom zone with the ball, one defender (X) stands in the middle zone, and a second attacker waits in the top zone. Put a red cone just below the grid with the next player queued behind it. The coach stands on the left side of the grid. Everyone stays in their own zone. The two attackers move side to side to open a passing lane past X, then the bottom player plays a pass through the middle zone to the top player, who controls it and shoots at the small goal. If X intercepts, X can score by dribbling out over the bottom line of the grid. Rotate: the shooter collects the ball and joins the queue, the passer moves up to the top zone, and the next player steps in to the bottom zone with a new ball. Swap the defender every few goes.',
+    points:['Stay in your own zone: the defender cannot leave the middle','Attackers: keep moving side to side until there is a clear lane past X','Passer: look up before you pass, if X is in the way move the ball first','Play the pass along the ground and firm enough to get past X','Receiver: open up to see the ball and the goal, first touch towards goal then shoot','Defender: watch the passer\'s hips and step across to cut out the pass'],
+    progression:'Limit the passer to 3 touches. Let the top player drop into the middle zone to make it 2v1. Add a second defender in the middle zone, or give the defender a point for every interception.',
+    cues:['Find the lane!','Look up, pass through','Open up, shoot','Defender: read it, win it'],
+    diagram:'penetratingpasses', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DL9-jAtMSOb/',label:'See it on Instagram'},
+    anim: 'animPenetratingPasses', animMs: 7000
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
