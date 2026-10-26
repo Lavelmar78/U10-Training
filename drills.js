@@ -332,6 +332,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DEFn6ECoPOm/',label:'See it on Instagram'},
     anim: 'animTeamConeRace', animMs: 12000
   },
+  {
+    id:'w15', cat:'warmup', name:'Cone Collect Race', duration:7,
+    setup:'1v1 race. Lay out 2 straight lines of 8 to 10 small cones side by side, about 2 yards apart, with the cones about 1 yard apart running away from the start. Use a different colour for each player\'s line. Put a ball at the start of each line. Two teammates kneel at the start holding a ball net (or a bib on the ground) open between them. On "go", both players sprint out, pick up one of their own cones, run back and drop it in the net, then go again. Cones can be collected in any order. First player to get all their cones in the net wins. Run it in pairs: the next pair lays the cones back out and swaps with the net holders.',
+    points:['One cone at a time - sprint out, sprint back','Get low to scoop the cone up, don\'t stop and bend from standing','Think about your order - near cones first gets points on the board, far cones first saves the short runs for when you are tired','Drop it IN the net - a cone on the floor does not count'],
+    progression:'Dribble the ball out and back on every trip. Put both players\' cones in one mixed line so they have to find their own colour. Losers do 5 star jumps.',
+    cues:['Go go go!','One at a time','Low to pick up','In the net!'],
+    diagram:'conecollect', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DGny0ORtDIV/',label:'See it on Instagram'},
+    anim: 'animConeCollect', animMs: 14000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
