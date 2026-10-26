@@ -4827,6 +4827,118 @@ function animCrossingDrill(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Pass wide, cross, 2v2 in the box, swap wings each go', h - 6);
 }
 
+// WIDE CHANNEL PLAY
+function animWideChannel(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: 4v4 plus keepers. Red attack the top goal, blue the bottom.
+  // A wide channel down each side holds one winger from each team (1v1), the
+  // two central players per team stay in the middle. The ball has to go into
+  // a channel before a team can score. The winger loses their marker,
+  // receives, then either drives 1v1 down the line and crosses, or cuts
+  // inside and plays a one-two. Each loop attacks down the other side; every
+  // second pair of loops switches from the drive to the cut inside.
+  svg.appendChild(mkSvg('rect', {x:22, y:26, width:48, height:178, fill:'rgba(250,204,21,0.08)'}));
+  svg.appendChild(mkSvg('rect', {x:230, y:26, width:48, height:178, fill:'rgba(250,204,21,0.08)'}));
+  svg.appendChild(mkSvg('rect', {x:22, y:26, width:256, height:178, fill:'none', stroke:'rgba(250,204,21,0.8)', 'stroke-width':'1.5'}));
+  [70, 230].forEach(function(x) { svg.appendChild(mkSvg('line', {x1:x, y1:26, x2:x, y2:204, stroke:'rgba(250,204,21,0.8)', 'stroke-width':'1.5'})); });
+  svg.appendChild(mkSvg('rect', {x:128, y:14, width:44, height:12, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect', {x:128, y:204, width:44, height:12, fill:'none', stroke:'white', 'stroke-width':'2'}));
+
+  var RED = '#dc2626', RING = '#fca5a5', BLUE = '#1d4ed8', BRING = '#60a5fa';
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  var red = function(p, l) { svg.appendChild(playerCircle(svg, p[0], p[1], l, RED, RING, 8)); };
+  var blue = function(p, l) { svg.appendChild(playerCircle(svg, p[0], p[1], l, BLUE, BRING, 8)); };
+  var gkAt = function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], 'GK', '#ffd23f', '#a07800', 8)); };
+  var mir = function(p) { return [w - p[0], p[1]]; };
+  // Start spots (left side; the right side mirrors them)
+  var RC = [122, 150], BC = [124, 108], RW = [46, 128], BW = [46, 104];
+  var RGK = [150, 196], BGK = [150, 34];
+
+  if (!animated) {
+    arrow(svg, RW[0] + 6, RW[1] + 6, 40, 100, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, RC[0] - 6, RC[1] - 6, 52, 98, '#ffffff');
+    arrow(svg, 40, 88, 44, 52, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, 48, 86, 88, 72, 'rgba(252,165,165,0.8)', true);
+    gkAt(RGK); gkAt(BGK);
+    [RC, mir(RC)].forEach(function(p) { red(p, 'C'); });
+    [BC, mir(BC)].forEach(function(p) { blue(p, 'C'); });
+    [RW, mir(RW)].forEach(function(p) { red(p, 'W'); });
+    [BW, mir(BW)].forEach(function(p) { blue(p, 'W'); });
+    drawBall(svg, RC[0] - 4, RC[1] - 9, 4);
+    captionText(svg, w, h, 'Ball must go into a wide channel before you can score', h - 6);
+    return;
+  }
+
+  var k = loopIndex(state, t, 'wch', 4);
+  var flip = k % 2 === 1, cut = k >= 2;
+  var M = function(p) { return flip ? mir(p) : p; };
+  var P = function(keys) { return M(kfPos(keys, t)); };
+
+  // Winger checks in, spins away from the marker and receives in the channel
+  var wing = cut
+    ? P([K(0,RW[0],RW[1]),K(0.08,58,138),K(0.2,42,96),K(0.28,42,96),K(0.4,84,82),K(0.52,104,50),K(0.72,104,50),K(0.96,RW[0],RW[1])])
+    : P([K(0,RW[0],RW[1]),K(0.08,58,138),K(0.2,42,96),K(0.28,42,96),K(0.44,46,50),K(0.5,48,46),K(0.72,48,46),K(0.96,RW[0],RW[1])]);
+  var mark = cut
+    ? P([K(0,BW[0],BW[1]),K(0.1,54,124),K(0.22,50,106),K(0.3,50,100),K(0.42,76,74),K(0.54,92,60),K(0.72,92,60),K(0.96,BW[0],BW[1])])
+    : P([K(0,BW[0],BW[1]),K(0.1,54,124),K(0.22,50,106),K(0.3,50,100),K(0.44,56,60),K(0.72,56,58),K(0.96,BW[0],BW[1])]);
+  var c1 = cut
+    ? P([K(0,RC[0],RC[1]),K(0.26,RC[0],RC[1]),K(0.4,118,74),K(0.72,118,74),K(0.96,RC[0],RC[1])])
+    : P([K(0,RC[0],RC[1]),K(0.26,RC[0],RC[1]),K(0.46,118,66),K(0.72,118,66),K(0.96,RC[0],RC[1])]);
+  var c2 = cut
+    ? P([K(0,w-RC[0],RC[1]),K(0.28,w-RC[0],RC[1]),K(0.5,170,66),K(0.72,170,66),K(0.96,w-RC[0],RC[1])])
+    : P([K(0,w-RC[0],RC[1]),K(0.28,w-RC[0],RC[1]),K(0.5,160,48),K(0.72,160,48),K(0.96,w-RC[0],RC[1])]);
+  var b1 = cut
+    ? P([K(0,BC[0],BC[1]),K(0.26,BC[0],104),K(0.44,130,62),K(0.72,130,62),K(0.96,BC[0],BC[1])])
+    : P([K(0,BC[0],BC[1]),K(0.26,BC[0],104),K(0.46,126,56),K(0.72,126,56),K(0.96,BC[0],BC[1])]);
+  var b2 = cut
+    ? P([K(0,w-BC[0],BC[1]),K(0.3,w-BC[0],104),K(0.5,172,50),K(0.72,172,50),K(0.96,w-BC[0],BC[1])])
+    : P([K(0,w-BC[0],BC[1]),K(0.3,w-BC[0],104),K(0.5,170,58),K(0.72,170,58),K(0.96,w-BC[0],BC[1])]);
+  // Far-side wingers drift up with play
+  var fw = P([K(0,w-RW[0],RW[1]),K(0.45,w-50,90),K(0.72,w-50,90),K(0.96,w-RW[0],RW[1])]);
+  var fm = P([K(0,w-BW[0],BW[1]),K(0.45,w-50,74),K(0.72,w-50,74),K(0.96,w-BW[0],BW[1])]);
+
+  var shotEnd = cut ? [160, 18] : [140, 18];
+  var gk = cut
+    ? P([K(0,BGK[0],BGK[1]),K(0.4,142,34),K(0.56,136,34),K(0.64,142,32),K(0.8,142,32),K(0.96,BGK[0],BGK[1])])
+    : P([K(0,BGK[0],BGK[1]),K(0.4,140,34),K(0.52,156,34),K(0.6,162,32),K(0.8,162,32),K(0.96,BGK[0],BGK[1])]);
+
+  var ball = null;
+  var foot = function(p) { return [p[0] + (flip ? -4 : 4), p[1] - 8]; };
+  if (t < 0.18) ball = M([RC[0] - 4, RC[1] - 9]);
+  else if (t < 0.27) ball = P([K(0.18,RC[0]-4,RC[1]-9),K(0.27,46,88)]);
+  else if (cut) {
+    if (t < 0.4) ball = foot(wing);
+    else if (t < 0.46) ball = P([K(0.4,88,74),K(0.46,118,66)]);
+    else if (t < 0.48) ball = M([118, 66]);
+    else if (t < 0.54) ball = P([K(0.48,118,66),K(0.54,108,42)]);
+    else if (t < 0.56) ball = M([108, 42]);
+    else if (t < 0.62) ball = P([K(0.56,108,42),K(0.62,shotEnd[0],shotEnd[1])]);
+    else if (t < 0.8) ball = M(shotEnd);
+  } else {
+    if (t < 0.46) ball = foot(wing);
+    else if (t < 0.54) ball = P([K(0.46,54,40),K(0.54,160,40)]);
+    else if (t < 0.56) ball = M([160, 40]);
+    else if (t < 0.62) ball = P([K(0.56,160,40),K(0.62,shotEnd[0],shotEnd[1])]);
+    else if (t < 0.8) ball = M(shotEnd);
+  }
+  if (t > 0.9) ball = M(mir([RC[0] - 4, RC[1] - 9]));
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+
+  gkAt(gk); gkAt(RGK);
+  [b1, b2].forEach(function(p) { blue(p, 'C'); });
+  [mark, fm].forEach(function(p) { blue(p, 'W'); });
+  [c1, c2].forEach(function(p) { red(p, 'C'); });
+  [wing, fw].forEach(function(p) { red(p, 'W'); });
+
+  if (t > 0.03 && t < 0.2) calloutText(svg, 150, 228, 'LOSE YOUR MARK', '#ffffff');
+  else if (t >= 0.2 && t < 0.3) calloutText(svg, 150, 228, 'BALL IN THE CHANNEL', '#facc15');
+  else if (t >= 0.3 && t < 0.46) calloutText(svg, 150, 228, cut ? 'CUT INSIDE' : 'DRIVE 1V1', '#ffffff');
+  else if (t >= 0.46 && t < 0.6) calloutText(svg, 150, 228, cut ? 'ONE-TWO' : 'FINAL BALL!', '#ffb830');
+  else if (t >= 0.62 && t < 0.76) calloutText(svg, 150, 228, 'GOAL!', '#a8e63d');
+  else if (t >= 0.76) calloutText(svg, 150, 228, 'GO AGAIN', '#ffffff');
+  captionText(svg, w, h, 'Ball must go into a wide channel before you can score', h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
