@@ -817,6 +817,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DJooeTCMTvS/',label:'See it on Instagram'},
     anim: 'animWinnerStaysOn'
   },
+  {
+    id:'ad3', cat:'attackdef', name:'Crossing Drill', duration:15,
+    setup:'Use a goal with a keeper and the penalty box. Two defenders start inside the box and the next two defenders wait just outside each post on the goal line. Put two cones about 10 yards outside the box, one left and one right of centre, with a queue of attackers behind each and a pile of balls nearby. The front attacker of each queue stands just ahead of their cone. Put a cone out wide on each flank, level with the queues, with one or two wingers on each. The attacker on the crossing side passes the ball out to their winger, then both front attackers make runs into the box. The winger dribbles down the line and crosses. It is 2v2 in the box plus the keeper: the attackers try to score from the cross, the defenders try to clear it. After the go, the two defenders step out to wait beside the posts and the two waiting defenders step in, the attackers go to the back of their queues and the winger goes to the back of the wing queue. The next pair go straight away with the cross coming from the other wing, so the wings alternate every go.',
+    points:['Attackers: time your run so you arrive as the cross comes in, not before','One runner attacks the near post, the other goes to the far post','Get across your defender to the ball, first touch is a shot','Winger: get your head up early and pick out a runner, low and hard across the six-yard box is hardest to defend','Defenders: stay goalside and keep your attacker in front of you, see the ball and your runner','Defenders: when the ball comes in, attack it and clear it wide'],
+    progression:'Add a third attacker arriving late at the edge of the box (3v2), let the defenders counter to a small goal if they win it, or ask the winger to cross first time.',
+    cues:['Near post, far post','Attack the ball!','Arrive on time','Stay goalside'],
+    diagram:'crossingdrill', viewBox:'0 0 300 250',
+    instagram:{url:'https://www.instagram.com/reel/DIE4teYNhjv/',label:'See it on Instagram'},
+    anim: 'animCrossingDrill', animMs: 8000
+  },
 ];
 
 const GLOBAL_CUES = [
