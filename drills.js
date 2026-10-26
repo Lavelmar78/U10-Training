@@ -506,7 +506,7 @@ const DRILLS = [
     anim: 'animPassMove', animMs: 8000
   },
   {
-    id:'m8', cat:'movement', name:'Pass and Move', duration:12,
+    id:'m8', cat:'movement', name:'Check, Call and Finish', duration:12,
     setup:'Goal and keeper at the top. About 15m out, set a red cone and a yellow cone 4-5m apart to make a gate. The players queue on the touchline, down to the left of the gate, with the balls. One player (the receiver) starts just behind the gate on the goal side. The receiver checks away, then comes back towards the gate and calls for the ball. The first player in the queue passes into the gate and follows the pass to become the next receiver. The receiver takes it on the half-turn, turns to face goal, dribbles at the keeper and shoots, then collects the ball and joins the back of the queue.',
     points:['Receiver: check away first, then come back to the ball, do not stand still','Call for it loud and early with your name or "yes!" and show where you want it','Open your body side-on so you can see the goal and the passer','First touch takes you round the cone and towards goal','Passer: pass firm along the ground into the gate, then follow your pass straight away','Finish early and low, do not let the keeper set'],
     progression:'One-touch turn only. Add a passive defender behind the gate so the receiver has to decide which way to turn. Swap the queue to the other touchline so they work on the other foot.',
