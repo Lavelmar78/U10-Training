@@ -847,6 +847,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DMgLdZZBmz5/',label:'See it on Instagram'},
     anim: 'animWideChannel', animMs: 9000
   },
+  {
+    id:'ad5', cat:'attackdef', name:'1 v 1 Speed Drill', duration:12,
+    setup:'Put two small goals facing each other about 20 yards apart (no keepers) and place a ball on the midpoint between them. Split the players into two teams. Each team lines up behind the goal it will shoot into: blue behind the right goal, red behind the left goal. On "go" the front player of each team sprints down to the opposite goal (the one the other team is behind), runs round the back of it, then races back to the ball. Whoever gets there first attacks, the other defends. Blue scores in the right goal and red scores in the left goal. If the defender wins the ball, they attack their goal straight away. The go ends with a goal or when the ball goes out. Both players put the ball back on the midpoint, join the back of their queue and the next two go.',
+    points:['Sprint flat out from the first step','Stay tight to the goal as you run round it, short quick steps','Get your head up on the way back so you see the ball and the other player','First to the ball: big first touch towards the goal you are attacking','Second to the ball: get goal-side fast, then slow down and stay on your feet','Win it back? Go for your goal straight away'],
+    progression:'Start from different positions (sitting, lying face down, facing away). Make players run round both goals before racing back. Play 2v2 with two from each team.',
+    cues:['Sprint!','Tight round the goal','First to it attacks','Goal-side!'],
+    diagram:'speed1v1', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DFV-nIrOx3M/',label:'See it on Instagram'},
+    anim: 'animSpeed1v1', animMs: 8000
+  },
 ];
 
 const GLOBAL_CUES = [

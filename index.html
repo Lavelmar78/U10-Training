@@ -5018,6 +5018,90 @@ function animPassCall(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Pass and follow it, receiver turns and shoots', h - 4);
 }
 
+// 1 V 1 SPEED DRILL
+function animSpeed1v1(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: two small goals facing each other, ball on the midpoint.
+  // Blue starts behind the right goal (shoots into it), red behind the left
+  // goal. On go each sprints to and round the far goal, then races back to
+  // the ball. Red's run is blue's turned through the middle of the pitch.
+  var cx = w / 2, cy = 110, lgX = 50, rgX = w - 50;
+  function sideGoal(x, dir) {
+    // dir 1 = mouth faces right (left goal), -1 = mouth faces left
+    var back = x - dir * 12;
+    svg.appendChild(mkSvg('polyline', {points:x+','+(cy-14)+' '+back+','+(cy-14)+' '+back+','+(cy+14)+' '+x+','+(cy+14), fill:'rgba(255,255,255,0.08)', stroke:'white', 'stroke-width':'2'}));
+  }
+  sideGoal(lgX, 1); sideGoal(rgX, -1);
+  svg.appendChild(mkSvg('line', {x1:cx, y1:cy-60, x2:cx, y2:cy+60, stroke:'rgba(255,255,255,0.2)', 'stroke-width':'1', 'stroke-dasharray':'3 4'}));
+  var gl = mkSvg('text', {x:lgX, y:cy+54, 'text-anchor':'middle', fill:'rgba(252,165,165,0.8)', 'font-size':'7'});
+  gl.textContent = 'Red scores'; svg.appendChild(gl);
+  var gr = mkSvg('text', {x:rgX, y:cy+54, 'text-anchor':'middle', fill:'rgba(147,197,253,0.8)', 'font-size':'7'});
+  gr.textContent = 'Blue scores'; svg.appendChild(gr);
+
+  var BLUE = '#1d4ed8', RED = '#ef4444';
+  var flip = function(p) { return [w - p[0], 2 * cy - p[1]]; };
+  [[276, 156, '6'], [276, 172, '7']].forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], p[2], BLUE, '#60a5fa', 7)); });
+  [[276, 156, '3'], [276, 172, '4']].forEach(function(p) { var q = flip(p); svg.appendChild(playerCircle(svg, q[0], q[1], p[2], RED, 'white', 7)); });
+  svg.appendChild(playerCircle(svg, cx, 196, 'C', '#4b5563', '#9ca3af', 8));
+
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  var fk = function(keys) { return keys.map(function(q) { var p = flip([q[1], q[2]]); return [q[0], p[0], p[1]]; }); };
+  // Blue's run: down the top side, round the back of the left goal, back to the ball
+  var run = [K(0,274,cy),K(0.05,274,cy),K(0.1,236,cy-34),K(0.22,64,cy-34),K(0.27,30,cy-24),K(0.31,26,cy),K(0.35,34,cy+26),K(0.38,64,cy+34)];
+  var bS = [274, cy], rS = flip(bS);
+  if (!animated) {
+    var pts = run.slice(1).map(function(q) { return [q[1], q[2]]; }).concat([[cx - 8, cy + 6]]);
+    for (var j = 0; j < pts.length - 1; j++) {
+      arrow(svg, pts[j][0], pts[j][1], pts[j+1][0], pts[j+1][1], 'rgba(96,165,250,0.75)', true);
+      var a = flip(pts[j]), b = flip(pts[j+1]);
+      arrow(svg, a[0], a[1], b[0], b[1], 'rgba(239,68,68,0.75)', true);
+    }
+    svg.appendChild(playerCircle(svg, bS[0], bS[1], '5', BLUE, '#60a5fa', 7));
+    svg.appendChild(playerCircle(svg, rS[0], rS[1], '2', RED, 'white', 7));
+    drawBall(svg, cx, cy, 4);
+    captionText(svg, w, h, 'Round the far goal, race back to the ball, 1v1', h - 6);
+    return;
+  }
+
+  // Loop 1: blue first back, beats red, scores right. Loop 2: red first back,
+  // scores left. Loop 3: blue first back but red wins it and scores left.
+  var k = loopIndex(state, t, 'sp1', 3);
+  var winRace = run.concat([K(0.48,144,cy+4)]);
+  var loseRace = fk(run).concat([K(0.5,176,cy-2)]);
+  var B, R, ball = null, call = null, cap;
+  if (k < 2) {
+    var win = winRace.concat([K(0.56,160,cy-14),K(0.62,186,cy+14),K(0.7,214,cy+6),K(0.86,214,cy+6),K(1,bS[0],bS[1])]);
+    var lose = loseRace.concat([K(0.56,172,cy-12),K(0.62,180,cy-8),K(0.7,196,cy-6),K(0.86,196,cy-6),K(1,rS[0],rS[1])]);
+    // Loop 2 is loop 1 turned round, with the colours swapped
+    if (k === 0) { B = kfPos(win, t); R = kfPos(lose, t); cap = 'Blue first back to the ball, beats red, scores'; }
+    else { R = kfPos(fk(win), t); B = kfPos(fk(lose), t); cap = 'Red first back to the ball, beats blue, scores'; }
+    var W = k === 0 ? B : R, dir = k === 0 ? 1 : -1, goalX = k === 0 ? rgX + 4 : lgX - 4;
+    if (t < 0.48) ball = [cx, cy];
+    else if (t < 0.7) ball = [W[0] + 5 * dir, W[1] + 3 * dir];
+    else if (t < 0.88) ball = kfPos([K(0.7,W[0]+5*dir,W[1]+3*dir),K(0.76,goalX,cy)], t);
+    if (t > 0.76 && t < 0.88) call = ['GOAL!', '#a8e63d'];
+  } else {
+    B = kfPos(winRace.concat([K(0.56,162,cy+4),K(0.6,158,cy+12),K(0.72,108,cy+16),K(0.86,108,cy+16),K(1,bS[0],bS[1])]), t);
+    R = kfPos(loseRace.concat([K(0.56,170,cy+2),K(0.58,166,cy+4),K(0.72,90,cy+2),K(0.86,90,cy+2),K(1,rS[0],rS[1])]), t);
+    if (t < 0.48) ball = [cx, cy];
+    else if (t < 0.57) ball = [B[0] + 5, B[1] + 3];
+    else if (t < 0.72) ball = [R[0] - 5, R[1] + 3];
+    else if (t < 0.88) ball = kfPos([K(0.72,R[0]-5,R[1]+3),K(0.78,lgX-4,cy)], t);
+    if (t > 0.57 && t < 0.7) call = ['WON IT!', '#fca5a5'];
+    if (t > 0.78 && t < 0.88) call = ['GOAL!', '#a8e63d'];
+    cap = 'Blue first back, red wins it and scores';
+  }
+  svg.appendChild(playerCircle(svg, B[0], B[1], '5', BLUE, '#60a5fa', 7));
+  svg.appendChild(playerCircle(svg, R[0], R[1], '2', RED, 'white', 7));
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+  else if (t > 0.94) drawBall(svg, cx, cy, 4);
+  if (t < 0.08) calloutText(svg, cx, 36, 'GO!', '#ffffff');
+  else if (t > 0.22 && t < 0.38) calloutText(svg, cx, 36, 'ROUND THE GOAL', '#ffb830');
+  else if (t > 0.38 && t < 0.48) calloutText(svg, cx, 36, 'RACE BACK!', '#ffb830');
+  if (call) calloutText(svg, cx, 36, call[0], call[1]);
+  captionText(svg, w, h, cap, h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
