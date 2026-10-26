@@ -827,6 +827,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DIE4teYNhjv/',label:'See it on Instagram'},
     anim: 'animCrossingDrill', animMs: 8000
   },
+  {
+    id:'ad4', cat:'attackdef', name:'Wide Channel Play', duration:15,
+    setup:'Mark a pitch roughly 40 yards long and 30 yards wide with a goal and keeper at each end. Cone a wide channel about 6 yards wide down each touchline, leaving a central area between them. Play 4v4 plus keepers: each team has two wingers and two central players. One winger from each team plays in each channel, so every channel is a 1v1, and the four central players (2v2) stay in the middle. The catch: a team cannot score until the ball has entered one of the wide channels in that attack. Wingers have to lose their marker, receive under pressure, then either drive 1v1 down the line and deliver a final ball, or cut inside to combine with a central player and create a shot. Keep spare balls by each goal so the keeper restarts quickly.',
+    points:['Wingers: check in, then spin away to lose your marker before the ball comes','Open your body as you receive so you can go down the line or come inside','Decide early: drive 1v1 and cross, or cut inside and combine','Central players: move to find the pass into the channel, then attack the goal for the final ball','Defenders: stay goalside of your winger and show them down the line, not inside','Final ball: low and hard across the goal, or a pass into the runner\'s path'],
+    progression:'Let central players overlap into the channel to make a 2v1, award 2 goals for a finish straight from a channel cross, or limit wingers to three touches.',
+    cues:['Lose your mark','Ball goes wide first','Drive or cut inside?','Final ball!'],
+    diagram:'widechannel', viewBox:'0 0 300 250',
+    instagram:{url:'https://www.instagram.com/reel/DMgLdZZBmz5/',label:'See it on Instagram'},
+    anim: 'animWideChannel', animMs: 9000
+  },
 ];
 
 const GLOBAL_CUES = [
