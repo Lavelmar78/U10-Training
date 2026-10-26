@@ -342,6 +342,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DGny0ORtDIV/',label:'See it on Instagram'},
     anim: 'animConeCollect', animMs: 14000
   },
+  {
+    id:'w16', cat:'warmup', name:'Team Shooting Race', duration:8,
+    setup:'Two teams, two lanes side by side about 10 yards apart (blue on the left, red on the right). In each lane lay a zig-zag of 5 or 6 cones running away from the start line, alternating left and right about 3 yards apart. At the top of the zig-zag put a cone with one ball per player beside it, and a small goal about 8 yards beyond that. Each team lines up behind its start cone. On "go", the first player weaves through the cones, picks up a ball at the ball cone, takes a touch and shoots at their small goal. As soon as they shoot, the next player in line sets off. After shooting, jog back down the outside of the lane to the back of your line. Scoring: 2 points for every goal, and 2 points to the team whose last player shoots first. Most points wins.',
+    points:['Weave tight round the cones - quick small steps, low hips on each turn','Slow down just enough at the ball cone to get the ball under control','One touch out of your feet, then shoot - do not dribble all the way to the goal','Hit the target - a goal is worth as much as winning the race','Jog back on the outside so you do not block the next runner'],
+    progression:'Dribble a ball through the zig-zag instead of running, then shoot. Shoot with the weaker foot only. Move the goal further back, or put a keeper in each goal.',
+    cues:['Go go go!','Tight round the cones','Touch and shoot','Hit the target'],
+    diagram:'teamshootingrace', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DGh9Q6HN8pH/',label:'See it on Instagram'},
+    anim: 'animTeamShootingRace', animMs: 16000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,

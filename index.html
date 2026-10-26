@@ -4437,6 +4437,137 @@ function animConeCollect(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Fetch one cone at a time, any order, drop it in the net', h - 5);
 }
 
+// TEAM SHOOTING RACE
+function animTeamShootingRace(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: two lanes, blue on the left and red on the right. Each lane
+  // has a zig-zag of cones from the start line up to a cone with the balls,
+  // then a small goal at the top. The next player goes as soon as the one in
+  // front shoots; after shooting you jog back down the outside to the back of
+  // your line. 2 points a goal, 2 points to the team that finishes first.
+  // Blue is quicker and finishes first but misses twice, so red wins 8-6.
+  var N = 4, queueY = 198, gap = 14;
+  var P = [
+    { name:'BLUE', cx: 80, side: -1, fill:'#1d4ed8', stroke:'#93c5fd', speed:1.12, shots:[1,0,1,0] },
+    { name:'RED',  cx:220, side:  1, fill:'#dc2626', stroke:'#fca5a5', speed:1,    shots:[1,1,1,1] },
+  ];
+  var cone = function(x, y) { svg.appendChild(mkSvg('polygon', {points:x+','+(y-4)+' '+(x-4)+','+(y+3)+' '+(x+4)+','+(y+3), fill:'#ffb830'})); };
+  var PICK = 8, SHOT = 12, WAIT = 4;
+
+  P.forEach(function(p) {
+    var cx = p.cx;
+    p.cones = [[cx,182],[cx+22,160],[cx-22,140],[cx+22,118],[cx-22,96]];
+    p.ballCone = [cx+16, 70];
+    p.outerX = cx + p.side * 58;
+    // Weave just outside each cone, then up to the balls
+    var way = [[cx,queueY]].concat(p.cones.map(function(c, k) { return [c[0] + (k === 0 ? 0 : (c[0] > cx ? 7 : -7)), c[1] - (k === 0 ? 6 : 0)]; }));
+    way.push([cx+4, 68]);
+    p.run = []; var at = 0;
+    for (var k = 1; k < way.length; k++) {
+      var d = Math.hypot(way[k][0] - way[k-1][0], way[k][1] - way[k-1][1]);
+      p.run.push({a:way[k-1], b:way[k], t0:at, t1:at += d / p.speed});
+    }
+    p.run.push({a:way[way.length-1], b:way[way.length-1], t0:at, t1:at += PICK});
+    p.pickT = at - PICK / 2;
+    var shotSpot = [cx, 50];
+    p.run.push({a:way[way.length-1], b:shotSpot, t0:at, t1:at += Math.hypot(4, 18) / p.speed});
+    p.R = at;              // time from setting off to the shot
+    // Back down the outside after the shot
+    var back = [shotSpot, [p.outerX, 58], [p.outerX, queueY]];
+    p.ret = []; at += WAIT;
+    for (k = 1; k < back.length; k++) {
+      var d2 = Math.hypot(back[k][0] - back[k-1][0], back[k][1] - back[k-1][1]);
+      p.ret.push({a:back[k-1], b:back[k], t0:at, t1:at += d2 / p.speed});
+    }
+    p.retEnd = at; p.joinT = 14 / p.speed;
+    p.finish = N * p.R;
+  });
+  // Red (slower) takes its last shot at 82% of the loop, after a short "GO!".
+  var GO = 0.04, scale = 0.78 / P[1].finish;
+  var s = animated ? Math.max(0, (t - GO) / scale) : 0;
+  var SHIFT = 10;
+  var clamp01 = function(v) { return Math.max(0, Math.min(1, v)); };
+  var segPos = function(list, u) {
+    for (var i = 0; i < list.length; i++) {
+      var g = list[i];
+      if (u < g.t1 || i === list.length - 1) {
+        var f = g.t1 > g.t0 ? easeInOut(clamp01((u - g.t0) / (g.t1 - g.t0))) : 0;
+        return [lerp(g.a[0], g.b[0], f), lerp(g.a[1], g.b[1], f)];
+      }
+    }
+  };
+
+  // Start line and goals
+  svg.appendChild(mkSvg('line', {x1:20, y1:queueY - 9, x2:w-20, y2:queueY - 9, stroke:'rgba(168,230,61,0.6)', 'stroke-width':'1.5'}));
+  P.forEach(function(p) {
+    svg.appendChild(mkSvg('rect', {x:p.cx-16, y:10, width:32, height:8, fill:'rgba(255,255,255,0.08)', stroke:'white', 'stroke-width':'2'}));
+    p.cones.forEach(function(c) { cone(c[0], c[1]); });
+    cone(p.ballCone[0], p.ballCone[1]);
+    if (!animated) {
+      var pts = [[p.cx, queueY - 12]].concat(p.cones.slice(1).map(function(c) { return [c[0] + (c[0] > p.cx ? -6 : 6), c[1]]; }));
+      pts.push([p.cx + 4, 76]);
+      for (var k = 1; k < pts.length; k++) arrow(svg, pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1], 'rgba(168,230,61,0.55)', true);
+      arrow(svg, p.cx, 48, p.cx, 22, 'rgba(255,255,255,0.6)', false);
+      arrow(svg, p.cx + p.side * 22, 56, p.outerX, 70, 'rgba(255,255,255,0.35)', true);
+      arrow(svg, p.outerX, 70, p.outerX, queueY - 14, 'rgba(255,255,255,0.35)', true);
+    }
+  });
+
+  P.forEach(function(p) {
+    var started = 0, goals = 0;
+    for (var i = 0; i < N; i++) started += clamp01((s - i * p.R - 8) / SHIFT);
+    var waiting = N - started;
+    var slotX = function(slot) { return p.cx + p.side * gap * slot; };
+
+    for (i = 0; i < N; i++) {
+      var T = i * p.R, u = s - T, pos, ball = null;
+      if (u <= 0) pos = [slotX(i - started), queueY];
+      else if (u < p.R) pos = segPos(p.run, u);
+      else if (u < p.ret[0].t0) pos = [p.cx, 50];
+      else if (u < p.retEnd) pos = segPos(p.ret, u);
+      else {
+        // Join the back of the line, behind anyone still waiting
+        var rank = 0; for (var j = 0; j < i; j++) if (s - j * p.R >= p.retEnd) rank++;
+        var target = slotX(Math.max(waiting, 0) + rank);
+        pos = [lerp(p.outerX, target, easeInOut(clamp01((u - p.retEnd) / p.joinT))), queueY];
+      }
+      // This player's ball: on the cone, at their feet, flying, then at rest
+      var hit = p.shots[i], aim = hit ? [p.cx + (i % 2 ? 9 : -9), 14] : [p.cx + p.side * 30, 10 + (i % 2) * 6];
+      if (u < p.pickT) ball = null;
+      else if (u < p.R) ball = [pos[0] + 4, pos[1] - 7];
+      else if (u < p.R + SHOT) { var f = clamp01((u - p.R) / SHOT); ball = [lerp(p.cx, aim[0], f), lerp(43, aim[1], f)]; }
+      else ball = aim;
+      if (ball) drawBall(svg, ball[0], ball[1], 3.5);
+      if (u >= p.R + SHOT && hit) goals++;
+      svg.appendChild(playerCircle(svg, pos[0], pos[1], '', p.fill, p.stroke, 7));
+    }
+    // Balls still waiting at the cone
+    var left = 0; for (i = 0; i < N; i++) if (s - i * p.R < p.pickT) left++;
+    for (i = 0; i < left; i++) drawBall(svg, p.ballCone[0] - 8 - i * 7, p.ballCone[1] + 1, 3);
+
+    p.done = animated && s >= p.finish;
+    p.score = goals * 2;
+  });
+  var first = P[0].finish <= P[1].finish ? P[0] : P[1];
+  if (first.done) first.score += 2;
+
+  var sc = mkSvg('text', {x:w/2, y:20, 'text-anchor':'middle', fill:'#ffffff', 'font-size':'10', 'font-weight':'700'});
+  sc.textContent = 'BLUE ' + P[0].score + '  RED ' + P[1].score; svg.appendChild(sc);
+  if (!animated) {
+    var k1 = mkSvg('text', {x:w/2, y:34, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'7'});
+    k1.textContent = '2 pts a goal'; svg.appendChild(k1);
+    var k2 = mkSvg('text', {x:w/2, y:44, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'7'});
+    k2.textContent = '+2 first team done'; svg.appendChild(k2);
+  }
+  if (animated && t < GO + 0.03) calloutText(svg, w/2, 184, 'GO!', '#ffffff');
+  if (first.done) calloutText(svg, w/2, 38, first.name + ' FIRST +2', '#ffb830');
+  if (P[0].done && P[1].done) {
+    var winner = P[0].score === P[1].score ? 'DRAW' : (P[0].score > P[1].score ? 'BLUE' : 'RED') + ' WINS';
+    calloutText(svg, w/2, 56, winner + '!', '#a8e63d');
+  }
+  captionText(svg, w, h, 'Weave the cones, grab a ball, shoot, next player goes', h - 5);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
