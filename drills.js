@@ -424,6 +424,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DKl-lQMtlYN/',label:'See it on Instagram'},
     anim: 'animTeamShootRace', animMs: 7000
   },
+  {
+    id:'a12', cat:'attacking', name:'1v1 Shooting', duration:12,
+    setup:'Keeper in goal. Coach stands around halfway with a pile of balls and a cone just in front. Split the players into two lines, one on each side of the coach (blue on the left, red on the right), both facing the goal. The coach plays a ball through past the cone towards goal and the first player from each line races for it. Whoever gets it first is the attacker and tries to score; the other player defends. If the defender wins the ball they become the attacker and the other player defends. You win if you score. The turn ends when a goal is scored, the keeper gets the ball, or the ball goes dead. Both players then join the back of the other line and the next two go.',
+    points:['Go as soon as the coach plays it, first to the ball wins','Attacker: take your touch away from the defender and get your shot off early','Defender: get goal-side first, then try to win it','Win it back? You are the attacker now, go for goal straight away','Hit the target, low shots are hardest for the keeper'],
+    progression:'Coach varies the feed: firmer, wider, or in the air. Add a small target for the defender to score in if they win it, or make it 2v2 with two from each line.',
+    cues:['Race for it!','Touch and shoot','Goal-side','Win it, attack!'],
+    diagram:'1v1shooting', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DADUafLO5Ls/',label:'See it on Instagram'},
+    anim: 'anim1v1Shooting', animMs: 6000
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,

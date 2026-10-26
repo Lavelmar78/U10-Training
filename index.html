@@ -4210,6 +4210,89 @@ function animTeamConeRace(svg, t, animated, state, w, h) {
   svg.appendChild(lbl);
 }
 
+// 1V1 SHOOTING
+function anim1v1Shooting(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: goal at the top, coach near halfway at the bottom with a
+  // cone in front. Blue line on the coach's left, red line on the right.
+  var gx = w / 2, lineY = 22;
+  svg.appendChild(mkSvg('line', {x1:8, y1:lineY, x2:w-8, y2:lineY, stroke:'rgba(255,255,255,0.5)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:gx-25, y:lineY-10, width:50, height:10, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect', {x:70, y:lineY, width:160, height:72, fill:'none', stroke:'rgba(255,255,255,0.5)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:108, y:lineY, width:84, height:24, fill:'none', stroke:'rgba(255,255,255,0.4)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('circle', {cx:gx, cy:lineY+52, r:1.5, fill:'rgba(255,255,255,0.6)'}));
+  svg.appendChild(mkSvg('path', {d:'M' + (gx-22) + ',' + (lineY+72) + ' A30,30 0 0 0 ' + (gx+22) + ',' + (lineY+72), fill:'none', stroke:'rgba(255,255,255,0.5)', 'stroke-width':'1.5'}));
+
+  var cX = gx, cY = 190, coneY = 170;
+  svg.appendChild(mkSvg('polygon', {points:cX+','+(coneY-5)+' '+(cX-4)+','+(coneY+4)+' '+(cX+4)+','+(coneY+4), fill:'#ffb830'}));
+  [[-18, 196], [-24, 190], [18, 198]].forEach(function(b) { drawBall(svg, cX + b[0], b[1], 3.5); });
+  svg.appendChild(playerCircle(svg, cX, cY, 'C', '#4b5563', '#9ca3af', 9));
+
+  var BLUE = '#1d4ed8', RED = '#ef4444';
+  var bS = [124, 176], rS = [176, 176];
+  // Players waiting behind the front two
+  [[112, 186, '6'], [100, 196, '7']].forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], p[2], BLUE, '#60a5fa', 7)); });
+  [[188, 186, '3'], [200, 196, '4']].forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], p[2], RED, 'white', 7)); });
+
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    svg.appendChild(playerCircle(svg, gx, lineY+8, 'GK', '#ffd23f', '#a07800', 8));
+    arrow(svg, cX, coneY - 8, gx, 118, '#ffffff', true);
+    arrow(svg, bS[0], bS[1] - 9, gx - 6, 124, 'rgba(96,165,250,0.8)', true);
+    arrow(svg, rS[0], rS[1] - 9, gx + 6, 124, 'rgba(239,68,68,0.8)', true);
+    arrow(svg, gx - 4, 106, gx - 16, lineY + 4, '#a8e63d');
+    svg.appendChild(playerCircle(svg, bS[0], bS[1], '5', BLUE, '#60a5fa', 7));
+    svg.appendChild(playerCircle(svg, rS[0], rS[1], '2', RED, 'white', 7));
+    drawBall(svg, gx, 112, 4);
+    captionText(svg, w, h, 'Coach plays it through, race for it, winner attacks', h - 6);
+    return;
+  }
+
+  // Loop 1: blue wins the race and scores. Loop 2: red wins it, keeper saves.
+  // Loop 3: blue gets there first, red wins it back, becomes the attacker and scores.
+  var k = loopIndex(state, t, 'v1s', 3);
+  var B, R, G, ball, call = null, cap;
+  if (k === 0) {
+    B = kfPos([K(0,bS[0],bS[1]),K(0.08,bS[0],bS[1]),K(0.3,146,120),K(0.56,138,74),K(0.88,138,74),K(1,bS[0],bS[1])], t);
+    R = kfPos([K(0,rS[0],rS[1]),K(0.08,rS[0],rS[1]),K(0.32,160,126),K(0.58,156,86),K(0.88,156,86),K(1,rS[0],rS[1])], t);
+    G = kfPos([K(0,gx,lineY+8),K(0.58,gx,lineY+8),K(0.7,gx-10,lineY+6),K(0.9,gx-10,lineY+6),K(1,gx,lineY+8)], t);
+    if (t < 0.3) ball = kfPos([K(0,cX,coneY+6),K(0.08,cX,coneY+6),K(0.3,148,114)], t);
+    else if (t < 0.58) ball = [B[0] + 2, B[1] - 7];
+    else if (t < 0.9) ball = kfPos([K(0.58,B[0]+2,B[1]-7),K(0.7,gx-16,lineY-5)], t);
+    if (t > 0.7 && t < 0.9) call = ['GOAL!', '#a8e63d'];
+    cap = 'Blue wins the race, red defends - goal';
+  } else if (k === 1) {
+    R = kfPos([K(0,rS[0],rS[1]),K(0.08,rS[0],rS[1]),K(0.3,154,120),K(0.56,164,74),K(0.88,164,74),K(1,rS[0],rS[1])], t);
+    B = kfPos([K(0,bS[0],bS[1]),K(0.08,bS[0],bS[1]),K(0.32,140,126),K(0.58,148,88),K(0.88,148,88),K(1,bS[0],bS[1])], t);
+    G = kfPos([K(0,gx,lineY+8),K(0.58,gx,lineY+8),K(0.68,gx+12,lineY+10),K(0.9,gx+12,lineY+10),K(1,gx,lineY+8)], t);
+    if (t < 0.3) ball = kfPos([K(0,cX,coneY+6),K(0.08,cX,coneY+6),K(0.3,152,114)], t);
+    else if (t < 0.58) ball = [R[0] - 2, R[1] - 7];
+    else if (t < 0.9) ball = kfPos([K(0.58,R[0]-2,R[1]-7),K(0.68,gx+12,lineY+17)], t);
+    if (t > 0.68 && t < 0.9) call = ['SAVED!', '#ffd23f'];
+    cap = 'Red wins it, keeper saves - turn over';
+  } else {
+    B = kfPos([K(0,bS[0],bS[1]),K(0.08,bS[0],bS[1]),K(0.3,146,120),K(0.42,140,98),K(0.5,134,96),K(0.66,142,76),K(0.88,142,76),K(1,bS[0],bS[1])], t);
+    R = kfPos([K(0,rS[0],rS[1]),K(0.08,rS[0],rS[1]),K(0.32,160,126),K(0.42,148,100),K(0.5,150,90),K(0.64,160,64),K(0.88,160,64),K(1,rS[0],rS[1])], t);
+    G = kfPos([K(0,gx,lineY+8),K(0.66,gx,lineY+8),K(0.76,gx+6,lineY+8),K(0.9,gx+6,lineY+8),K(1,gx,lineY+8)], t);
+    if (t < 0.3) ball = kfPos([K(0,cX,coneY+6),K(0.08,cX,coneY+6),K(0.3,148,114)], t);
+    else if (t < 0.42) ball = [B[0] + 2, B[1] - 7];
+    else if (t < 0.5) ball = kfPos([K(0.42,B[0]+2,B[1]-7),K(0.5,R[0]-2,R[1]-7)], t);
+    else if (t < 0.64) ball = [R[0] - 2, R[1] - 7];
+    else if (t < 0.9) ball = kfPos([K(0.64,R[0]-2,R[1]-7),K(0.76,gx+18,lineY-5)], t);
+    if (t > 0.42 && t < 0.62) call = ['SWITCH!', '#ef4444'];
+    if (t > 0.76 && t < 0.9) call = ['GOAL!', '#a8e63d'];
+    cap = 'Red wins it back, red attacks, blue defends';
+  }
+  svg.appendChild(playerCircle(svg, G[0], G[1], 'GK', '#ffd23f', '#a07800', 8));
+  svg.appendChild(playerCircle(svg, B[0], B[1], '5', BLUE, '#60a5fa', 7));
+  svg.appendChild(playerCircle(svg, R[0], R[1], '2', RED, 'white', 7));
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+  else if (t > 0.94) drawBall(svg, cX, coneY + 6, 4);
+  if (t < 0.1) calloutText(svg, cX, coneY - 12, 'GO!', '#ffffff');
+  if (call) calloutText(svg, gx + 60, lineY + 40, call[0], call[1]);
+  captionText(svg, w, h, cap, h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
