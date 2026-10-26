@@ -4939,6 +4939,85 @@ function animWideChannel(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Ball must go into a wide channel before you can score', h - 6);
 }
 
+// CHECK, CALL AND FINISH (pass and move, receive, turn and finish)
+function animPassCall(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  topGoal(svg, w, true);
+  // Coach's view: goal and keeper at the top. A red and a yellow cone make a
+  // gate in the middle. The queue waits on the touchline bottom-left with the
+  // balls. The receiver starts behind the gate, checks away, then comes back
+  // and calls for it. The passer plays it into the gate and follows the pass
+  // to become the next receiver. The receiver turns, dribbles at the keeper
+  // and shoots, then gets the ball and joins the back of the queue.
+  svg.appendChild(mkSvg('line', {x1:0, y1:200, x2:w, y2:200, stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}));
+  var RC = [124, 126], YC = [184, 126];
+  var tall = function(p, col) { svg.appendChild(mkSvg('polygon', {points:p[0]+','+(p[1]-11)+' '+(p[0]-5)+','+(p[1]+4)+' '+(p[0]+5)+','+(p[1]+4), fill:col})); };
+  tall(RC, '#ef4444'); tall(YC, '#facc15');
+  drawBall(svg, 16, 208, 3.5); drawBall(svg, 24, 212, 3.5);
+
+  var RED = '#dc2626', RING = '#fca5a5';
+  var P0 = [66, 188], Q1 = [40, 196], R0 = [112, 100], gate = [154, 124];
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    arrow(svg, R0[0] - 2, R0[1] - 10, 96, 80, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, 100, 86, gate[0] - 6, gate[1] - 8, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, P0[0] + 9, P0[1] - 5, gate[0] - 4, gate[1] + 4, '#ffffff');
+    arrow(svg, gate[0], gate[1] - 12, 154, 62, '#ffb830');
+    arrow(svg, 154, 56, 132, 14, '#a8e63d');
+    svg.appendChild(playerCircle(svg, w / 2, 30, 'GK', '#1d4ed8', '#60a5fa', 8));
+    svg.appendChild(playerCircle(svg, R0[0], R0[1], 'R', RED, RING, 8));
+    svg.appendChild(playerCircle(svg, P0[0], P0[1], 'P', RED, RING, 8));
+    svg.appendChild(playerCircle(svg, Q1[0], Q1[1], '3', RED, RING, 8));
+    drawBall(svg, P0[0] + 6, P0[1] - 7, 4);
+    captionText(svg, w, h, 'Check away, call for it, turn, finish', h - 4);
+    return;
+  }
+
+  // Role paths for one go. The passer ends on the receiver's start, the
+  // receiver ends at the back of the queue and the queue player steps up to
+  // pass, so the three players swap roles each loop with no jump.
+  var recv = [gate[0], gate[1] - 10], shoot = [154, 60];
+  var path = [
+    // 0 = passer
+    [K(0,P0[0],P0[1]),K(0.2,P0[0],P0[1]),K(0.5,R0[0],R0[1]),K(1,R0[0],R0[1])],
+    // 1 = receiver
+    [K(0,R0[0],R0[1]),K(0.04,R0[0],R0[1]),K(0.12,96,80),K(0.15,96,80),K(0.26,recv[0],recv[1]),
+     K(0.32,recv[0],recv[1]),K(0.52,shoot[0],shoot[1]),K(0.58,shoot[0],shoot[1]),
+     K(0.68,122,24),K(0.74,122,24),K(0.82,90,80),K(0.98,Q1[0],Q1[1]),K(1,Q1[0],Q1[1])],
+    // 2 = next in the queue
+    [K(0,Q1[0],Q1[1]),K(0.6,Q1[0],Q1[1]),K(0.75,P0[0],P0[1]),K(1,P0[0],P0[1])]
+  ];
+  var k = loopIndex(state, t, 'pcall', 3);
+  var pos = path.map(function(p) { return kfPos(p, t); });
+
+  var ball = null, shotEnd = [132, 14];
+  if (t < 0.18) ball = [P0[0] + 6, P0[1] - 7];
+  else if (t < 0.28) ball = kfPos([K(0.18,P0[0]+6,P0[1]-7),K(0.28,recv[0]-2,recv[1]+10)], t);
+  else if (t < 0.32) ball = [recv[0] - 2, recv[1] + 10];
+  else if (t < 0.56) ball = [pos[1][0], pos[1][1] - 9];
+  else if (t < 0.62) ball = kfPos([K(0.56,shoot[0],shoot[1]-9),K(0.62,shotEnd[0],shotEnd[1])], t);
+  else if (t < 0.68) ball = shotEnd;
+  else if (t < 0.98) ball = [pos[1][0] + 6, pos[1][1] - 6];
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+  // Next ball waits at the passer's feet once the queue player steps up.
+  if (t > 0.75) drawBall(svg, P0[0] + 6, P0[1] - 7, 4);
+
+  var gk = kfPos([K(0,150,30),K(0.36,150,30),K(0.52,152,40),K(0.6,166,34),K(0.72,166,34),K(0.9,150,30),K(1,150,30)], t);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#1d4ed8', '#60a5fa', 8));
+  // Player i plays role (i + k) % 3 this loop: 0 = passer, 1 = receiver, 2 = queue
+  for (var i = 0; i < 3; i++) {
+    var r = (i + k) % 3;
+    svg.appendChild(playerCircle(svg, pos[r][0], pos[r][1], String(i + 1), RED, RING, 8));
+  }
+
+  if (t > 0.04 && t < 0.14) calloutText(svg, 150, 160, 'CHECK AWAY', '#ffffff');
+  else if (t > 0.14 && t < 0.28) calloutText(svg, 150, 160, 'CALL FOR IT!', '#ffb830');
+  else if (t > 0.28 && t < 0.4) calloutText(svg, 150, 160, 'TURN', '#ffb830');
+  else if (t > 0.62 && t < 0.76) calloutText(svg, 150, 160, 'GOAL!', '#a8e63d');
+  else if (t > 0.76) calloutText(svg, 150, 160, 'PASSER IS NEXT', '#ffffff');
+  captionText(svg, w, h, 'Pass and follow it, receiver turns and shoots', h - 4);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
