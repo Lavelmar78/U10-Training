@@ -2,7 +2,7 @@
 
 A phone-friendly web app for planning and running U10 soccer practices.
 
-- 74 drills in 9 categories (warm-up, defending, attacking, attack v defence, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
+- 75 drills in 9 categories (warm-up, defending, attacking, attack v defence, movement, skills, set pieces, training match, goalkeeper). Each drill has a setup, coaching points, cues, an animated diagram and video links.
 - Build a session from drills and run it on the field with a timer.
 - Create a team, share its join code with other coaches, and save sessions to the team.
 

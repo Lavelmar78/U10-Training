@@ -4293,6 +4293,68 @@ function anim1v1Shooting(svg, t, animated, state, w, h) {
   captionText(svg, w, h, cap, h - 6);
 }
 
+// SHOOTING TECHNIQUE
+function animShootingTechnique(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view from behind the shooter: goal at the top, close-up of one
+  // station at the bottom. Ball on a yellow marker, two red markers to the
+  // shooter's left (screen left) with a one-foot gap for the standing foot.
+  var gx = w / 2, lineY = 22;
+  svg.appendChild(mkSvg('line', {x1:8, y1:lineY, x2:w-8, y2:lineY, stroke:'rgba(255,255,255,0.5)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:gx-35, y:lineY-12, width:70, height:12, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('line', {x1:40, y1:lineY+6, x2:40, y2:144, stroke:'rgba(255,255,255,0.3)', 'stroke-width':'1', 'stroke-dasharray':'2 3'}));
+  var dl = mkSvg('text', {x:44, y:86, fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  dl.textContent = '8-10 yds'; svg.appendChild(dl);
+
+  var bX = 180, bY = 150, r1 = 158, r2 = 118, plantX = 138;
+  function marker(x, col) { svg.appendChild(mkSvg('ellipse', {cx:x, cy:bY+3, rx:9, ry:5, fill:col, stroke:'rgba(0,0,0,0.3)', 'stroke-width':'1'})); }
+  marker(bX, '#facc15'); marker(r1, '#ef4444'); marker(r2, '#ef4444');
+  svg.appendChild(mkSvg('rect', {x:plantX-7, y:bY-7, width:14, height:14, rx:3, fill:'none', stroke:'rgba(255,255,255,0.35)', 'stroke-width':'1', 'stroke-dasharray':'2 2'}));
+  var ml = mkSvg('text', {x:plantX, y:bY-14, 'text-anchor':'middle', fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  ml.textContent = 'Red markers'; svg.appendChild(ml);
+  var yl = mkSvg('text', {x:bX+12, y:bY+16, fill:'rgba(255,255,255,0.6)', 'font-size':'8'});
+  yl.textContent = 'Ball on yellow'; svg.appendChild(yl);
+
+  var FILL = '#1d4ed8', RING = '#60a5fa';
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    arrow(svg, bX, 178, bX, 162, 'rgba(255,184,48,0.9)');
+    arrow(svg, bX, bY - 8, gx - 22, lineY - 4, '#a8e63d', true);
+    svg.appendChild(playerCircle(svg, plantX, bY, 'L', FILL, RING, 8));
+    svg.appendChild(playerCircle(svg, bX, 188, 'R', FILL, RING, 8));
+    drawBall(svg, bX, bY, 6);
+    captionText(svg, w, h, 'Left foot between the reds, swing the right leg through', h - 6);
+    return;
+  }
+
+  // Loop 1: practise the swing without hitting the ball.
+  // Loops 2 and 3: plant, swing through and shoot, low left then low right.
+  var k = loopIndex(state, t, 'stq', 3);
+  var L = kfPos([K(0,112,188),K(0.1,112,188),K(0.3,plantX,bY),K(0.86,plantX,bY),K(1,112,188)], t);
+  var R, ball = null, call = null, cap;
+  if (k === 0) {
+    R = kfPos([K(0,158,192),K(0.1,158,192),K(0.3,bX,186),K(0.42,bX,194),K(0.52,bX,170),K(0.62,bX,194),K(0.72,bX,170),K(0.86,bX,186),K(1,158,192)], t);
+    ball = [bX, bY];
+    if (t > 0.42 && t < 0.82) call = ['SLOW SWINGS', '#ffb830'];
+    cap = 'Practise the swing first, left foot stays put';
+  } else {
+    var tx = k === 1 ? gx - 24 : gx + 24;
+    R = kfPos([K(0,158,192),K(0.1,158,192),K(0.3,bX,186),K(0.44,bX,194),K(0.54,bX,bY+8),K(0.62,bX,128),K(0.86,bX,128),K(1,158,192)], t);
+    if (t < 0.54) ball = [bX, bY];
+    else if (t < 0.9) ball = kfPos([K(0.54,bX,bY),K(0.68,tx,lineY-5)], t);
+    else if (t > 0.94) ball = [bX, bY];
+    if (t > 0.5 && t < 0.68) call = ['LEFT FOOT STAYS', '#ffb830'];
+    if (t > 0.68 && t < 0.88) call = ['GOAL!', '#a8e63d'];
+    cap = k === 1 ? 'Plant, swing through the ball - low left' : 'Plant, swing through the ball - low right';
+  }
+  if (t > 0.28 && t < 0.42) call = ['PLANT!', '#ffffff'];
+  svg.appendChild(playerCircle(svg, L[0], L[1], 'L', FILL, RING, 8));
+  svg.appendChild(playerCircle(svg, R[0], R[1], 'R', FILL, RING, 8));
+  if (ball) drawBall(svg, ball[0], ball[1], 6);
+  if (call) calloutText(svg, gx, call[0] === 'GOAL!' ? 52 : 112, call[0], call[1]);
+  captionText(svg, w, h, cap, h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

@@ -486,6 +486,16 @@ const DRILLS = [
     youtube:{url:'https://www.youtube.com/watch?v=nab4UqS_2iM',label:'50 ball mastery drills — U9 to U12'},
     anim: 'animBallMastery'
   },
+  {
+    id:'s6', cat:'skills', name:'Shooting Technique', duration:10,
+    setup:'Set up one station per pair, about 8-10 yards out from a goal. Put a ball on a yellow flat marker so it sits up like a tee. Put a red marker right next to the ball on its left, then a second red marker a short step further left, leaving a gap about one foot wide between the two reds. The player stands behind the ball. Plant the left (standing) foot in the gap between the red markers, level with the ball, then swing the right leg through to strike the ball while keeping the left foot fixed in place. Practise the swing slowly a few times first, then kick the ball at goal. Partner fetches the ball and resets it on the yellow marker, then swap. Left-footers mirror it with the red markers on the right of the ball.',
+    points:['Standing foot goes in the gap between the reds, level with the ball and toe pointing at the goal','Keep the standing foot fixed until the ball has gone, no hopping or sliding','Eyes on the ball and head over it as you strike','Lock the ankle, toe down, strike through the middle of the ball with the laces','Follow through towards the target'],
+    progression:'Add a two or three step run-up into the plant. Take the red markers away once the plant foot lands in the right place every time. Then shoot off the ground or a rolling pass, and aim for the corners or add a keeper.',
+    cues:['Plant between the reds','Left foot stays','Laces, toe down','Follow through'],
+    diagram:'shootingtechnique', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/C9LpTEQSFSz/',label:'See it on Instagram'},
+    anim: 'animShootingTechnique', animMs: 5000
+  },
     // ── EXTRA SET PIECES ──
   {
     id:'sp4', cat:'setpiece', name:'Penalty Pressure Shootout', duration:10,
