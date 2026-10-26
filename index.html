@@ -4355,6 +4355,87 @@ function animShootingTechnique(svg, t, animated, state, w, h) {
   captionText(svg, w, h, cap, h - 6);
 }
 
+// PENETRATING PASSES
+function animPenetratingPasses(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: small goal at the top of a grid split into three zones.
+  // Attacker 1 in the bottom zone, defender X in the middle, attacker 2 in
+  // the top zone. Next player waits behind a red cone below the grid, coach
+  // on the left.
+  var L = 90, R = 210, top = 28, z1 = 76, z2 = 124, bot = 172, gx = w / 2;
+  svg.appendChild(mkSvg('rect', {x:L, y:top, width:R-L, height:bot-top, fill:'rgba(255,255,255,0.08)', stroke:'rgba(255,255,255,0.6)', 'stroke-width':'1.5'}));
+  [z1, z2].forEach(function(y) {
+    svg.appendChild(mkSvg('line', {x1:L-4, y1:y, x2:R+4, y2:y, stroke:'rgba(255,255,255,0.8)', 'stroke-width':'1.2', 'stroke-dasharray':'4 3'}));
+  });
+  svg.appendChild(mkSvg('rect', {x:gx-15, y:top-8, width:30, height:8, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('ellipse', {cx:gx, cy:bot+6, rx:5, ry:3, fill:'#ef4444'}));
+  svg.appendChild(playerCircle(svg, 40, 100, 'C', '#4b5563', '#9ca3af', 9));
+  svg.appendChild(playerCircle(svg, gx, 192, '3', '#1d4ed8', '#60a5fa', 7));
+
+  var BLUE = '#1d4ed8', RING = '#60a5fa', RED = '#ef4444';
+  var aS = [gx, 150], xS = [gx, 100], tS = [gx, 52];
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    arrow(svg, 124, 152, 176, 152, 'rgba(96,165,250,0.8)', true);
+    arrow(svg, 122, 52, 178, 52, 'rgba(96,165,250,0.8)', true);
+    arrow(svg, 120, 142, 116, 62, '#ffffff');
+    arrow(svg, 116, 44, gx - 6, top + 2, '#a8e63d');
+    svg.appendChild(playerCircle(svg, 120, 150, '1', BLUE, RING, 7));
+    svg.appendChild(playerCircle(svg, 145, 100, 'X', RED, 'white', 7));
+    svg.appendChild(playerCircle(svg, 116, 52, '2', BLUE, RING, 7));
+    drawBall(svg, 124, 143, 4);
+    captionText(svg, w, h, 'Move to find a lane, pass past X, shoot', h - 6);
+    return;
+  }
+
+  // Loop 1: lane opens on the left, pass and goal. Loop 2: fake left,
+  // switch right, pass and goal. Loop 3: X reads the pass, intercepts and
+  // dribbles out over the bottom line to score.
+  var k = loopIndex(state, t, 'pnp', 3);
+  var A, X, T, ball = null, call = null, cap;
+  if (k === 0) {
+    A = kfPos([K(0,aS[0],aS[1]),K(0.1,aS[0],aS[1]),K(0.34,116,152),K(0.88,116,152),K(1,aS[0],aS[1])], t);
+    X = kfPos([K(0,xS[0],xS[1]),K(0.14,xS[0],xS[1]),K(0.4,136,100),K(0.88,136,100),K(1,xS[0],xS[1])], t);
+    T = kfPos([K(0,tS[0],tS[1]),K(0.12,tS[0],tS[1]),K(0.34,112,54),K(0.5,112,54),K(0.6,126,44),K(0.88,126,44),K(1,tS[0],tS[1])], t);
+    if (t < 0.36) ball = [A[0] + 3, A[1] - 7];
+    else if (t < 0.5) ball = kfPos([K(0.36,119,145),K(0.5,114,60)], t);
+    else if (t < 0.6) ball = [T[0] + 3, T[1] - 7];
+    else if (t < 0.9) ball = kfPos([K(0.6,129,37),K(0.7,gx-6,top-3)], t);
+    if (t > 0.36 && t < 0.5) call = ['THROUGH!', '#ffffff'];
+    if (t > 0.7 && t < 0.88) call = ['GOAL!', '#a8e63d'];
+    cap = 'Both attackers move left, pass past X, shoot';
+  } else if (k === 1) {
+    A = kfPos([K(0,aS[0],aS[1]),K(0.1,aS[0],aS[1]),K(0.24,126,152),K(0.4,182,150),K(0.88,182,150),K(1,aS[0],aS[1])], t);
+    X = kfPos([K(0,xS[0],xS[1]),K(0.12,xS[0],xS[1]),K(0.28,132,100),K(0.48,162,100),K(0.88,162,100),K(1,xS[0],xS[1])], t);
+    T = kfPos([K(0,tS[0],tS[1]),K(0.1,tS[0],tS[1]),K(0.26,124,54),K(0.42,186,54),K(0.54,186,54),K(0.62,172,42),K(0.88,172,42),K(1,tS[0],tS[1])], t);
+    if (t < 0.42) ball = [A[0] - 3, A[1] - 7];
+    else if (t < 0.54) ball = kfPos([K(0.42,179,143),K(0.54,185,61)], t);
+    else if (t < 0.62) ball = [T[0] - 3, T[1] - 7];
+    else if (t < 0.9) ball = kfPos([K(0.62,169,35),K(0.72,gx+6,top-3)], t);
+    if (t > 0.16 && t < 0.3) call = ['FAKE LEFT', '#ffb830'];
+    if (t > 0.42 && t < 0.54) call = ['THROUGH!', '#ffffff'];
+    if (t > 0.72 && t < 0.88) call = ['GOAL!', '#a8e63d'];
+    cap = 'Fake one way, switch the lane, pass and shoot';
+  } else {
+    A = kfPos([K(0,aS[0],aS[1]),K(0.1,aS[0],aS[1]),K(0.32,172,152),K(0.5,172,152),K(0.66,176,160),K(0.88,176,160),K(1,aS[0],aS[1])], t);
+    X = kfPos([K(0,xS[0],xS[1]),K(0.12,xS[0],xS[1]),K(0.34,170,100),K(0.44,170,106),K(0.56,186,130),K(0.7,192,178),K(0.88,192,178),K(1,xS[0],xS[1])], t);
+    T = kfPos([K(0,tS[0],tS[1]),K(0.1,tS[0],tS[1]),K(0.32,176,54),K(0.88,176,54),K(1,tS[0],tS[1])], t);
+    if (t < 0.36) ball = [A[0] + 3, A[1] - 7];
+    else if (t < 0.44) ball = kfPos([K(0.36,175,145),K(0.44,172,112)], t);
+    else if (t < 0.9) ball = [X[0] + 3, X[1] + 7];
+    if (t > 0.42 && t < 0.58) call = ['WON IT!', '#ef4444'];
+    if (t > 0.7 && t < 0.88) call = ['X SCORES!', '#ef4444'];
+    cap = 'X reads it, wins the ball and dribbles out to score';
+  }
+  svg.appendChild(playerCircle(svg, A[0], A[1], '1', BLUE, RING, 7));
+  svg.appendChild(playerCircle(svg, X[0], X[1], 'X', RED, 'white', 7));
+  svg.appendChild(playerCircle(svg, T[0], T[1], '2', BLUE, RING, 7));
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+  else if (t > 0.94) drawBall(svg, aS[0] + 3, aS[1] - 7, 4);
+  if (call) calloutText(svg, 255, call[0] === 'GOAL!' || call[0] === 'X SCORES!' ? 40 : 100, call[0], call[1]);
+  captionText(svg, w, h, cap, h - 6);
+}
+
 // CONE COLLECT RACE
 function animConeCollect(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
