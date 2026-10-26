@@ -4355,6 +4355,88 @@ function animShootingTechnique(svg, t, animated, state, w, h) {
   captionText(svg, w, h, cap, h - 6);
 }
 
+// CONE COLLECT RACE
+function animConeCollect(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: start at the bottom with a net held open by two teammates.
+  // Black (white cones) on the left, blue (blue cones) on the right, each with
+  // a ball at the start of their line. Players fetch one cone at a time and
+  // drop it in the net. Black goes far cone first, blue near cone first, to
+  // show any order works. Blue is a touch quicker and wins.
+  var netX = w / 2, netY = 190, N = 6;
+  var coneYs = []; for (var i = 0; i < N; i++) coneYs.push(150 - i * 20);
+  var P = [
+    { name:'BLACK', laneX: netX - 28, side: -1, fill:'#111827', stroke:'#e5e7eb', cone:'#f1f5f9', order:[5,4,3,2,1,0], speed:0.94 },
+    { name:'BLUE',  laneX: netX + 28, side:  1, fill:'#1d4ed8', stroke:'#60a5fa', cone:'#3b82f6', order:[0,1,2,3,4,5], speed:1 },
+  ];
+  var cone = function(x, y, col, s) { s = s || 1; svg.appendChild(mkSvg('polygon', {points:x+','+(y-4*s)+' '+(x-4*s)+','+(y+3*s)+' '+(x+4*s)+','+(y+3*s), fill:col})); };
+
+  // Build each player's run: out to a cone, pick it up, back to the net, drop it in.
+  var PICK = 12, DROP = 8;
+  P.forEach(function(p) {
+    p.start = [p.laneX + p.side * 14, 172];
+    p.drop = [netX + p.side * 12, netY - 12];
+    p.segs = []; var at = 0, from = p.start;
+    p.order.forEach(function(c) {
+      var spot = [p.laneX + p.side * 8, coneYs[c]];
+      var d1 = Math.hypot(spot[0] - from[0], spot[1] - from[1]), d2 = Math.hypot(p.drop[0] - spot[0], p.drop[1] - spot[1]);
+      p.segs.push({a:from, b:spot, t0:at, t1:at += d1 / p.speed});
+      p.segs.push({a:spot, b:spot, t0:at, t1:at += PICK, pick:c});
+      p.segs.push({a:spot, b:p.drop, t0:at, t1:at += d2 / p.speed, carry:c});
+      p.segs.push({a:p.drop, b:p.drop, t0:at, t1:at += DROP, drop:c});
+      from = p.drop;
+    });
+    p.total = at;
+  });
+  // Blue (quicker) finishes at 80% of the loop, after a short "GO!" pause.
+  var GO = 0.06, scale = (0.8 - GO) / P[1].total;
+  var s = animated ? Math.max(0, (t - GO) / scale) : 0;
+
+  // Lines, balls and cones still out on the pitch
+  P.forEach(function(p) {
+    p.picked = {}; p.inNet = 0; p.pos = p.start; p.carrying = false;
+    p.segs.forEach(function(g) {
+      if (g.pick !== undefined && s >= g.t1) p.picked[g.pick] = true;
+      if (g.drop !== undefined && s >= g.t1) p.inNet++;
+      if (s >= g.t0 && s < g.t1) {
+        var f = g.a === g.b ? 0 : easeInOut((s - g.t0) / (g.t1 - g.t0));
+        p.pos = [lerp(g.a[0], g.b[0], f), lerp(g.a[1], g.b[1], f)];
+        p.carrying = g.carry !== undefined || g.drop !== undefined;
+      }
+    });
+    if (s >= p.total) p.pos = p.drop;
+    coneYs.forEach(function(y, c) { if (!p.picked[c]) cone(p.laneX, y, p.cone); });
+    drawBall(svg, p.laneX, 165, 4);
+  });
+
+  // The net, held open by a teammate from each side, with the cones collected so far
+  svg.appendChild(mkSvg('ellipse', {cx:netX, cy:netY, rx:24, ry:10, fill:'rgba(0,0,0,0.35)', stroke:'#d9f99d', 'stroke-width':'3'}));
+  svg.appendChild(playerCircle(svg, netX - 34, netY + 6, '', '#111827', '#e5e7eb', 7));
+  svg.appendChild(playerCircle(svg, netX + 34, netY + 6, '', '#1d4ed8', '#60a5fa', 7));
+  P.forEach(function(p) {
+    for (var n = 0; n < p.inNet; n++) cone(netX + p.side * (5 + (n % 3) * 6), netY - 3 + Math.floor(n / 3) * 6, p.cone, 0.7);
+  });
+
+  if (!animated) {
+    P.forEach(function(p) {
+      arrow(svg, p.laneX + p.side * 16, 162, p.laneX + p.side * 16, coneYs[N-1] + 4, 'rgba(168,230,61,0.55)', true);
+    });
+    var gap = mkSvg('text', {x:netX, y:coneYs[2] + 3, 'text-anchor':'middle', fill:'rgba(255,255,255,0.5)', 'font-size':'7'});
+    gap.textContent = '1 yd apart'; svg.appendChild(gap);
+  }
+
+  P.forEach(function(p) {
+    svg.appendChild(playerCircle(svg, p.pos[0], p.pos[1], '', p.fill, p.stroke, 8));
+    if (p.carrying) cone(p.pos[0] - p.side * 9, p.pos[1] - 6, p.cone);
+    var c = mkSvg('text', {x:p.side < 0 ? 52 : w - 52, y:22, 'text-anchor':'middle', fill:p.stroke, 'font-size':'9', 'font-weight':'700'});
+    c.textContent = p.name + ' ' + p.inNet + '/' + N; svg.appendChild(c);
+  });
+
+  if (animated && t < GO + 0.03) calloutText(svg, netX, 172, 'GO!', '#ffffff');
+  if (animated && s >= P[1].total) calloutText(svg, netX, 24, 'BLUE WINS!', '#a8e63d');
+  captionText(svg, w, h, 'Fetch one cone at a time, any order, drop it in the net', h - 5);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
