@@ -495,6 +495,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DHXAkGAyw3H/',label:'See it on Instagram'},
     anim: 'animGateDodge', animMs: 5000
   },
+  {
+    id:'m7', cat:'movement', name:'Pass and Move Patterns', duration:12,
+    setup:'Use the top of the pitch with a goal and keeper. Put a tall orange cone just outside the left corner of the box and a tall yellow cone just inside the right edge of the box. About 15m out, put a pink disc cone on the left and another on the right (on the halfway line on a small pitch), and a green disc cone at the bottom in the middle with the balls. One player on each pink cone, the rest queue at the green cone. A (green) passes to B (left pink) and follows the pass to B\'s cone. B passes across to C (right pink), then sprints up to the orange cone. C plays the ball forward into B\'s run, then runs round the outside of the yellow cone towards goal. B dribbles round the orange cone and passes across the box for C to shoot. Everyone moves on one place: A takes B\'s cone, B goes to C\'s cone, C fetches the ball and joins the queue at the green cone.',
+    points:['Pass and follow: as soon as the ball leaves your foot, go','Pass along the ground to the receiver\'s front foot','B: sprint as soon as you pass across, do not watch the ball','C: pass into the space in front of B, not to their feet','C: bend your run round the yellow cone so you arrive facing the goal','Finisher: arrive on time, side-foot it low into the corner'],
+    progression:'Two-touch, then one-touch passing. Swap the run so C goes to the orange cone and B to the yellow one, or let B choose to shoot or pass. Add a second ball so the next group starts as soon as the shot is taken.',
+    cues:['Pass and move!','Follow your pass','Into the space','Round the cone, attack the goal'],
+    diagram:'passmove', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DPdqVCLD0zi/',label:'See it on Instagram'},
+    anim: 'animPassMove', animMs: 8000
+  },
     // ── EXTRA SKILLS ──
   {
     id:'s4', cat:'skills', name:'Turning Drill — 4 Turns', duration:10,
