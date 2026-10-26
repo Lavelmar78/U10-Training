@@ -4649,6 +4649,87 @@ function animTeamShootingRace(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Weave the cones, grab a ball, shoot, next player goes', h - 5);
 }
 
+// PASS AND MOVE PATTERNS
+function animPassMove(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  topGoal(svg, w, true);
+  // Coach's view: goal and keeper at the top, tall orange cone top-left and
+  // tall yellow cone top-right. Pink disc cones out wide on the left and
+  // right, green disc cone at the bottom with the balls. A passes to B and
+  // follows the pass. B passes across to C and sprints up to the orange cone.
+  // C plays it into B's run, then runs round the yellow cone. B dribbles round
+  // the orange cone and passes across for C to finish. Everyone moves on one
+  // place: A to B's cone, B to C's cone, C to the green cone.
+  var G = [150, 182], PL = [62, 122], PR = [238, 136], OC = [64, 62], YC = [210, 64];
+  var disc = function(p, col) { svg.appendChild(mkSvg('ellipse', {cx:p[0], cy:p[1], rx:6, ry:3, fill:col})); };
+  var tall = function(p, col) { svg.appendChild(mkSvg('polygon', {points:p[0]+','+(p[1]-11)+' '+(p[0]-5)+','+(p[1]+4)+' '+(p[0]+5)+','+(p[1]+4), fill:col})); };
+  disc(G, '#a8e63d'); disc(PL, '#ec4899'); disc(PR, '#ec4899');
+  tall(OC, '#f97316'); tall(YC, '#facc15');
+  drawBall(svg, G[0] + 18, G[1] + 4, 3.5); drawBall(svg, G[0] + 26, G[1] + 2, 3.5);
+
+  var RED = '#dc2626', RING = '#fca5a5';
+  var aS = [G[0], G[1] + 10], bS = [PL[0], PL[1] + 10], cS = [PR[0], PR[1] + 10];
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    arrow(svg, aS[0] - 8, aS[1] - 4, bS[0] + 9, bS[1] + 2, '#ffffff');
+    arrow(svg, bS[0] + 10, bS[1] - 2, cS[0] - 10, cS[1] - 2, '#ffffff');
+    arrow(svg, bS[0] + 2, bS[1] - 10, OC[0] + 8, OC[1] + 14, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, cS[0] - 8, cS[1] - 8, OC[0] + 14, OC[1] + 16, '#ffffff');
+    arrow(svg, cS[0] + 2, cS[1] - 10, YC[0] + 10, YC[1] + 2, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, OC[0] + 14, OC[1] - 22, 170, 42, '#ffffff');
+    arrow(svg, 176, 38, 162, 14, '#a8e63d');
+    svg.appendChild(playerCircle(svg, w / 2, 30, 'GK', '#1d4ed8', '#60a5fa', 8));
+    svg.appendChild(playerCircle(svg, aS[0], aS[1], 'A', RED, RING, 8));
+    svg.appendChild(playerCircle(svg, bS[0], bS[1], 'B', RED, RING, 8));
+    svg.appendChild(playerCircle(svg, cS[0], cS[1], 'C', RED, RING, 8));
+    drawBall(svg, aS[0] + 5, aS[1] - 8, 4);
+    captionText(svg, w, h, 'Pass, follow your pass, finish, move on one cone', h - 6);
+    return;
+  }
+
+  // Role paths for one go. A ends on B's start, B on C's, C on A's, so the
+  // three players swap roles each loop with no jump.
+  var recv = [OC[0] + 10, OC[1] + 16], cross = [176, 40];
+  var path = [
+    [K(0,aS[0],aS[1]),K(0.05,aS[0],aS[1]),K(0.3,bS[0],bS[1]),K(1,bS[0],bS[1])],
+    [K(0,bS[0],bS[1]),K(0.16,bS[0],bS[1]),K(0.36,recv[0],recv[1]),K(0.39,recv[0],recv[1]),
+     K(0.44,OC[0]-8,OC[1]+4),K(0.49,OC[0]-2,OC[1]-14),K(0.54,92,40),K(0.66,92,40),
+     K(0.92,cS[0],cS[1]),K(1,cS[0],cS[1])],
+    [K(0,cS[0],cS[1]),K(0.3,cS[0],cS[1]),K(0.42,YC[0]+14,YC[1]+8),K(0.48,YC[0]+8,YC[1]-12),
+     K(0.6,cross[0],cross[1]),K(0.76,cross[0],cross[1]),K(0.98,aS[0],aS[1]),K(1,aS[0],aS[1])]
+  ];
+  var k = loopIndex(state, t, 'pmp', 3);
+  var pos = path.map(function(p) { return kfPos(p, t); });
+
+  var ball = null, shotEnd = [160, 14];
+  if (t < 0.05) ball = [aS[0] + 5, aS[1] - 8];
+  else if (t < 0.14) ball = kfPos([K(0.05,aS[0],aS[1]-6),K(0.14,bS[0]+6,bS[1]-6)], t);
+  else if (t < 0.17) ball = [pos[1][0] + 6, pos[1][1] - 6];
+  else if (t < 0.28) ball = kfPos([K(0.17,bS[0]+6,bS[1]-6),K(0.28,cS[0]-6,cS[1]-6)], t);
+  else if (t < 0.3) ball = [pos[2][0] - 6, pos[2][1] - 6];
+  else if (t < 0.39) ball = kfPos([K(0.3,cS[0]-6,cS[1]-6),K(0.39,recv[0]+5,recv[1]-6)], t);
+  else if (t < 0.56) ball = [pos[1][0] + 5, pos[1][1] - 6];
+  else if (t < 0.64) ball = kfPos([K(0.56,97,36),K(0.64,cross[0]-6,cross[1])], t);
+  else if (t < 0.66) ball = [cross[0] - 6, cross[1] - 4];
+  else if (t < 0.73) ball = kfPos([K(0.66,cross[0]-6,cross[1]-4),K(0.73,shotEnd[0],shotEnd[1])], t);
+  else if (t < 0.9) ball = shotEnd;
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+
+  var gk = kfPos([K(0,150,30),K(0.56,150,30),K(0.66,162,28),K(0.74,136,26),K(0.88,136,26),K(1,150,30)], t);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#1d4ed8', '#60a5fa', 8));
+  // Player i plays role (i + k) % 3 this loop: 0 = A, 1 = B, 2 = C
+  for (var i = 0; i < 3; i++) {
+    var r = (i + k) % 3;
+    svg.appendChild(playerCircle(svg, pos[r][0], pos[r][1], String(i + 1), RED, RING, 8));
+  }
+
+  if (t > 0.05 && t < 0.3) calloutText(svg, 150, 112, 'PASS AND MOVE', '#ffffff');
+  else if (t > 0.39 && t < 0.56) calloutText(svg, 150, 112, 'ROUND THE CONE', '#ffb830');
+  else if (t > 0.73 && t < 0.86) calloutText(svg, 150, 112, 'GOAL!', '#a8e63d');
+  else if (t > 0.86) calloutText(svg, 150, 112, 'MOVE ON ONE CONE', '#ffffff');
+  captionText(svg, w, h, 'A to B, B to C, C into B\'s run, cross, C finishes', h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
