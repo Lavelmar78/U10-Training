@@ -4353,6 +4353,8 @@ function animShootingTechnique(svg, t, animated, state, w, h) {
   if (ball) drawBall(svg, ball[0], ball[1], 6);
   if (call) calloutText(svg, gx, call[0] === 'GOAL!' ? 52 : 112, call[0], call[1]);
   captionText(svg, w, h, cap, h - 6);
+}
+
 // CONE COLLECT RACE
 function animConeCollect(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
