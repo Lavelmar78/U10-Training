@@ -5102,6 +5102,99 @@ function animSpeed1v1(svg, t, animated, state, w, h) {
   captionText(svg, w, h, cap, h - 6);
 }
 
+// SLALOM RACE
+function animSlalomRace(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h, '#111a11');
+
+  // Two relay lanes, start line at the bottom. Each runner dribbles 10yd to
+  // the stop line and leaves the ball there, runs 10yd on to 3 poles, weaves
+  // up and back down them, sprints back to the ball and passes it to the next
+  // player. The last runner dribbles the ball back over the start line.
+  // 4 players per team; Team A is a touch quicker so they win.
+  const N = 4;
+  const startY = h - 44, stopY = startY - 60, doneY = startY + 18;
+  const poles = [stopY - 44, stopY - 60, stopY - 76];
+  const lanes = [
+    { x: w/2 - 60, dir: -1, label: 'A', col: '#5ab4ff', race: 0.84 },
+    { x: w/2 + 60, dir:  1, label: 'B', col: '#ef4444', race: 0.90 },
+  ];
+
+  svg.appendChild(mkSvg('line',{x1:20,y1:startY,x2:w-20,y2:startY,stroke:'#a8e63d','stroke-width':'2'}));
+  svg.appendChild(mkSvg('line',{x1:20,y1:stopY,x2:w-20,y2:stopY,stroke:'rgba(255,255,255,0.7)','stroke-width':'1.5','stroke-dasharray':'4 3'}));
+  const txt = (x, y, s, fill) => { const e = mkSvg('text',{x,y,'text-anchor':'middle',fill,'font-size':'7'}); e.textContent = s; svg.appendChild(e); };
+  txt(w/2, startY + 10, 'START / FINISH', '#a8e63d');
+  txt(w/2, stopY - 3, 'STOP LINE', 'rgba(255,255,255,0.7)');
+  txt(w/2, (startY + stopY) / 2 + 3, '10 yds', 'rgba(255,255,255,0.5)');
+  txt(w/2, (stopY + poles[0]) / 2 + 6, '10 yds', 'rgba(255,255,255,0.5)');
+  txt(w/2, poles[1] + 3, 'poles 2 yds apart', 'rgba(255,255,255,0.5)');
+
+  lanes.forEach(L => {
+    const T = animated ? Math.min(N, N * t / L.race) : 0;   // legs run so far
+    const X = L.x, ballSpot = [X, stopY - 4];
+    const weave = [
+      [0.00, X, poles[0] + 10], [0.12, X + 8, poles[0]], [0.24, X - 8, poles[1]], [0.36, X + 8, poles[2]],
+      [0.50, X, poles[2] - 10],  [0.64, X - 8, poles[2]], [0.76, X + 8, poles[1]], [0.88, X - 8, poles[0]],
+      [1.00, X, poles[0] + 10],
+    ];
+
+    poles.forEach(py => svg.appendChild(mkSvg('circle',{cx:X,cy:py,r:3,fill:'#f5f5f5',stroke:'#ffb830','stroke-width':'1.5'})));
+
+    if (!animated) {
+      arrow(svg, X - 6, startY - 12, X - 6, stopY + 8, 'rgba(168,230,61,0.6)', true);
+      arrow(svg, X + 6, stopY - 10, X + 6, poles[0] + 12, 'rgba(255,255,255,0.4)', true);
+    }
+
+    // Leg phases (v = 0..1): dribble out, stop the ball, run to the poles,
+    // weave up and down, sprint back, pass (or dribble home), then walk off.
+    const runnerPos = (i, v) => {
+      const last = i === N - 1;
+      if (v < 0.24) return [X, lerp(startY, ballSpot[1] + 6, easeInOut(v / 0.24))];
+      if (v < 0.28) return [X, ballSpot[1] + 6];
+      if (v < 0.40) return [X, lerp(ballSpot[1] + 6, poles[0] + 10, easeInOut((v - 0.28) / 0.12))];
+      if (v < 0.72) return kfPos(weave, (v - 0.40) / 0.32);
+      if (v < 0.86) return [X, lerp(poles[0] + 10, ballSpot[1] - 6, easeInOut((v - 0.72) / 0.14))];
+      if (last) {
+        if (v < 1) return [X, lerp(ballSpot[1] - 6, startY + 4, easeInOut((v - 0.86) / 0.14))];
+        return [X, startY + 4];
+      }
+      if (v < 0.94) return [X, ballSpot[1] - 6];
+      const f = easeInOut(Math.min(1, (v - 0.94) / 0.56));
+      return [lerp(X, X + L.dir * (22 + 16 * i), f), lerp(ballSpot[1] - 6, doneY, f)];
+    };
+
+    for (let i = 0; i < N; i++) {
+      let x, y;
+      if (T < i) {
+        // waiting in line, stepping up one place as each runner sets off
+        const fl = Math.floor(T), stepped = fl + easeInOut(Math.min(1, (T - fl) / 0.12));
+        x = X + L.dir * 18 * Math.max(0, i - stepped); y = startY + 4;
+      } else {
+        [x, y] = runnerPos(i, Math.min(1.5, T - i));
+      }
+      svg.appendChild(playerCircle(svg, x, y, L.label, L.col, 'white', 9));
+    }
+
+    // the ball: at the runner's feet on the dribble, parked on the stop line,
+    // then passed back to the next player at the start
+    const cur = Math.min(N - 1, Math.floor(T)), v = Math.min(1, T - cur);
+    let b;
+    if (v < 0.24)        { const p = runnerPos(cur, v); b = [p[0] + 5, p[1] - 9]; }
+    else if (v < 0.28)   b = [X + 5, lerp(ballSpot[1] - 3, ballSpot[1], (v - 0.24) / 0.04)];
+    else if (v < 0.86)   b = ballSpot;
+    else if (cur === N - 1) { const p = runnerPos(cur, v); b = [p[0] + 5, p[1] - 9]; }
+    else if (v < 0.94)   b = [lerp(ballSpot[0], X + 5, (v - 0.86) / 0.08), lerp(ballSpot[1], startY - 5, (v - 0.86) / 0.08)];
+    else                 b = [X + 5, startY - 5];
+    drawBall(svg, b[0], b[1], 3.5);
+  });
+
+  if (animated && t >= lanes[0].race) {
+    const win = mkSvg('text',{x:w/2,y:12,'text-anchor':'middle',fill:'#a8e63d','font-size':'11','font-weight':'700'});
+    win.textContent = 'TEAM A WINS!'; svg.appendChild(win);
+  }
+  captionText(svg, w, h, 'Dribble, stop it on the line, weave the poles, pass it on', h - 3);
+}
+
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

@@ -352,6 +352,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DGh9Q6HN8pH/',label:'See it on Instagram'},
     anim: 'animTeamShootingRace', animMs: 16000
   },
+  {
+    id:'w17', cat:'warmup', name:'Slalom Race', duration:7,
+    setup:'Split the players into even teams, each in its own lane with a line of players behind a start cone. Mark a stop line 10 yards ahead of each start, then 10 yards beyond that set 3 poles in a line running away from the player, 2 yards apart. The first player in each team has a ball. On "go", they dribble to the stop line and stop the ball dead on it, leave the ball and run the 10 yards to the poles without it. They weave in and out of the poles up to the top, round the last pole and weave back down, then sprint back to their ball and pass it to the next player in line. The next player dribbles out and does the same, until every player has had a go. The last player sprints back to the ball and dribbles it back over the start line. First team finished wins.',
+    points:['Dribble with small touches so you can stop the ball dead on the line - if it rolls on, go back and fix it','Leave the ball and sprint - no dribbling to the poles','Tight round the poles - small quick steps, low hips, do not clip a pole','Weave back down too - every pole, both ways','Pass along the ground to the next player\'s feet, not a long hoof'],
+    progression:'Dribble the ball through the poles instead of running. Use the weaker foot only for the dribble and the pass. Add a fourth pole, or set the poles closer together.',
+    cues:['Small touches, stop it dead','Leave it and go','Tight round the poles','Pass to feet'],
+    diagram:'slalomrace', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DSXMcuWjJJj/',label:'See it on Instagram'},
+    anim: 'animSlalomRace', animMs: 16000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
