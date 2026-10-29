@@ -535,6 +535,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DQ6rLFIAsrx/',label:'See it on Instagram'},
     anim: 'animPassCall', animMs: 7000
   },
+  {
+    id:'m9', cat:'movement', name:'Split the Line', duration:12,
+    setup:'Mark out four grids side by side in a row, each about 8m wide and 20m long, with a goal and keeper at each end of the row (grid 1 next to the left goal, grid 4 next to the right goal). Two teams: team A has 3 players in grid 1 and 3 in grid 3, team B has 3 in grid 2 and 3 in grid 4. Players stay in their own grid. The coach stands at the side of the middle with the balls and plays one into a middle grid (2 or 3). That team passes and moves to open a gap, then tries to split the other team\'s line with a pass through their grid to a teammate in the next grid. A player in grid 1 who receives a pass from grid 3 (or grid 4 from grid 2) can turn and shoot. The defending grid tries to block or intercept without leaving their grid. If they win it they go the other way. When the ball is dead the coach feeds the next one.',
+    points:['Stay in your grid, you can slide side to side but never cross a line','Move the ball quickly in your grid to drag the other team out of shape','Look for the gap between two players and pass through it, firm and along the ground','End grid: get open to the passer, side-on so you can see the ball and the goal','First touch out of your feet towards goal, then shoot early','Defending grid: shuffle together with the ball and close the gaps, stay on your toes'],
+    progression:'Limit middle grids to 2 touches. Let one end-grid player drop into the middle grid to make it 4v3. Make the grids narrower or add a fourth player per grid to make the gaps harder to find.',
+    cues:['Find the gap!','Split the line','Open up, turn, shoot','Shuffle and close'],
+    diagram:'splitline', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DVkgZTTEhla/',label:'See it on Instagram'},
+    anim: 'animSplitLine', animMs: 14000
+  },
     // ── EXTRA SKILLS ──
   {
     id:'s4', cat:'skills', name:'Turning Drill — 4 Turns', duration:10,
