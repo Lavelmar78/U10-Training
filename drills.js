@@ -897,6 +897,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/C3fxaBnBBzH/',label:'See it on Instagram'},
     anim: 'animShooting3v2', animMs: 8000
   },
+  {
+    id:'ad7', cat:'attackdef', name:'Increase the Pressure', duration:15,
+    setup:'Possession game with a growing number of defenders. The video uses a 30 x 35 yard area with two teams of 8. For U10s use about 25 x 20 yards and play 6 v 1 up to 6 v 6 (or whatever your numbers allow). Reds start inside the area with the ball, all of them active. Blues start with one player in the middle and the rest standing around the outside of the area. Reds keep the ball. Every 5 successful passes another blue runs in (8 v 1, then 8 v 2, 8 v 3 and on up to 8 v 8), so it slowly gets harder for the team on the ball. If the blues win the ball they either dribble it out of the area or pass it to a blue teammate outside. The coach stands on the left side with a supply of balls and plays a new ball in to the reds. After a set time, swap the teams over.',
+    points:['Team on the ball: spread out and use the whole area','Move after every pass to give the passer an option','Count your passes out loud so everyone knows when the next defender comes','Get your head up and play away from pressure, switch to the free side','Pressers: press as a group, one goes to the ball and the others cut off the passes','Win it, then get it out fast to a teammate outside or dribble out'],
+    progression:'Limit the team on the ball to two touches. Make it 3 passes per new defender to speed it up, or 8 to slow it down. Give the pressing team a point for every win and the possession team a point for each new defender they reach.',
+    cues:['Spread out!','Count the passes','Move after you pass','Press together'],
+    diagram:'increasepressure', viewBox:'0 0 300 230',
+    instagram:{url:'https://www.instagram.com/reel/C_FmeG0Ieje/',label:'See it on Instagram'},
+    anim: 'animIncreasePressure', animMs: 16000
+  },
 ];
 
 const GLOBAL_CUES = [
