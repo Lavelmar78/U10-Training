@@ -5276,6 +5276,114 @@ function animHungryHippos(svg, t, animated, state, w, h) {
 }
 
 
+// SPLIT THE LINE
+function animSplitLine(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: four grids in a row with a goal at each end. Team A (red)
+  // holds grids 1 and 3, team B (blue) grids 2 and 4. The coach feeds a
+  // middle grid, that team moves it until a gap opens, then splits the other
+  // team's line to a teammate in the end grid, who turns and shoots. In the
+  // first half of the loop A attacks the left goal, in the second B attacks
+  // the right goal (the same moves mirrored), so everyone ends where the
+  // other half starts.
+  var G = [52, 101, 150, 199, 248], T = 30, B = 172;
+  svg.appendChild(mkSvg('rect', {x:G[0], y:T, width:G[4]-G[0], height:B-T, fill:'rgba(255,255,255,0.04)', stroke:'rgba(255,255,255,0.6)', 'stroke-width':'1.5'}));
+  for (var g = 1; g < 4; g++) svg.appendChild(mkSvg('line', {x1:G[g], y1:T, x2:G[g], y2:B, stroke:'rgba(255,255,255,0.6)', 'stroke-width':'1.5'}));
+  function sideGoal(x, dir) {
+    // dir 1 = mouth faces right (left goal), -1 = mouth faces left
+    var back = x - dir * 10;
+    svg.appendChild(mkSvg('polyline', {points:x+',80 '+back+',80 '+back+',120 '+x+',120', fill:'rgba(255,255,255,0.08)', stroke:'white', 'stroke-width':'2'}));
+  }
+  sideGoal(24, 1); sideGoal(w - 24, -1);
+  var RED = '#dc2626', RRING = '#fca5a5', BLUE = '#1d4ed8', BRING = '#60a5fa';
+  for (g = 0; g < 4; g++) {
+    var num = mkSvg('text', {x:(G[g]+G[g+1])/2, y:42, 'text-anchor':'middle', fill:'rgba(255,255,255,0.35)', 'font-size':'9', 'font-weight':'bold'});
+    num.textContent = String(g + 1); svg.appendChild(num);
+    var tm = mkSvg('text', {x:(G[g]+G[g+1])/2, y:184, 'text-anchor':'middle', fill:g % 2 ? BRING : RRING, 'font-size':'8', 'font-weight':'bold'});
+    tm.textContent = g % 2 ? 'B' : 'A'; svg.appendChild(tm);
+  }
+  svg.appendChild(playerCircle(svg, 150, 200, 'C', '#4b5563', '#9ca3af', 7));
+
+  // Role bases for "attack the left goal". D is M mirrored and E is I
+  // mirrored, so the roles hand over cleanly at half time.
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  var M = [[174,60],[162,105],[186,150]], D = [[126,60],[138,105],[114,150]];
+  var E = [[76,60],[86,105],[72,150]], I = [[224,60],[214,105],[228,150]];
+  var recvE = [90,112], turnE = [80,108], m2b = [166,122];
+  var keys = {
+    M: [
+      [K(0,174,60),K(0.16,174,60),K(0.24,178,58),K(0.3,178,58),K(0.6,174,60)],
+      [K(0,162,105),K(0.18,162,105),K(0.32,m2b[0],m2b[1]),K(0.42,m2b[0],m2b[1]),K(0.85,162,105)],
+      [K(0,186,150)]
+    ],
+    D: [
+      [K(0,126,60),K(0.12,126,60),K(0.18,128,70),K(0.28,132,52),K(0.4,130,62),K(0.92,126,60)],
+      [K(0,138,105),K(0.12,138,105),K(0.18,138,105),K(0.28,134,80),K(0.38,134,92),K(0.46,132,106),K(0.92,138,105)],
+      [K(0,114,150),K(0.12,114,150),K(0.18,122,135),K(0.28,124,118),K(0.4,122,140),K(0.92,114,150)]
+    ],
+    E: [
+      [K(0,76,60)],
+      [K(0,86,105),K(0.22,86,105),K(0.34,recvE[0],recvE[1]),K(0.48,recvE[0],recvE[1]),K(0.56,turnE[0],turnE[1]),K(0.7,turnE[0],turnE[1]),K(0.95,86,105)],
+      [K(0,72,150)]
+    ],
+    I: [[K(0,224,60)],[K(0,214,105)],[K(0,228,150)]]
+  };
+  var mir = function(p) { return [w - p[0], p[1]]; };
+  var rolePos = function(role, j, u) {
+    var p = kfPos(keys[role][j], u);
+    // Players off the ball drift a little so the grids look alive.
+    if ((role === 'E' && j !== 1) || role === 'I') p = [p[0], p[1] + Math.sin(u * Math.PI * 2 + j) * 4 - Math.sin(j) * 4];
+    return p;
+  };
+  // Ball for one half, attacking left
+  var ballKeys = [K(0,150,191),K(0.02,150,191),K(0.08,180,154),K(0.1,180,154),K(0.16,156,109),K(0.18,156,109),
+    K(0.24,172,62),K(0.3,172,62),K(0.36,m2b[0]-6,m2b[1]+4),K(0.38,m2b[0]-6,m2b[1]+4),
+    K(0.48,recvE[0]+6,recvE[1]+4),K(0.5,recvE[0]+6,recvE[1]+4),K(0.56,turnE[0]-8,turnE[1]),K(0.58,turnE[0]-8,turnE[1]),K(0.66,18,94)];
+  var gkKeys = [K(0,32,100),K(0.5,32,100),K(0.56,32,98),K(0.64,30,112),K(0.8,30,112),K(0.95,32,100)];
+
+  if (!animated) {
+    var DAS = 'rgba(255,255,255,0.75)';
+    // Freeze the moment the gap opens, with the moves that led to it
+    [['M',RED,RRING,'A'],['E',RED,RRING,'A'],['D',BLUE,BRING,'B'],['I',BLUE,BRING,'B']].forEach(function(gr) {
+      for (var j = 0; j < 3; j++) { var p = rolePos(gr[0], j, 0.37); svg.appendChild(playerCircle(svg, p[0], p[1], gr[3], gr[1], gr[2], 7)); }
+    });
+    arrow(svg, 182, 142, 164, 112, DAS);
+    arrow(svg, 163, 96, 172, 69, DAS);
+    arrow(svg, 182, 66, 172, 112, DAS);
+    arrow(svg, 158, 121, 99, 113, '#ffb830');
+    arrow(svg, 84, 108, 30, 98, '#a8e63d');
+    svg.appendChild(playerCircle(svg, 32, 100, 'GK', '#7c3aed', '#c4b5fd', 7));
+    svg.appendChild(playerCircle(svg, w - 32, 100, 'GK', '#7c3aed', '#c4b5fd', 7));
+    calloutText(svg, 150, 22, 'SPLIT THE LINE', '#ffb830');
+    captionText(svg, w, h, 'Pass to find a gap, split the line, turn and shoot', h - 4);
+    return;
+  }
+
+  var second = t >= 0.5, u = second ? (t - 0.5) * 2 : t * 2;
+  var at = function(p) { return second ? mir(p) : p; };
+  // Physical groups: red grid 1, red grid 3, blue grid 2, blue grid 4
+  var roles = second ? {r1:'I', r3:'D', b2:'M', b4:'E'} : {r1:'E', r3:'M', b2:'D', b4:'I'};
+  var gkA = at(kfPos(gkKeys, u)), gkB = at([w - 32, 100]);
+  svg.appendChild(playerCircle(svg, gkA[0], gkA[1], 'GK', '#7c3aed', '#c4b5fd', 7));
+  svg.appendChild(playerCircle(svg, gkB[0], gkB[1], 'GK', '#7c3aed', '#c4b5fd', 7));
+  [['r1',RED,RRING,'A'],['r3',RED,RRING,'A'],['b2',BLUE,BRING,'B'],['b4',BLUE,BRING,'B']].forEach(function(gr) {
+    for (var j = 0; j < 3; j++) {
+      var p = at(rolePos(roles[gr[0]], j, u));
+      svg.appendChild(playerCircle(svg, p[0], p[1], gr[3], gr[1], gr[2], 7));
+    }
+  });
+  if (u < 0.86) { var b = at(kfPos(ballKeys, u)); drawBall(svg, b[0], b[1], 3.5); }
+  else drawBall(svg, 150, 191, 3.5);
+
+  var who = second ? 'B' : 'A';
+  if (u > 0.1 && u < 0.37) calloutText(svg, 150, 22, who + ': MOVE IT, FIND A GAP', '#ffffff');
+  else if (u >= 0.37 && u < 0.5) calloutText(svg, 150, 22, 'SPLIT THE LINE!', '#ffb830');
+  else if (u >= 0.5 && u < 0.6) calloutText(svg, 150, 22, 'TURN AND SHOOT', '#ffb830');
+  else if (u >= 0.64 && u < 0.86) calloutText(svg, 150, 22, 'GOAL!', '#a8e63d');
+  captionText(svg, w, h, 'A in grids 1 and 3, B in 2 and 4 - only end grids shoot', h - 4);
+}
+
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
