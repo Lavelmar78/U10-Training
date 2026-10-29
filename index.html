@@ -5195,6 +5195,87 @@ function animSlalomRace(svg, t, animated, state, w, h) {
 }
 
 
+function animHungryHippos(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: 4 players, each on their own cone at a corner of the square,
+  // 6 balls in the middle. Players dribble one ball at a time back to their
+  // cone. Once the middle is empty they steal from other players' cones.
+  // First to 3 balls at their cone wins (C, at about 80% of the loop).
+  const L = 70, R = w - 70, T = 36, B = h - 44, cx = w / 2, cy = (T + B) / 2;
+  const P = [
+    { label:'A', fill:'#ef4444', cone:[L, T] },
+    { label:'B', fill:'#3b82f6', cone:[R, T] },
+    { label:'C', fill:'#eab308', cone:[R, B] },
+    { label:'D', fill:'#22c55e', cone:[L, B] },
+  ];
+  P.forEach(p => {
+    const ox = Math.sign(p.cone[0] - cx), oy = Math.sign(p.cone[1] - cy);
+    p.home = [p.cone[0] + ox * 14, p.cone[1] + oy * 8];
+    p.stack = [p.cone[0] - ox * 10, p.cone[1] - oy * 4];
+  });
+  const mid = [[cx-9,cy-5],[cx,cy-5],[cx+9,cy-5],[cx-9,cy+5],[cx,cy+5],[cx+9,cy+5]];
+
+  // Trips: player, ball, where it is taken from ('m' = middle or a player
+  // index), and times as a fraction of the loop: set off, pick up, back home.
+  const trips = [
+    [0,0,'m',0.02,0.09,0.17], [1,1,'m',0.03,0.10,0.18], [2,2,'m',0.02,0.10,0.19], [3,3,'m',0.04,0.11,0.20],
+    [0,4,'m',0.18,0.25,0.33], [1,5,'m',0.19,0.26,0.34],
+    // middle empty: stealing starts
+    [2,0,0,0.27,0.35,0.44], [3,1,1,0.28,0.36,0.45],
+    [0,3,3,0.36,0.45,0.54], [1,2,2,0.37,0.46,0.55],
+    [2,4,0,0.46,0.55,0.63], [3,5,1,0.47,0.56,0.64],
+    [0,1,3,0.57,0.66,0.75], [1,3,0,0.58,0.67,0.76],
+    [2,2,1,0.65,0.73,0.81], [3,1,0,0.66,0.77,0.86],
+  ];
+  const WIN = 0.81, s = animated ? Math.min(t, WIN) : 0;
+
+  // square outline, cones
+  svg.appendChild(mkSvg('rect',{x:L,y:T,width:R-L,height:B-T,fill:'none',stroke:'rgba(255,255,255,0.35)','stroke-width':'1.5','stroke-dasharray':'4 3'}));
+  P.forEach(p => {
+    const [x, y] = p.cone;
+    svg.appendChild(mkSvg('polygon',{points:x+','+(y-6)+' '+(x-5)+','+(y+4)+' '+(x+5)+','+(y+4),fill:p.fill,stroke:'white','stroke-width':'0.8'}));
+  });
+
+  // where each player is
+  const pos = P.map((p, i) => {
+    const tr = trips.find(r => r[0] === i && s >= r[3] && s < r[5]);
+    if (!tr) return p.home.slice();
+    const src = tr[2] === 'm' ? [cx, cy + (p.home[1] < cy ? -10 : 10)] : P[tr[2]].stack;
+    if (s < tr[4]) return [lerp(p.home[0], src[0], easeInOut((s - tr[3]) / (tr[4] - tr[3]))), lerp(p.home[1], src[1], easeInOut((s - tr[3]) / (tr[4] - tr[3])))];
+    return [lerp(src[0], p.home[0], easeInOut((s - tr[4]) / (tr[5] - tr[4]))), lerp(src[1], p.home[1], easeInOut((s - tr[4]) / (tr[5] - tr[4])))];
+  });
+
+  // where each ball is: middle, carried, or in a player's pile
+  const piles = P.map(() => []);
+  const balls = mid.map((m, b) => {
+    const last = trips.filter(r => r[1] === b && r[4] <= s).pop();
+    if (!last) return m;
+    if (s < last[5]) { const p = pos[last[0]]; return [p[0] + (p[0] < cx ? 7 : -7), p[1] + (p[1] < cy ? 8 : -8)]; }
+    piles[last[0]].push([last[5], b]); return null;
+  });
+  piles.forEach((pile, i) => {
+    pile.sort((a, b) => a[0] - b[0]).forEach(([, b], k) => {
+      const st = P[i].stack, ox = Math.sign(cx - st[0]);
+      balls[b] = [st[0] + ox * 8 * k, st[1]];
+    });
+  });
+
+  if (!animated) {
+    P.forEach(p => arrow(svg, p.home[0] + (cx - p.home[0]) * 0.25, p.home[1] + (cy - p.home[1]) * 0.25, cx + (p.home[0] - cx) * 0.3, cy + (p.home[1] - cy) * 0.3, 'rgba(168,230,61,0.6)', true));
+  }
+  balls.forEach(b => drawBall(svg, b[0], b[1], 3.5));
+  P.forEach((p, i) => svg.appendChild(playerCircle(svg, pos[i][0], pos[i][1], p.label, p.fill, 'white', 9)));
+
+  const msg = (txt, col) => { const e = mkSvg('text',{x:cx,y:14,'text-anchor':'middle',fill:col,'font-size':'10','font-weight':'700'}); e.textContent = txt; svg.appendChild(e); };
+  if (animated) {
+    if (t >= WIN) msg('C WINS - 3 BALLS!', '#a8e63d');
+    else if (t >= 0.26) msg('Middle empty - steal!', '#ffb830');
+    else msg('Fetch from the middle', 'rgba(255,255,255,0.75)');
+  }
+  captionText(svg, w, h, 'One ball at a time, back to your cone - first to 3 wins', h - 3);
+}
+
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

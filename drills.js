@@ -362,6 +362,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DSXMcuWjJJj/',label:'See it on Instagram'},
     anim: 'animSlalomRace', animMs: 16000
   },
+  {
+    id:'w18', cat:'warmup', name:'Hungry Hippos', duration:8,
+    setup:'Mark out a square about 15 x 15 yards with a cone in each corner, a different colour for each player. Put 6 balls in the middle of the square. Four players each stand at their own corner cone. On "go", everyone runs to the middle, takes one ball and dribbles it back to their own cone. Only one ball at a time. Once the middle is empty, players can steal balls from any other player\'s cone and dribble them back to their own. The first player to have 3 balls at their cone wins. With more players, run 2 or 3 squares side by side.',
+    points:['One ball at a time - dribble it back, do not kick it','Keep the ball close so you can turn quickly back to your cone','Head up - look for the cone with the most balls and the player who is away from it','Be quick to leave your cone again, standing still will not win it','Stop the ball dead at your cone so it does not roll away'],
+    progression:'Players must use their weaker foot only. Add a fifth player in the middle as a defender who can tackle anyone dribbling. Make it first to 4 balls with 8 balls in the middle.',
+    cues:['Go go go!','One at a time','Ball close','Steal from the biggest pile'],
+    diagram:'hungryhippos', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DSrk9omAlmG/',label:'See it on Instagram'},
+    anim: 'animHungryHippos', animMs: 18000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
