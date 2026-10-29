@@ -5493,6 +5493,118 @@ function animShooting3v2(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Defender passes out, 2 step out, 3 attack and shoot', h - 6);
 }
 
+// INCREASE THE PRESSURE
+function animIncreasePressure(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view of the area. The possession team (8) is inside. The
+  // pressing team starts with 1 player in the middle and the rest around
+  // the outside. Every 5 passes another presser runs in (8v1, 8v2, 8v3 and
+  // on up to 8v8). If the pressers win it, they pass to a teammate outside.
+  // The coach with the spare balls on the left side plays a new ball in.
+  // Alternate loops swap the teams' roles.
+  var L = 50, R = 262, T = 30, B = 160;
+  svg.appendChild(mkSvg('rect', {x:L, y:T, width:R-L, height:B-T, fill:'none', stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}));
+  [[L,T],[R,T],[L,B],[R,B]].forEach(function(c) {
+    svg.appendChild(mkSvg('ellipse', {cx:c[0], cy:c[1], rx:4, ry:2.5, fill:'#facc15'}));
+  });
+  var COACH = [24, 95];
+  [[18,118],[25,121],[31,117],[22,125],[29,127]].forEach(function(b) { drawBall(svg, b[0], b[1], 3.2); });
+
+  var swap = animated && loopIndex(state, t, 'incp', 2) === 1;
+  var KEEP = swap ? ['#1d4ed8', '#60a5fa'] : ['#dc2626', '#fca5a5'];
+  var PRESS = swap ? ['#dc2626', '#fca5a5'] : ['#1d4ed8', '#60a5fa'];
+
+  var K8 = [[82,56],[152,48],[228,58],[110,100],[198,96],[82,140],[152,146],[232,136]];
+  // Pressers: where they wait outside, and where they press from inside.
+  var OUT = [[150,98],[106,18],[276,72],[110,174],[206,174],[276,128],[200,18],[38,58]];
+  var IN = [[150,98],[128,70],[190,120]];
+
+  var drift = function(i) {
+    var a = 2 * Math.PI * t + i * 0.8;
+    return [K8[i][0] + 3 * Math.sin(a), K8[i][1] + 3 * Math.cos(a * 1)];
+  };
+  var keepers = K8.map(function(_, i) { return animated ? drift(i) : K8[i]; });
+  var foot = function(p) { return [p[0] + 5, p[1] + 6]; };
+
+  if (!animated) {
+    svg.appendChild(mkSvg('circle', {cx:COACH[0], cy:COACH[1], r:8, fill:'#111827', stroke:'#e5e7eb', 'stroke-width':'2'}));
+    arrow(svg, 87, 62, 147, 52, '#ffffff');
+    arrow(svg, 157, 54, 196, 90, '#ffffff');
+    arrow(svg, 110, 26, 126, 60, 'rgba(96,165,250,0.85)', true);
+    keepers.forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], '', KEEP[0], KEEP[1], 8)); });
+    OUT.forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], '', PRESS[0], PRESS[1], 8)); });
+    drawBall(svg, 87, 62, 3.8);
+    calloutText(svg, 150, 202, 'EVERY 5 PASSES: +1 PRESSER', '#ffb830');
+    captionText(svg, w, h, '8 keep the ball, pressers start 8v1 and build up to 8v8', h - 6);
+    return;
+  }
+
+  // 15 passes, then a 16th that the first presser cuts out.
+  var ORDER = [3, 0, 1, 4, 2, 7, 6, 5, 3, 1, 2, 4, 7, 6, 3, 0, 4];
+  var S = 0.04, D = 0.046, NP = 15;
+  var passNo = Math.floor((t - S) / D);
+  var ball, ballLag;
+  var ballAt = function(tt) {
+    if (tt < S) return foot(keepers[ORDER[0]]);
+    var n = Math.min(Math.floor((tt - S) / D), NP - 1);
+    var k = (tt - S - n * D) / D;
+    var a = foot(keepers[ORDER[n]]), b = foot(keepers[ORDER[n + 1]]);
+    if (tt >= S + NP * D) return foot(keepers[ORDER[NP]]);
+    var e = Math.min(1, k / 0.6);
+    return [lerp(a[0], b[0], e), lerp(a[1], b[1], e)];
+  };
+  var endPass = S + NP * D;              // 0.73: possession on the 16th passer
+  var cut = [ (foot(keepers[ORDER[NP]])[0] + foot(keepers[ORDER[NP + 1]])[0]) / 2,
+              (foot(keepers[ORDER[NP]])[1] + foot(keepers[ORDER[NP + 1]])[1]) / 2 ];
+  var mate = OUT[4];
+  if (t < endPass) ball = ballAt(t);
+  else if (t < 0.78) ball = kfPos([[endPass, foot(keepers[ORDER[NP]])[0], foot(keepers[ORDER[NP]])[1]], [0.78, cut[0], cut[1]]], t);
+  else if (t < 0.81) ball = cut;
+  else if (t < 0.86) ball = kfPos([[0.81, cut[0], cut[1]], [0.86, mate[0], mate[1] - 7]], t);
+  else if (t < 0.9) ball = [mate[0], mate[1] - 7];
+  else ball = kfPos([[0.9, COACH[0] + 8, COACH[1]], [0.99, foot(keepers[ORDER[0]])[0], foot(keepers[ORDER[0]])[1]]], t);
+
+  ballLag = ballAt(Math.max(0, Math.min(t, endPass) - 0.05));
+  var press = function(i) {
+    var home = IN[i];
+    var k = i === 0 ? 0.62 : 0.5;
+    return [lerp(home[0], ballLag[0], k), lerp(home[1], ballLag[1], k)];
+  };
+  var enter = [0, S + 5 * D, S + 10 * D];
+  var pressers = OUT.map(function(o, i) {
+    if (i > 2) return o;
+    var p = press(i);
+    var inK = i === 0 ? 1 : Math.max(0, Math.min(1, (t - enter[i]) / 0.06));
+    var outK = Math.max(0, Math.min(1, (t - 0.86) / 0.1));
+    if (i === 0) {
+      var cutK = Math.max(0, Math.min(1, (t - endPass) / 0.05));
+      p = [lerp(p[0], cut[0] - 2, cutK), lerp(p[1], cut[1] - 6, cutK)];
+      var backK = Math.max(0, Math.min(1, (t - 0.86) / 0.1));
+      return [lerp(p[0], IN[0][0], backK), lerp(p[1], IN[0][1], backK)];
+    }
+    var q = [lerp(o[0], p[0], easeInOut(inK)), lerp(o[1], p[1], easeInOut(inK))];
+    return [lerp(q[0], o[0], easeInOut(outK)), lerp(q[1], o[1], easeInOut(outK))];
+  });
+
+  svg.appendChild(mkSvg('circle', {cx:COACH[0], cy:COACH[1], r:8, fill:'#111827', stroke:'#e5e7eb', 'stroke-width':'2'}));
+  keepers.forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], '', KEEP[0], KEEP[1], 8)); });
+  pressers.forEach(function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], '', PRESS[0], PRESS[1], 8)); });
+  if (ball) drawBall(svg, ball[0], ball[1], 3.8);
+
+  var nDef = t < enter[1] ? 1 : t < enter[2] ? 2 : 3;
+  if (t < endPass) {
+    var done = Math.max(0, Math.min(NP, passNo + (t - S - passNo * D > D * 0.6 ? 1 : 0)));
+    var count = done - 5 * (nDef - 1);
+    if (count >= 5) count = 5;
+    calloutText(svg, 150, 202, '8 V ' + nDef + '   PASSES ' + count + ' / 5', count === 5 ? '#a8e63d' : '#ffb830');
+  } else if (t < 0.88) {
+    calloutText(svg, 150, 202, 'WON IT: PASS TO A TEAMMATE OUT', PRESS[1]);
+  } else {
+    calloutText(svg, 150, 202, 'COACH PLAYS A NEW BALL IN', '#ffffff');
+  }
+  captionText(svg, w, h, swap ? 'Roles swapped: blue keep it, red press' : 'Red keep it, blue press: +1 presser every 5 passes', h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
