@@ -887,6 +887,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DFV-nIrOx3M/',label:'See it on Instagram'},
     anim: 'animSpeed1v1', animMs: 8000
   },
+  {
+    id:'ad6', cat:'attackdef', name:'3 v 2 Shooting Drill', duration:15,
+    setup:'Use a goal with a keeper and the penalty box. Four defenders start on the goal line, two just outside each post, with a pile of balls beside each pair. Put three cones about 30 yards from goal (left, centre and right) with a queue of two or three attackers at each. A defender passes a ball out to one of the front attackers. Straight away the front defender from each post steps out, and the three front attackers attack the goal 3v2 and try to score. The go ends with a goal, a save or the ball going out. The two defenders jog back to wait beside their post, the attackers jog back to the end of their queue, and the next defenders pass out a new ball so the next wave goes straight away. Swap attackers and defenders every few minutes.',
+    points:['Attackers: get forward fast while you have the extra player','Use the 3v2: draw a defender, then pass to the free player','Wide attackers: stay wide to stretch the two defenders, then attack the far post','Shoot early and low when you get a sight of goal, and follow in for rebounds','Defenders: step out quickly as a pair, one presses the ball, the other covers','Defenders: stay goalside, slow them down and force a sideways pass'],
+    progression:'Give the attackers 8 seconds to shoot. Let the defenders score in a small goal or by dribbling over the line if they win it. Make it 3v3 by sending a recovering defender in from behind the attackers.',
+    cues:['Attack fast!','Draw and pass','Shoot early','Press and cover'],
+    diagram:'shooting3v2', viewBox:'0 0 300 250',
+    instagram:{url:'https://www.instagram.com/reel/C3fxaBnBBzH/',label:'See it on Instagram'},
+    anim: 'animShooting3v2', animMs: 8000
+  },
 ];
 
 const GLOBAL_CUES = [
