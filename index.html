@@ -5808,6 +5808,101 @@ function animQuickTransitions(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Attack ends? New player on with a ball, attack back!', h - 4);
 }
 
+function animCrossSecondBall(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: goal and keeper at the top, penalty box below it. One coach
+  // (Co) stands on the left byline inside the box with the balls, another
+  // just outside the right side of the box. Mannequins on the penalty spot
+  // and on the right edge of the box. Wide players (W) queue out on the
+  // right, runners (R) queue on the left touchline. W passes into the coach
+  // and gets it back round the outside of the edge mannequin, drives in and
+  // crosses low for R, who finishes first time. R drops back round the
+  // middle mannequin and the byline coach plays in a second ball for another
+  // finish. W joins the runners' queue and R joins the wide queue.
+  var line = function(a) { svg.appendChild(mkSvg('rect', Object.assign({fill:'none', stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}, a))); };
+  line({x:45, y:22, width:210, height:95});
+  line({x:100, y:22, width:100, height:28});
+  svg.appendChild(mkSvg('path', {d:'M122,117 Q150,140 178,117', fill:'none', stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('line', {x1:10, y1:22, x2:290, y2:22, stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:125, y:10, width:50, height:12, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  var dummy = function(x, y) {
+    svg.appendChild(mkSvg('rect', {x:x - 3.5, y:y - 6, width:7, height:14, rx:2, fill:'#facc15', stroke:'#a16207', 'stroke-width':'1'}));
+    svg.appendChild(mkSvg('circle', {cx:x, cy:y - 9, r:3, fill:'#facc15', stroke:'#a16207', 'stroke-width':'1'}));
+  };
+  dummy(150, 84);
+  dummy(253, 120);
+
+  var BLUE = '#2f80ed', RING = '#93c5fd';
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  var GK = [150, 31], CL = [56, 34], CR = [208, 134];
+  var W0 = [271, 152], W1 = [284, 176], R0 = [44, 130], R1 = [30, 112];
+  var pl = function(p, lbl) { svg.appendChild(playerCircle(svg, p[0], p[1], lbl, BLUE, RING, 8)); };
+  var coach = function(p) { svg.appendChild(playerCircle(svg, p[0], p[1], 'Co', '#1f2937', '#e5e7eb', 8)); };
+  drawBall(svg, 62, 45, 3.5);
+
+  if (!animated) {
+    arrow(svg, W0[0] - 8, W0[1] - 4, CR[0] + 10, CR[1] + 2, '#ffffff');
+    arrow(svg, CR[0] + 6, CR[1] - 8, 240, 98, '#ffffff');
+    arrow(svg, W0[0] - 2, W0[1] - 10, 262, 108, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, 262, 108, 248, 92, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, 240, 86, 238, 66, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, 232, 62, 116, 62, '#ffffff');
+    arrow(svg, R0[0] + 8, R0[1] - 8, 104, 70, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, 112, 58, 164, 16, '#a8e63d');
+    arrow(svg, 66, 40, 118, 86, '#ffb830');
+    svg.appendChild(playerCircle(svg, GK[0], GK[1], 'GK', '#ffd23f', '#a07800', 8));
+    coach(CL); coach(CR);
+    pl(W0, 'W'); pl(W1, 'W'); pl(R0, 'R'); pl(R1, 'R');
+    drawBall(svg, W0[0] - 6, W0[1] - 6, 4);
+    drawBall(svg, 66, 40, 3.5);
+    captionText(svg, w, h, 'Wall pass, cross, finish, then a second ball', h - 6);
+    return;
+  }
+
+  var P = function(keys) { return kfPos(keys, t); };
+  var wide = P([K(0,W0[0],W0[1]),K(0.12,W0[0],W0[1]),K(0.18,262,118),K(0.24,246,96),K(0.34,238,64),K(0.78,238,64),K(0.98,R1[0],R1[1])]);
+  var run = P([K(0,R0[0],R0[1]),K(0.14,R0[0],R0[1]),K(0.26,72,100),K(0.4,108,64),K(0.46,112,60),K(0.58,130,98),K(0.68,124,90),K(0.76,124,88),K(0.98,W1[0],W1[1])]);
+  var nextW = P([K(0,W1[0],W1[1]),K(0.8,W1[0],W1[1]),K(0.94,W0[0],W0[1])]);
+  var nextR = P([K(0,R1[0],R1[1]),K(0.8,R1[0],R1[1]),K(0.94,R0[0],R0[1])]);
+
+  // First ball: W's ball, played into the coach, back round the mannequin, crossed and finished.
+  var b1 = null;
+  if (t < 0.06) b1 = [W0[0] - 6, W0[1] - 6];
+  else if (t < 0.12) b1 = P([K(0.06,W0[0]-6,W0[1]-6),K(0.12,CR[0]+8,CR[1]+2)]);
+  else if (t < 0.15) b1 = [CR[0] + 8, CR[1] + 2];
+  else if (t < 0.24) b1 = P([K(0.15,CR[0]+8,CR[1]+2),K(0.24,242,90)]);
+  else if (t < 0.34) b1 = [wide[0] - 4, wide[1] - 6];
+  else if (t < 0.42) b1 = P([K(0.34,234,58),K(0.42,114,58)]);
+  else if (t < 0.48) b1 = P([K(0.42,114,58),K(0.48,166,15)]);
+  else if (t < 0.56) b1 = [166, 15];
+  if (b1) drawBall(svg, b1[0], b1[1], 4);
+  // Second ball: from the byline coach into R's path as R comes back in.
+  var b2 = null;
+  if (t < 0.58 || t > 0.92) b2 = [66, 40];
+  else if (t < 0.68) b2 = P([K(0.58,66,40),K(0.68,120,84)]);
+  else if (t < 0.7) b2 = [120, 84];
+  else if (t < 0.76) b2 = P([K(0.7,120,84),K(0.76,134,15)]);
+  else if (t < 0.84) b2 = [134, 15];
+  if (b2) drawBall(svg, b2[0], b2[1], 3.5);
+  // The next wide player carries their ball up.
+  drawBall(svg, nextW[0] - 6, nextW[1] - 6, 4);
+
+  var gk = P([K(0,GK[0],GK[1]),K(0.36,GK[0],GK[1]),K(0.42,138,30),K(0.48,152,30),K(0.6,148,31),K(0.7,154,30),K(0.76,144,29),K(0.9,GK[0],GK[1])]);
+  svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#a07800', 8));
+  coach(CL); coach(CR);
+  pl(nextW, 'W'); pl(nextR, 'R');
+  pl(wide, 'W'); pl(run, 'R');
+
+  if (t > 0.02 && t < 0.13) calloutText(svg, 150, 234, 'PASS IN', '#ffffff');
+  else if (t > 0.14 && t < 0.26) calloutText(svg, 150, 234, 'ROUND THE MANNEQUIN', '#ffffff');
+  else if (t > 0.3 && t < 0.42) calloutText(svg, 150, 234, 'CROSS!', '#ffb830');
+  else if (t > 0.42 && t < 0.54) calloutText(svg, 150, 234, 'FIRST TIME - GOAL!', '#a8e63d');
+  else if (t > 0.54 && t < 0.69) calloutText(svg, 150, 234, 'SECOND BALL', '#ffb830');
+  else if (t > 0.69 && t < 0.8) calloutText(svg, 150, 234, 'GOAL!', '#a8e63d');
+  else if (t > 0.8) calloutText(svg, 150, 234, 'SWAP LINES', '#ffffff');
+  captionText(svg, w, h, 'Wall pass, cross, finish, then a second ball', h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
