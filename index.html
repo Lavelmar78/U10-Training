@@ -5903,6 +5903,90 @@ function animCrossSecondBall(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Wall pass, cross, finish, then a second ball', h - 6);
 }
 
+// PASS AND MOVE WARM-UP
+function animPassMoveWarm(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: a straight line of cones running away from the coach, red
+  // nearest, a red and yellow stacked in the middle, yellow furthest. The
+  // passer starts bottom right with the ball, the top player waits top right
+  // and the queue waits bottom left. The ball goes up the right side and
+  // comes back down the left, so the players go round the cones.
+  var CX = 150;
+  var cone = function(x, y, col) { svg.appendChild(mkSvg('polygon', {points:x+','+(y-11)+' '+(x-5)+','+(y+4)+' '+(x+5)+','+(y+4), fill:col})); };
+  cone(CX, 172, '#ef4444');
+  cone(CX, 118, '#ef4444'); cone(CX, 110, '#facc15');
+  cone(CX, 62, '#facc15');
+
+  var BLUE = '#1d4ed8', RING = '#60a5fa';
+  var P0 = [174, 186], T0 = [174, 40], TL = [126, 44], N0 = [126, 188], Q0 = [102, 196];
+  var WALL = [180, 108], WALL2 = [120, 112];
+  var K = function(pp, x, y) { return [pp, x, y]; };
+  if (!animated) {
+    arrow(svg, P0[0], P0[1] - 10, T0[0], T0[1] + 12, '#ffffff');
+    arrow(svg, P0[0] + 10, P0[1] - 8, WALL[0] + 8, WALL[1] + 10, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, T0[0] + 6, T0[1] + 10, WALL[0] + 2, WALL[1] - 10, '#ffb830');
+    arrow(svg, WALL[0] - 8, WALL[1] - 6, TL[0] + 8, TL[1] + 8, '#ffffff');
+    arrow(svg, TL[0], TL[1] + 10, N0[0], N0[1] - 12, '#ffffff');
+    arrow(svg, TL[0] - 10, TL[1] + 8, WALL2[0] - 10, WALL2[1] - 10, 'rgba(147,197,253,0.85)', true);
+    arrow(svg, N0[0] - 6, N0[1] - 10, WALL2[0] - 2, WALL2[1] + 10, '#ffb830');
+    arrow(svg, WALL2[0] + 8, WALL2[1] + 6, P0[0] - 8, P0[1] - 8, '#ffffff');
+    svg.appendChild(playerCircle(svg, P0[0], P0[1], '1', BLUE, RING, 8));
+    svg.appendChild(playerCircle(svg, T0[0], T0[1], '2', BLUE, RING, 8));
+    svg.appendChild(playerCircle(svg, Q0[0], Q0[1], '3', BLUE, RING, 8));
+    svg.appendChild(playerCircle(svg, N0[0], N0[1], '4', BLUE, RING, 8));
+    drawBall(svg, P0[0], P0[1] - 11, 4);
+    captionText(svg, w, h, '1-2 up the right, 1-2 down the left', h - 4);
+    return;
+  }
+
+  // Role paths for one go: a 1-2 on the way up, then a 1-2 on the way down.
+  // Each role ends where the next one starts, so the players swap roles every
+  // loop with no jump: passer -> top player -> back of queue -> front of
+  // queue -> passer. So it runs 1-2, 2-1, 1-2, then 2-4, 4-2, 2-4, then 4-1...
+  var path = [
+    // 0 = passer: pass up, follow it, get it back, pass in again, take the top spot
+    [K(0,P0[0],P0[1]),K(0.06,P0[0],P0[1]),K(0.22,WALL[0],WALL[1]),K(0.28,WALL[0],WALL[1]),K(0.42,T0[0],T0[1]),K(1,T0[0],T0[1])],
+    // 1 = top player: set it back, step left, receive, pass down, follow it,
+    // get it back, pass in again, jog to the back of the queue
+    [K(0,T0[0],T0[1]),K(0.22,T0[0],T0[1]),K(0.3,TL[0],TL[1]),K(0.4,TL[0],TL[1]),K(0.56,WALL2[0],WALL2[1]),
+     K(0.63,WALL2[0],WALL2[1]),K(0.88,Q0[0],Q0[1]),K(1,Q0[0],Q0[1])],
+    // 2 = back of the queue: steps up to the front
+    [K(0,Q0[0],Q0[1]),K(0.68,Q0[0],Q0[1]),K(0.78,N0[0],N0[1]),K(1,N0[0],N0[1])],
+    // 3 = front of the queue: receives, sets it back, steps right to receive again
+    [K(0,N0[0],N0[1]),K(0.57,N0[0],N0[1]),K(0.66,P0[0],P0[1]),K(1,P0[0],P0[1])]
+  ];
+  var k = loopIndex(state, t, 'pmw', 4);
+  var pos = path.map(function(p) { return kfPos(p, t); });
+
+  var ball;
+  if (t < 0.06) ball = [P0[0], P0[1] - 11];
+  else if (t < 0.15) ball = kfPos([K(0.06,P0[0],P0[1]-11),K(0.15,T0[0],T0[1]+10)], t);
+  else if (t < 0.18) ball = [T0[0], T0[1] + 10];
+  else if (t < 0.24) ball = kfPos([K(0.18,T0[0],T0[1]+10),K(0.24,WALL[0],WALL[1]-10)], t);
+  else if (t < 0.27) ball = [WALL[0], WALL[1] - 10];
+  else if (t < 0.34) ball = kfPos([K(0.27,WALL[0]-4,WALL[1]-10),K(0.34,TL[0],TL[1]+10)], t);
+  else if (t < 0.4) ball = [TL[0], TL[1] + 10];
+  else if (t < 0.5) ball = kfPos([K(0.4,TL[0],TL[1]+10),K(0.5,N0[0],N0[1]-11)], t);
+  else if (t < 0.54) ball = [N0[0], N0[1] - 11];
+  else if (t < 0.6) ball = kfPos([K(0.54,N0[0],N0[1]-11),K(0.6,WALL2[0],WALL2[1]+10)], t);
+  else if (t < 0.62) ball = [WALL2[0], WALL2[1] + 10];
+  else if (t < 0.7) ball = kfPos([K(0.62,WALL2[0]+4,WALL2[1]+10),K(0.7,P0[0],P0[1]-11)], t);
+  else ball = [P0[0], P0[1] - 11];
+  drawBall(svg, ball[0], ball[1], 4);
+
+  // Player i plays role (i + k) % 4 this loop
+  for (var i = 0; i < 4; i++) {
+    var r = (i + k) % 4;
+    svg.appendChild(playerCircle(svg, pos[r][0], pos[r][1], String(i + 1), BLUE, RING, 8));
+  }
+
+  if ((t > 0.06 && t < 0.18) || (t > 0.4 && t < 0.52)) calloutText(svg, 250, 120, 'PASS & FOLLOW', '#ffffff');
+  else if ((t > 0.18 && t < 0.27) || (t > 0.52 && t < 0.62)) calloutText(svg, 250, 120, 'SET IT BACK', '#ffb830');
+  else if ((t > 0.27 && t < 0.38) || (t > 0.62 && t < 0.72)) calloutText(svg, 250, 120, 'PASS IN', '#ffffff');
+  else if (t > 0.72 && t < 0.95) calloutText(svg, 250, 120, 'GO AGAIN', '#a8e63d');
+  captionText(svg, w, h, '1-2 up the right, 1-2 down the left', h - 4);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

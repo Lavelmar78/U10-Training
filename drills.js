@@ -372,6 +372,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DSrk9omAlmG/',label:'See it on Instagram'},
     anim: 'animHungryHippos', animMs: 18000
   },
+  {
+    id:'w19', cat:'warmup', name:'Pass and Move Warm-Up', duration:8,
+    setup:'Set out a straight line of 3 cones running away from you, about 5m apart: a red cone nearest, a red and a yellow stacked in the middle, and a yellow cone furthest away. Groups of 4 with one ball. Player 1 starts at the near end, just right of the red cone, with the ball. Player 2 stands at the far end, right of the yellow cone. Players 4 and 3 queue at the near end on the left (4 at the front). Going up: player 1 passes up the right side to player 2 and follows the pass. Player 2 sets it back first time into player 1\'s run, then steps across to the left of the far cone. Player 1 passes it in to player 2 again and carries on to take the far spot (1-2, 2-1, 1-2). Coming down: player 2 passes down the left side to player 4 and follows the pass. Player 4 sets it back first time, then steps across to the right of the red cone. Player 2 passes it in to player 4 again and jogs to the back of the queue (2-4, 4-2, 2-4). Player 4 now goes up with player 1 (4-1, 1-4, 4-1), and so on. The ball goes up the right and comes back down the left, so everyone goes round the cones.',
+    points:['Pass and follow your pass straight away, do not admire it','Pass firm along the ground with the inside of the foot','Set it back first time into the runner\'s path, not at their feet','Open your body so you can receive and pass on in two touches','Talk - call the name of the player you are passing to','Keep it moving, the next player should be ready before the ball arrives'],
+    progression:'Two touches only, then one touch. Weaker foot only. Make the cones further apart, or run two groups side by side as a race to 10 passes.',
+    cues:['Pass and follow','Set it back','Call a name','1-2 up, 1-2 down'],
+    diagram:'passmovewarm', viewBox:'0 0 300 220',
+    instagram:{url:'https://www.instagram.com/reel/DKnYPxCi58b/',label:'See it on Instagram'},
+    anim: 'animPassMoveWarm', animMs: 11000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
