@@ -5609,12 +5609,12 @@ function animIncreasePressure(svg, t, animated, state, w, h) {
 function animOverlapCross(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   // Coach's view: goal and keeper at the top, penalty box below it. A coned
-  // box out wide on each side holds a wide player (W). Runners (R) queue
-  // behind a cone in the middle, with the server (S) and the balls behind
-  // them. S passes into W, R overlaps round the outside of W, W plays it
-  // down the line, R crosses and W, who has attacked the box, finishes
-  // first time. R stays out wide as the new W and W joins the back of the
-  // queue. Each loop goes down the other side.
+  // box out wide on each side holds a wide player (W). Servers (S) queue
+  // behind a cone in the middle with the balls. Only two players go each
+  // time: S passes into W and overlaps round the outside, W plays it back
+  // down the line into S's path and runs into the middle, S crosses and W
+  // finishes first time. S stays out wide as the new W and W joins the back
+  // of the queue. Each loop goes down the other side.
   var line = function(a) { svg.appendChild(mkSvg('rect', Object.assign({fill:'none', stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}, a))); };
   line({x:45, y:22, width:210, height:95});
   line({x:100, y:22, width:100, height:28});
@@ -5627,26 +5627,26 @@ function animOverlapCross(svg, t, animated, state, w, h) {
     [[x,136],[x+48,136],[x,176],[x+48,176]].forEach(function(c) { cone(c[0], c[1]); });
   });
   cone(150, 147);
-  [[166,212],[172,205],[173,218]].forEach(function(b) { drawBall(svg, b[0], b[1], 3.5); });
+  [[172,168],[178,161],[179,174]].forEach(function(b) { drawBall(svg, b[0], b[1], 3.5); });
 
   var RED = '#dc2626', RING = '#fca5a5';
   var K = function(pp, x, y) { return [pp, x, y]; };
-  var W0 = [46, 156], Q0 = [150, 162], Q1 = [150, 182], S = [150, 204], GK = [150, 31];
+  var W0 = [46, 156], Q0 = [150, 162], Q1 = [150, 182], GK = [150, 31];
   var pl = function(p, lbl) { svg.appendChild(playerCircle(svg, p[0], p[1], lbl, RED, RING, 8)); };
   var mir = function(p) { return [w - p[0], p[1]]; };
 
   if (!animated) {
-    arrow(svg, S[0] - 8, S[1] - 6, W0[0] + 10, W0[1] + 4, '#ffffff');
-    arrow(svg, Q0[0] - 10, Q0[1] + 2, 60, 182, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, Q0[0] - 10, Q0[1] - 4, W0[0] + 10, W0[1] - 2, '#ffffff');
+    arrow(svg, Q0[0] - 8, Q0[1] + 6, 60, 182, 'rgba(252,165,165,0.8)', true);
     arrow(svg, 50, 184, 18, 150, 'rgba(252,165,165,0.8)', true);
     arrow(svg, 18, 140, 22, 64, 'rgba(252,165,165,0.8)', true);
     arrow(svg, W0[0] + 4, W0[1] - 10, 28, 108, '#ffffff');
     arrow(svg, W0[0] + 8, W0[1] - 8, 124, 66, 'rgba(252,165,165,0.8)', true);
     arrow(svg, 30, 56, 120, 56, '#ffffff');
     svg.appendChild(playerCircle(svg, GK[0], GK[1], 'GK', '#ffd23f', '#a07800', 8));
-    pl(W0, 'W'); pl(mir(W0), 'W'); pl(Q0, 'R'); pl(Q1, 'R'); pl(S, 'S');
-    drawBall(svg, S[0], S[1] - 10, 4);
-    captionText(svg, w, h, 'Pass in, overlap, ball down the line, cross, finish', h - 6);
+    pl(W0, 'W'); pl(mir(W0), 'W'); pl(Q0, 'S'); pl(Q1, 'S');
+    drawBall(svg, Q0[0] - 6, Q0[1] - 8, 4);
+    captionText(svg, w, h, 'Pass in, overlap, ball back down the line, cross, finish', h - 6);
     return;
   }
 
@@ -5656,12 +5656,12 @@ function animOverlapCross(svg, t, animated, state, w, h) {
   var P = function(keys) { return M(kfPos(keys, t)); };
 
   var wide = P([K(0,W0[0],W0[1]),K(0.32,W0[0],W0[1]),K(0.42,74,128),K(0.52,104,96),K(0.62,126,62),K(0.76,126,62),K(0.86,104,170),K(0.97,Q1[0],Q1[1])]);
-  var run = P([K(0,Q0[0],Q0[1]),K(0.08,Q0[0],Q0[1]),K(0.2,84,182),K(0.26,54,184),K(0.34,20,152),K(0.42,20,108),K(0.55,24,60),K(0.74,24,60),K(0.96,W0[0],W0[1])]);
+  var run = P([K(0,Q0[0],Q0[1]),K(0.1,Q0[0],Q0[1]),K(0.2,84,182),K(0.26,54,184),K(0.34,20,152),K(0.42,20,108),K(0.55,24,60),K(0.74,24,60),K(0.96,W0[0],W0[1])]);
   var q = P([K(0,Q1[0],Q1[1]),K(0.3,Q1[0],Q1[1]),K(0.4,Q0[0],Q0[1])]);
 
   var ball = null;
-  if (t < 0.02 || t > 0.86) ball = [S[0], S[1] - 10];
-  else if (t < 0.12) ball = P([K(0.02,S[0],S[1]-10),K(0.12,W0[0]+5,W0[1]-7)]);
+  if (t < 0.02 || t > 0.86) ball = [Q0[0] - 6, Q0[1] - 8];
+  else if (t < 0.12) ball = P([K(0.02,Q0[0]-6,Q0[1]-8),K(0.12,W0[0]+5,W0[1]-7)]);
   else if (t < 0.32) ball = M([W0[0] + 5, W0[1] - 7]);
   else if (t < 0.42) ball = P([K(0.32,W0[0]+5,W0[1]-7),K(0.42,26,100)]);
   else if (t < 0.55) { var rb = kfPos([K(0.42,20,108),K(0.55,24,60)], t); ball = M([rb[0] + 6, rb[1] - 8]); }
@@ -5672,18 +5672,17 @@ function animOverlapCross(svg, t, animated, state, w, h) {
 
   var gk = P([K(0,GK[0],GK[1]),K(0.42,GK[0],GK[1]),K(0.55,138,30),K(0.62,146,30),K(0.68,158,28),K(0.8,158,28),K(0.95,GK[0],GK[1])]);
   svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#a07800', 8));
-  pl(S, 'S');
   pl(M(mir(W0)), 'W');
-  pl(q, 'R');
+  pl(q, 'S');
   pl(wide, 'W');
-  pl(run, 'R');
+  pl(run, 'S');
 
   if (t > 0.02 && t < 0.12) calloutText(svg, 150, 234, 'PASS IN', '#ffffff');
   else if (t > 0.14 && t < 0.42) calloutText(svg, 150, 234, 'OVERLAP!', '#ffb830');
   else if (t > 0.5 && t < 0.63) calloutText(svg, 150, 234, 'CROSS!', '#ffb830');
   else if (t > 0.63 && t < 0.76) calloutText(svg, 150, 234, 'FIRST TIME - GOAL!', '#a8e63d');
-  else if (t > 0.78) calloutText(svg, 150, 234, 'ROTATE: R STAYS WIDE', '#ffffff');
-  captionText(svg, w, h, 'Pass in, overlap, ball down the line, cross, finish', h - 6);
+  else if (t > 0.78) calloutText(svg, 150, 234, 'ROTATE: S STAYS WIDE', '#ffffff');
+  captionText(svg, w, h, 'Pass in, overlap, ball back down the line, cross, finish', h - 6);
 }
 
 function animSprintSlow(svg, t, animated, state, w, h) {
