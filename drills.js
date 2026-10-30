@@ -917,6 +917,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/C_FmeG0Ieje/',label:'See it on Instagram'},
     anim: 'animIncreasePressure', animMs: 16000
   },
+  {
+    id:'ad8', cat:'attackdef', name:'Quick Transitions', duration:15,
+    setup:'Waves that build from 1 v 1 up to 4 v 4. Use a pitch about 35 x 25 yards with a goal and keeper at each end. Blues queue with a ball each, half beside each post of the bottom goal. Reds queue the same way beside the top goal. A red dribbles out and attacks the blue goal, and one blue steps out to defend (1 v 1). As soon as that attack ends (goal, save, ball out or the defender wins it), a new blue comes on from beside their goal with a new ball and the blues attack the red goal straight away (2 v 1). Every player already on stays on, and the team that was attacking has to sprint back and defend. Then a new red comes on with a ball and the reds attack (2 v 2), then 3 v 2, 3 v 3, 4 v 3 and 4 v 4. After the 4 v 4 attack, everyone goes back to the queues and the next group goes.',
+    points:['The moment an attack ends, switch your head: attackers become defenders','Sprint back goalside before you worry about the ball','New player: get on fast and attack at pace before the defence is set','Use the extra player: draw a defender, then pass','Defenders: talk, one presses the ball and the others cover','Shoot early when you get a sight of goal'],
+    progression:'Limit each attack to 8 seconds. Start at 2 v 1 to speed it up. Let the team that wins the ball counter-attack straight away instead of waiting for the new ball.',
+    cues:['Transition!','Get back!','New ball, go!','Use the spare player'],
+    diagram:'quicktransitions', viewBox:'0 0 260 346',
+    instagram:{url:'https://www.instagram.com/p/CVAbeLtI08J/',label:'See it on Instagram'},
+    anim: 'animQuickTransitions', animMs: 5000
+  },
 ];
 
 const GLOBAL_CUES = [
