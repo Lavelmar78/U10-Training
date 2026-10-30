@@ -494,6 +494,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DP89q9pjGy5/',label:'See it on Instagram'},
     anim: 'animOverlapCross', animMs: 9000
   },
+  {
+    id:'a15', cat:'attacking', name:'Crossing & Finishing 2', duration:15,
+    setup:'Use the top of the pitch with a goal and keeper. Put one mannequin (or tall cone) on the penalty spot and another on the right-hand edge of the box, level with the 18-yard line. One coach stands on the left byline inside the box with a pile of balls. A second coach stands just outside the right side of the box, near the D. Wide players (W) queue with a ball each out on the right, about 10 yards outside the box. Runners (R) queue on the left touchline, level with the edge of the box. W passes into the right-hand coach, then runs round the outside of the edge mannequin. The coach plays it back into the box, W takes it towards the byline and crosses low across the box. At the same time R runs into the box and finishes the cross first time. R then drops back out towards the middle mannequin and the coach on the byline plays a second ball across for R to finish again. Rotate: W joins the back of the runners\' queue, R fetches a ball and joins the back of the wide queue.',
+    points:['W: pass firmly into the coach and go straight away, bend your run round the outside of the mannequin','W: big touch towards the byline, then look up before you cross','Cross low and hard across the six-yard box, between the keeper and the runner','R: time your run, start when W gets the ball back, not before','R: attack the space in front of the keeper and finish first time','After the first finish, get back out quickly and be ready for the second ball'],
+    progression:'Send a second runner from the left queue to attack the far post. Let the byline coach vary the second ball (pull-back, chip, rolled in). Add a defender in the box once the runs are timed well. Swap the drill to the other side so players cross with their left foot.',
+    cues:['Pass and go!','Round the mannequin','Cross it low','First time!','Second ball!'],
+    diagram:'crosssecondball', viewBox:'0 0 300 250',
+    instagram:{url:'https://www.instagram.com/reel/DPTsjkjDMLM/',label:'See it on Instagram'},
+    anim: 'animCrossSecondBall', animMs: 10000
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
