@@ -484,6 +484,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DL9-jAtMSOb/',label:'See it on Instagram'},
     anim: 'animPenetratingPasses', animMs: 7000
   },
+  {
+    id:'a14', cat:'attacking', name:'Overlapping Crossing & Finishing', duration:15,
+    setup:'Use the top of the pitch with a goal and keeper. Mark a coned box about 6x6 yards out wide on each side, level with the edge of the penalty area, with one wide player (W) in each. Put a cone in the middle about 10 yards outside the D. The servers (S) queue behind it with the balls. Only two outfield players go each time. S passes into the W on one side, then makes an overlapping run round the outside of W. W plays the ball back down the line into the server\'s path, then runs into the middle. S takes a touch towards the byline and delivers a driven or lofted cross, and W finishes first time against the keeper. Rotate: S stays out wide as the new W and W jogs to the back of the queue. Alternate sides each go so everyone practises every role.',
+    points:['Timing of the overlap: not too early, not too late','Server: shout and make eye contact with W before W plays it back','W: pass down the line into the server\'s path so they don\'t have to slow down','Cross with pace into the space between the keeper and the penalty spot','Finisher: attack the space, not the ball, and arrive with pace','Keep it at game speed'],
+    progression:'Pick a target for the cross (near post, penalty spot, far post) before each go. Send the next server from the queue as a second finisher. Then add a passive defender on the overlap or in the box.',
+    cues:['Overlap!','Down the line','Cross with pace','First time!'],
+    diagram:'overlapcross', viewBox:'0 0 300 250',
+    instagram:{url:'https://www.instagram.com/reel/DP89q9pjGy5/',label:'See it on Instagram'},
+    anim: 'animOverlapCross', animMs: 9000
+  },
     // ── EXTRA MOVEMENT ──
   {
     id:'m4', cat:'movement', name:'Directional First Touch', duration:10,
