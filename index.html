@@ -5685,6 +5685,129 @@ function animOverlapCross(svg, t, animated, state, w, h) {
   captionText(svg, w, h, 'Pass in, overlap, ball back down the line, cross, finish', h - 6);
 }
 
+function animQuickTransitions(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: blue goal and keeper at the bottom, red goal and keeper at
+  // the top. Each team queues with balls either side of its own goal. Waves
+  // build up from 1v1 to 4v4: each time an attack ends, the team that was
+  // defending brings a new player on with a new ball and attacks the other
+  // way straight away (1v1, 2v1, 2v2, 3v2, 3v3, 4v3, 4v4). Each loop is one
+  // wave; after the 4v4 everyone goes back to the queues.
+  var ln = 'rgba(255,255,255,0.55)';
+  svg.appendChild(mkSvg('rect', {x:20, y:24, width:220, height:292, fill:'none', stroke:ln, 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('line', {x1:20, y1:170, x2:240, y2:170, stroke:ln, 'stroke-width':'1'}));
+  svg.appendChild(mkSvg('rect', {x:75, y:24, width:110, height:44, fill:'none', stroke:ln, 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:75, y:272, width:110, height:44, fill:'none', stroke:ln, 'stroke-width':'1.5'}));
+  svg.appendChild(mkSvg('rect', {x:105, y:14, width:50, height:10, fill:'none', stroke:'white', 'stroke-width':'2'}));
+  svg.appendChild(mkSvg('rect', {x:105, y:316, width:50, height:10, fill:'none', stroke:'white', 'stroke-width':'2'}));
+
+  var BLUE = '#1d4ed8', BRING = '#93c5fd', RED = '#dc2626', RRING = '#fca5a5';
+  // Slots are written for blue (defends the bottom goal); red uses the point
+  // reflection through the centre spot.
+  var HOME = [[140,268],[90,248],[190,252],[130,222]];
+  var ATT = [[98,66],[60,115],[205,108],[155,135]];
+  var QF = [[50,24],[210,24]], QB = [[38,14],[222,14]];
+  var R = function(p) { return [260 - p[0], 340 - p[1]]; };
+  var tp = function(team, p) { return team === 'b' ? p : R(p); };
+  // Queue spots: blue queues beside the bottom goal, red beside the top goal
+  var qSpot = function(team, side) { return team === 'r' ? QF[side] : R(QF[side]); };
+  var gkB = [130, 306], gkR = [130, 34];
+
+  var drawQueues = function() {
+    [0, 1].forEach(function(s) {
+      var rb = QB[s];
+      svg.appendChild(playerCircle(svg, rb[0], rb[1], '', RED, RRING, 7));
+      drawBall(svg, rb[0] + (s ? 7 : -7), rb[1] + 5, 3);
+      var bb = R(QB[s]);
+      svg.appendChild(playerCircle(svg, bb[0], bb[1], '', BLUE, BRING, 7));
+      drawBall(svg, bb[0] + (s ? -7 : 7), bb[1] - 5, 3);
+    });
+  };
+  var pl = function(team, p, lbl) {
+    svg.appendChild(playerCircle(svg, p[0], p[1], lbl, team === 'b' ? BLUE : RED, team === 'b' ? BRING : RRING, 8));
+  };
+
+  if (!animated) {
+    // Still: the 2v2 wave, red attacking down after blue's 2v1 attack
+    drawQueues();
+    svg.appendChild(playerCircle(svg, gkR[0], gkR[1], 'GK', '#ffd23f', '#a07800', 8));
+    svg.appendChild(playerCircle(svg, gkB[0], gkB[1], 'GK', '#ffd23f', '#a07800', 8));
+    var e = qSpot('r', 1), h0 = tp('r', HOME[0]);
+    arrow(svg, e[0] - 4, e[1] + 10, 182, 150, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, h0[0] - 6, h0[1] + 10, 168, 252, 'rgba(252,165,165,0.8)', true);
+    arrow(svg, ATT[0][0] + 4, ATT[0][1] + 10, 136, 256, 'rgba(147,197,253,0.8)', true);
+    arrow(svg, ATT[1][0] + 4, ATT[1][1] + 10, 86, 238, 'rgba(147,197,253,0.8)', true);
+    pl('r', e, '2'); drawBall(svg, e[0] - 5, e[1] + 9, 4);
+    pl('r', h0, '1');
+    pl('b', ATT[0], '1'); pl('b', ATT[1], '2');
+    calloutText(svg, 130, 196, '1v1 > 2v1 > 2v2 > 3v2 > 3v3 > 4v3 > 4v4', '#ffffff');
+    captionText(svg, w, h, 'Attack ends? New player on with a ball, attack back!', h - 4);
+    return;
+  }
+
+  var wave = loopIndex(state, t, 'qt', 7);
+  var attTeam = wave % 2 === 0 ? 'r' : 'b', defTeam = attTeam === 'r' ? 'b' : 'r';
+  var nAtt = attTeam === 'r' ? wave / 2 + 1 : (wave + 1) / 2 + 1;
+  var nDef = attTeam === 'r' ? nAtt : nAtt - 1;
+  var side = Math.floor(wave / 2) % 2 === 0 ? 1 : 0;
+  var K = function(pp, p) { return [pp, p[0], p[1]]; };
+
+  drawQueues();
+
+  // Attackers: the old ones push up from home slots, the new one comes from the queue
+  var attPos = [], defPos = [];
+  for (var j = 0; j < nAtt; j++) {
+    var start = j === nAtt - 1 ? qSpot(attTeam, side) : tp(attTeam, HOME[j]);
+    attPos.push(kfPos([K(0.06, start), K(0.7, tp(attTeam, ATT[j]))], t));
+  }
+  // Defenders: sprint back from where they finished attacking to their home slots
+  for (var d = 0; d < nDef; d++) {
+    var dStart = wave === 0 ? qSpot(defTeam, 0) : tp(defTeam, ATT[d]);
+    defPos.push(kfPos([K(0.04, dStart), K(0.45, tp(defTeam, HOME[d]))], t));
+  }
+  // After the last wave everyone jogs back to the queues
+  if (wave === 6 && t > 0.84) {
+    var back = (t - 0.84) / 0.16;
+    attPos = attPos.map(function(p, i) { var q = qSpot(attTeam, i % 2); return [lerp(p[0], q[0], back), lerp(p[1], q[1], back)]; });
+    defPos = defPos.map(function(p, i) { var q = qSpot(defTeam, i % 2); return [lerp(p[0], q[0], back), lerp(p[1], q[1], back)]; });
+  }
+
+  // Ball: new player dribbles, passes to player 1 (if there is one), shot
+  var dir = attTeam === 'b' ? -1 : 1;
+  var carrier = attPos[nAtt - 1], shooter = attPos[0];
+  var aim = tp(attTeam, [wave % 4 === 3 ? 112 : 148, 18]);
+  var save = wave === 3;
+  var ball = null;
+  var passT = nAtt > 1 ? 0.42 : 0.72;
+  if (t < passT) ball = [carrier[0] - 5 * dir, carrier[1] + 9 * dir];
+  else if (nAtt > 1 && t < 0.5) {
+    var s0 = attPos[nAtt - 1], k = (t - passT) / 0.08;
+    var s1 = kfPos([K(0.06, tp(attTeam, HOME[0])), K(0.7, tp(attTeam, ATT[0]))], 0.5);
+    ball = [lerp(s0[0], s1[0] + 5, k), lerp(s0[1] + 9 * dir, s1[1] + 9 * dir, k)];
+  }
+  else if (t < 0.72) ball = [shooter[0] + 5, shooter[1] + 9 * dir];
+  else if (t < 0.8) { var sk = (t - 0.72) / 0.08; ball = [lerp(shooter[0] + 5, aim[0], sk), lerp(shooter[1] + 9 * dir, aim[1], sk)]; }
+  else if (t < 0.9) ball = save ? tp(attTeam, [aim[0] + 14, 40]) : aim;
+  if (ball) drawBall(svg, ball[0], ball[1], 4);
+
+  // Keepers: the one under attack moves across to the shot
+  var gkA = attTeam === 'b' ? gkR : gkB, gkO = attTeam === 'b' ? gkB : gkR;
+  var dive = t > 0.68 && t < 0.92 ? Math.min(1, (t - 0.68) / 0.1) : 0;
+  var gx = lerp(gkA[0], save ? aim[0] : lerp(gkA[0], aim[0], 0.35), dive);
+  svg.appendChild(playerCircle(svg, gx, gkA[1], 'GK', '#ffd23f', '#a07800', 8));
+  svg.appendChild(playerCircle(svg, gkO[0], gkO[1], 'GK', '#ffd23f', '#a07800', 8));
+
+  defPos.forEach(function(p, i) { pl(defTeam, p, String(i + 1)); });
+  attPos.forEach(function(p, i) { pl(attTeam, p, String(i + 1)); });
+
+  var nums = nAtt + 'v' + nDef;
+  var who = attTeam === 'r' ? 'RED' : 'BLUE';
+  if (t < 0.3) calloutText(svg, 130, 182, nums + ': NEW ' + who + ' ON WITH A BALL', '#ffffff');
+  else if (t > 0.74 && t < 0.92) calloutText(svg, 130, 182, save ? 'SAVE!' : 'GOAL!', save ? '#ffb830' : '#a8e63d');
+  else if (t > 0.92) calloutText(svg, 130, 182, wave === 6 ? 'BACK TO THE QUEUES' : 'TRANSITION!', '#ffb830');
+  captionText(svg, w, h, 'Attack ends? New player on with a ball, attack back!', h - 4);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
