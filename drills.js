@@ -606,6 +606,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/C9LpTEQSFSz/',label:'See it on Instagram'},
     anim: 'animShootingTechnique', animMs: 5000
   },
+  {
+    id:'s7', cat:'skills', name:'Scanning & Passing', duration:10,
+    setup:'Mark a square about 15 x 15 yards. Put a player in each corner standing in a small gate of 2 cones, and one player in the middle inside a diamond of 4 cones about 2 yards across. Use 3 balls, so 3 of the corners have a ball and 1 corner is always free (the spare player). A corner with a ball passes into the middle. The middle player scans as the ball arrives, finds the corner without a ball and passes to them. The corner that just passed in is now free, so the next pass in comes from someone else. Keep all 3 balls moving. Swap the middle player every 60 seconds.',
+    points:['Middle player: look over both shoulders BEFORE the ball arrives, know where the free player is','Receive on the half-turn with your body open, not with your back to the play','Move inside the diamond to meet the ball, then play it out first or second touch','Corners: only pass in when the middle player is ready and asking for it','Corner without a ball: show for it, step in and call','Firm passes along the ground with the inside of the foot'],
+    progression:'Two touches, then one touch for the middle player. Add a fourth ball so the middle player must pass straight back. Put a passive defender behind the middle player, or make the square bigger so passes travel further.',
+    cues:['Check your shoulder','Who is free?','Open body','Pass and show'],
+    diagram:'scanspare', viewBox:'0 0 300 260',
+    instagram:{url:'https://www.instagram.com/reel/DN-uWyEjD_C/',label:'See it on Instagram'},
+    anim: 'animScanSpare', animMs: 10000
+  },
     // ── EXTRA SET PIECES ──
   {
     id:'sp4', cat:'setpiece', name:'Penalty Pressure Shootout', duration:10,
