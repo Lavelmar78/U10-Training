@@ -5987,6 +5987,91 @@ function animPassMoveWarm(svg, t, animated, state, w, h) {
   captionText(svg, w, h, '1-2 up the right, 1-2 down the left', h - 4);
 }
 
+// SCANNING & PASSING - FINDING THE SPARE PLAYER
+function animScanSpare(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: a square with a player in a cone gate at each corner and a
+  // middle player inside a 4-cone diamond. 3 balls among 4 corners, so one
+  // corner is always free. Each beat a corner with a ball passes in, the
+  // middle player scans and plays it out to the free (spare) corner. The
+  // corner that just passed in becomes the next free one.
+  var MX = 150, MY = 126, S = 90;
+  svg.appendChild(mkSvg('rect', {x:MX-S-8, y:MY-S-8, width:2*S+16, height:2*S+16, fill:'rgba(255,255,255,0.05)', stroke:'rgba(255,255,255,0.55)', 'stroke-width':'1.5'}));
+  var disc = function(x, y) { svg.appendChild(mkSvg('ellipse', {cx:x, cy:y, rx:5, ry:3, fill:'#ef4444'})); };
+  // Corners in passing order: top left, bottom left, bottom right, top right
+  var C = [[MX-S, MY-S], [MX-S, MY+S], [MX+S, MY+S], [MX+S, MY-S]];
+  C.forEach(function(c) {
+    var sx = c[0] < MX ? 1 : -1, sy = c[1] < MY ? 1 : -1;
+    disc(c[0] + sx*16, c[1] - sy*6); disc(c[0] - sx*6, c[1] + sy*16);
+  });
+  disc(MX, MY-20); disc(MX, MY+20); disc(MX-20, MY); disc(MX+20, MY);
+
+  var BLUE = '#1d4ed8', RING = '#60a5fa', MID = '#f59e0b';
+  var toward = function(p, q, d) {
+    var dx = q[0]-p[0], dy = q[1]-p[1], l = Math.sqrt(dx*dx+dy*dy) || 1;
+    return [p[0] + dx/l*d, p[1] + dy/l*d];
+  };
+  var feet = function(c) { return toward(c, [MX, MY], 15); };
+
+  if (!animated) {
+    arrow(svg, C[0][0]+10, C[0][1]+10, MX-12, MY-12, '#ffffff');
+    arrow(svg, MX+12, MY-12, C[3][0]-12, C[3][1]+12, '#a8e63d');
+    for (var j = 0; j < 4; j++) svg.appendChild(playerCircle(svg, C[j][0], C[j][1], String(j+1), BLUE, RING, 9));
+    svg.appendChild(playerCircle(svg, MX, MY, 'M', MID, '#fde68a', 9));
+    [C[0], C[1], C[2]].forEach(function(c) { var f = feet(c); drawBall(svg, f[0], f[1], 4); });
+    calloutText(svg, C[3][0]+4, C[3][1]+30, 'FREE', '#a8e63d');
+    captionText(svg, w, h, '3 balls, 4 corners: scan and find the free player', h - 6);
+    return;
+  }
+
+  var beat = Math.min(3, Math.floor(t * 4)), u = t * 4 - beat;
+  var from = beat, to = (beat + 3) % 4;          // passer, and the free corner
+  var P = C[from], F = C[to];
+
+  // Middle player steps towards the incoming ball, then opens up to the free corner
+  var mIn = toward([MX, MY], P, 9), mOut = toward([MX, MY], F, 5);
+  var m = kfPos([[0,MX,MY],[0.3,mIn[0],mIn[1]],[0.48,mOut[0],mOut[1]],[0.85,MX,MY]], u);
+  // The free corner steps in a little to receive
+  var fStep = toward(F, [MX, MY], 7);
+  var fp = kfPos([[0,F[0],F[1]],[0.45,F[0],F[1]],[0.6,fStep[0],fStep[1]],[0.95,F[0],F[1]]], u);
+
+  // Balls resting with the two other corners
+  for (var c = 0; c < 4; c++) {
+    if (c === from || c === to) continue;
+    var f = feet(C[c]); drawBall(svg, f[0], f[1], 4);
+  }
+  // The ball in play
+  var pf = feet(P), mFeetIn = toward(mIn, P, 12), mFeetOut = toward(mOut, F, 12), ff = toward(fStep, [MX, MY], 4);
+  var ball;
+  if (u < 0.08) ball = pf;
+  else if (u < 0.3) ball = kfPos([[0.08,pf[0],pf[1]],[0.3,mFeetIn[0],mFeetIn[1]]], u);
+  else if (u < 0.5) ball = kfPos([[0.3,mFeetIn[0],mFeetIn[1]],[0.5,mFeetOut[0],mFeetOut[1]]], u);
+  else if (u < 0.6) ball = kfPos([[0.5,mFeetOut[0],mFeetOut[1]],[0.6,ff[0],ff[1]]], u);
+  else { var fe = feet(F); ball = kfPos([[0.6,ff[0],ff[1]],[0.95,fe[0],fe[1]]], u); }
+
+  // Scan lines while the middle player is receiving
+  if (u > 0.22 && u < 0.5) {
+    for (var s = 0; s < 4; s++) {
+      if (s === from) continue;
+      svg.appendChild(mkSvg('line', {x1:m[0], y1:m[1], x2:C[s][0], y2:C[s][1], stroke: s === to ? '#a8e63d' : 'rgba(255,255,255,0.3)', 'stroke-width': s === to ? '2' : '1', 'stroke-dasharray':'3 4'}));
+    }
+  }
+  if (u > 0.3 && u < 0.75) svg.appendChild(mkSvg('circle', {cx:F[0], cy:F[1], r:14, fill:'none', stroke:'#a8e63d', 'stroke-width':'2'}));
+
+  drawBall(svg, ball[0], ball[1], 4);
+  for (var i = 0; i < 4; i++) {
+    var pos = i === to ? fp : C[i];
+    svg.appendChild(playerCircle(svg, pos[0], pos[1], String(i+1), BLUE, RING, 9));
+  }
+  svg.appendChild(playerCircle(svg, m[0], m[1], 'M', MID, '#fde68a', 9));
+
+  var lx = MX, ly = MY + S + 28;
+  if (u < 0.25) calloutText(svg, lx, ly, 'PASS IN', '#ffffff');
+  else if (u < 0.5) calloutText(svg, lx, ly, 'SCAN - WHO IS FREE?', '#ffb830');
+  else if (u < 0.9) calloutText(svg, lx, ly, 'FIND THE SPARE PLAYER', '#a8e63d');
+  captionText(svg, w, h, '3 balls, 4 corners: scan and find the free player', h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));
