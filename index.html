@@ -6072,6 +6072,88 @@ function animScanSpare(svg, t, animated, state, w, h) {
   captionText(svg, w, h, '3 balls, 4 corners: scan and find the free player', h - 6);
 }
 
+function animFollowPass(svg, t, animated, state, w, h) {
+  pitchBg(svg, w, h);
+  // Coach's view: 6 cones in a tall hexagon (top, upper left, lower left,
+  // bottom, lower right, upper right). The ball goes round anticlockwise on
+  // screen: top, left side, bottom, right side. Two balls start opposite
+  // each other at the top and bottom cones, which have 2 players each. Every
+  // beat both balls move on one cone and each passer follows their pass and
+  // joins the back of the next cone. After 3 beats it looks the same again.
+  var MX = 150, MY = 129;
+  var C = [[150,48],[85,103],[85,157],[150,212],[215,157],[215,103]];
+  var out = function(c, d) {
+    var dx = c[0]-MX, dy = c[1]-MY, l = Math.sqrt(dx*dx+dy*dy) || 1;
+    if (Math.abs(c[0]-MX) > 1) { dx = c[0] < MX ? -1 : 1; dy = 0; l = 1; }
+    return [c[0] + dx/l*d, c[1] + dy/l*d];
+  };
+  var toward = function(p, q, d) {
+    var dx = q[0]-p[0], dy = q[1]-p[1], l = Math.sqrt(dx*dx+dy*dy) || 1;
+    return [p[0] + dx/l*d, p[1] + dy/l*d];
+  };
+  var front = function(k) { return out(C[k], 11); };
+  var back = function(k) { return out(C[k], 30); };
+  var foot = function(k, to) { return toward(front(k), C[to], 8); };
+  for (var e = 0; e < 6; e++) {
+    var a = C[e], b = C[(e+1)%6];
+    svg.appendChild(mkSvg('line', {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:'rgba(255,255,255,0.18)', 'stroke-width':'1', 'stroke-dasharray':'3 5'}));
+  }
+  C.forEach(function(c) { svg.appendChild(mkSvg('polygon', {points:c[0]+','+(c[1]-7)+' '+(c[0]-5)+','+(c[1]+3)+' '+(c[0]+5)+','+(c[1]+3), fill:'#f59e0b'})); });
+
+  var BLUE = '#1d4ed8', RING = '#60a5fa', HI = '#facc15';
+  var caption = 'Pass to the next cone, then follow your pass';
+  if (!animated) {
+    [0, 3].forEach(function(k) {
+      var n = (k+1)%6, f = foot(k, n), r = front(n);
+      arrow(svg, f[0], f[1], toward(r, f, 10)[0], toward(r, f, 10)[1], '#ffffff');
+      var s = toward(front(k), back(n), 10), en = toward(back(n), front(k), 10);
+      arrow(svg, s[0] + (k === 0 ? -12 : 12), s[1] - (k === 0 ? 6 : -6), en[0], en[1], HI, true);
+    });
+    for (var k = 0; k < 6; k++) {
+      var p = front(k);
+      svg.appendChild(playerCircle(svg, p[0], p[1], '', BLUE, RING, 8));
+      if (k === 0 || k === 3) { var q = back(k); svg.appendChild(playerCircle(svg, q[0], q[1], '', BLUE, RING, 8)); }
+    }
+    drawBall(svg, foot(0, 1)[0], foot(0, 1)[1], 4);
+    drawBall(svg, foot(3, 4)[0], foot(3, 4)[1], 4);
+    calloutText(svg, 132, 92, 'PASS', '#ffffff');
+    calloutText(svg, 168, 174, 'PASS', '#ffffff');
+    calloutText(svg, MX, MY + 4, 'FOLLOW YOUR PASS', HI);
+    captionText(svg, w, h, caption, h - 6);
+    return;
+  }
+
+  var beat = Math.min(2, Math.floor(t * 3)), u = t * 3 - beat;
+  var starts = [beat, beat + 3];
+  var players = [], balls = [];
+  for (var k2 = 0; k2 < 6; k2++) {
+    if (starts.indexOf(k2) > -1) {
+      var n2 = (k2+1)%6;
+      // Passer follows the pass to the back of the next cone
+      players.push({p: kfPos([[0.12, front(k2)[0], front(k2)[1]], [0.85, back(n2)[0], back(n2)[1]]], u), run: u > 0.12 && u < 0.85});
+      // The waiting player steps up to the cone
+      players.push({p: kfPos([[0.3, back(k2)[0], back(k2)[1]], [0.65, front(k2)[0], front(k2)[1]]], u)});
+      // The ball: pass, receive, then set it on the foot for the next pass
+      var f0 = foot(k2, n2), rIn = toward(front(n2), C[k2], 8), rOut = foot(n2, (n2+1)%6);
+      balls.push(kfPos([[0.1, f0[0], f0[1]], [0.45, rIn[0], rIn[1]], [0.7, rOut[0], rOut[1]]], u));
+    } else if (starts.indexOf((k2+5)%6) > -1) {
+      // Receiver steps towards the ball, then back to the cone
+      var rs = toward(front(k2), C[(k2+5)%6], 5);
+      players.push({p: kfPos([[0.2, front(k2)[0], front(k2)[1]], [0.4, rs[0], rs[1]], [0.75, front(k2)[0], front(k2)[1]]], u)});
+    } else {
+      players.push({p: front(k2)});
+    }
+  }
+  players.forEach(function(pl) {
+    if (pl.run) svg.appendChild(mkSvg('circle', {cx:pl.p[0], cy:pl.p[1], r:12, fill:'none', stroke:HI, 'stroke-width':'2'}));
+    svg.appendChild(playerCircle(svg, pl.p[0], pl.p[1], '', BLUE, RING, 8));
+  });
+  balls.forEach(function(bp) { drawBall(svg, bp[0], bp[1], 4); });
+  if (u < 0.35) calloutText(svg, MX, MY + 4, 'PASS', '#ffffff');
+  else if (u < 0.92) calloutText(svg, MX, MY + 4, 'FOLLOW YOUR PASS', HI);
+  captionText(svg, w, h, caption, h - 6);
+}
+
 function animSprintSlow(svg, t, animated, state, w, h) {
   pitchBg(svg, w, h);
   svg.appendChild(mkSvg('line',{x1:30,y1:20,x2:30,y2:h-20,stroke:'rgba(255,255,255,0.35)','stroke-width':'2','stroke-dasharray':'4 3'}));

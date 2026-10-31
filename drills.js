@@ -382,6 +382,16 @@ const DRILLS = [
     instagram:{url:'https://www.instagram.com/reel/DKnYPxCi58b/',label:'See it on Instagram'},
     anim: 'animPassMoveWarm', animMs: 11000
   },
+  {
+    id:'w20', cat:'warmup', name:'Follow the Pass', duration:10,
+    setup:'Set out 6 cones in a tall hexagon, about 10m apart: one at the top, two down the left side, one at the bottom and two down the right side. Use 8 to 10 players and 2 balls. One player on each cone, with 2 players (and any extras) at the top and bottom cones, where the 2 balls start. The ball always goes round the same way: top cone to upper left, lower left, bottom, lower right, upper right and back to the top. Pass to the player on the next cone, then follow your pass and join the back of that cone. Both balls go at the same time on opposite sides of the hexagon, so everyone keeps moving. Swap the direction after a few minutes so the ball goes round the other way.',
+    points:['Pass and follow your pass straight away, do not stop to watch it','Firm pass along the ground with the inside of the foot','Receiver: step towards the ball and take your first touch out to the side, ready for the next pass','Open your body so you can see where the ball is going next','Call the name of the player you are passing to','Both balls should move together, so keep your eye on the other one too'],
+    progression:'Two touches, then one touch. Weaker foot only. Change direction on the coach\'s whistle. Add a third ball, or make the hexagon bigger so the passes are longer.',
+    cues:['Pass and follow','Step to the ball','Open up','Call a name'],
+    diagram:'followpass', viewBox:'0 0 300 270',
+    instagram:{url:'https://www.instagram.com/reel/DIFzXGaCWgE/',label:'See it on Instagram'},
+    anim: 'animFollowPass', animMs: 6000
+  },
     // ── EXTRA DEFENDING ──
   {
     id:'d6', cat:'defending', name:'Covering Pairs', duration:12,
