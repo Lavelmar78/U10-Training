@@ -445,14 +445,14 @@ const DRILLS = [
     anim: 'animCrossing'
   },
   {
-    id:'a8', cat:'attacking', name:'Shooting Drill — Combination Finish', duration:14,
-    setup:'3 players (A, B, C) with a goal and keeper. A stands furthest out, B to A\'s left, C to A\'s right — B has a mannequin or cone marker just ahead of them. A passes to B. B lays the ball off first-time to C, then immediately spins away from their own marker and runs out to the left into open space. C plays the ball first-time into that space for B, who shoots from the left side. Players rotate anti-clockwise after each rep — A becomes B, B becomes C, C becomes A.',
-    points:['B: spin off your own marker the INSTANT the pass to C is released — don\'t wait to see if it arrives','B: run out wide to the left — you need real separation before the ball arrives','C: first-time pass if possible — the space closes fast','A: weight the first pass so B can lay it off in one touch','B: attack the shot from the left — get your body shape right before striking'],
-    progression:'Add a passive defender on the shooter. Keeper must set before each attempt — no cheating early.',
-    cues:['Spin now!','First time if you can','Attack the space','Weight the pass'],
-    diagram:'shootcombo', viewBox:'0 0 300 200',
+    id:'a8', cat:'attacking', name:'Shooting, Controlled Defensive Press', duration:14,
+    setup:'Goal and keeper at the top. Stand a mannequin (or tall cone) either side of the D, about 16 yards out. One wall player (B) starts just outside the left mannequin and a defender (D, a coach or player) stands just inside it. The rest queue about 25 yards out, slightly right of centre, each with a ball. The front player (A) passes into B, who checks down towards the ball. As the pass goes, the next player (C) runs diagonally up towards the right mannequin. B lays it across first time into C\'s path. D steps out from the left mannequin to press C, but only to about 2 yards away with no tackle (a controlled press). C takes one touch inside and shoots before D gets there. B spins round the outside of the left mannequin and follows in for any rebound. A becomes the next wall player, B and C collect a ball and join the back of the queue.',
+    points:['A: firm pass on the ground into B\'s front foot','B: check down to meet the ball, then lay it across first time, weighted into C\'s run','C: time the run so you arrive as the lay-off does, do not stand and wait','C: first touch forward and inside, away from the defender, then shoot early','D: close down quickly but stop 2 yards short and stay on your feet, pressure only','B: spin off and follow in, keepers spill shots'],
+    progression:'Let D tackle at half pressure, then full pressure. Or make C shoot first time off the lay-off. Swap the wall player to the right mannequin so C finishes off the other foot.',
+    cues:['Arrive with the ball','Touch and shoot','Pressure, no tackle','Follow in'],
+    diagram:'shootcombo', viewBox:'0 0 300 260',
     instagram:{url:'https://www.instagram.com/reel/DVAeFg3EqB1/',label:'See it on Instagram'},
-    anim: 'animShootCombo'
+    anim: 'animShootPress', animMs: 8000
   },
   {
     id:'a9', cat:'attacking', name:'Overlapping Runs & Finishing', duration:13,
