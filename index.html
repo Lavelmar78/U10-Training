@@ -6160,9 +6160,9 @@ function animShootPress(svg, t, animated, state, w, h) {
   // Coach's view: goal and keeper at the top, box and D below. Two mannequins
   // either side of the D. Queue of attackers with balls at the bottom. B (wall)
   // checks down off the left mannequin, A passes in, C runs up to the right
-  // mannequin, B lays it across first time, C touches inside and shoots while
-  // the defender (D) steps out from the left mannequin to press, stopping short
-  // of a tackle. B spins round the left mannequin to follow in for a rebound.
+  // mannequin, B lays it across first time and spins round the outside of the
+  // left mannequin. The defender (D) steps out to press C, stopping short of a
+  // tackle, and C plays a through ball into B's run for B to shoot.
   // Rotation: A becomes the wall, B and C go to the back of the queue.
   var ln = 'rgba(255,255,255,0.55)';
   svg.appendChild(mkSvg('line', {x1:10, y1:22, x2:290, y2:22, stroke:ln, 'stroke-width':'1.5'}));
@@ -6184,42 +6184,46 @@ function animShootPress(svg, t, animated, state, w, h) {
   var A0 = [140, 220], C0 = [166, 228];        // front of queue: passer and runner
   var Q1 = [190, 233], Q2 = [212, 238];        // rest of the queue
   var D0 = [116, 140];                         // defender beside the left mannequin
-  var CR = [196, 168], CS = [178, 150];        // C receives, then touches inside
+  var CR = [196, 168];                         // C receives the lay-off here
+  var BS = [90, 96], TB = [96, 90];            // B shoots here, through ball target
   var pl = function(p, lbl) { svg.appendChild(playerCircle(svg, p[0], p[1], lbl, RED, RING, 8)); };
 
   if (!animated) {
     arrow(svg, A0[0] - 8, A0[1] - 6, B1[0] + 8, B1[1] + 6, '#ffffff');
     arrow(svg, C0[0] + 5, C0[1] - 9, CR[0] - 2, CR[1] + 11, 'rgba(252,165,165,0.85)', true);
     arrow(svg, B1[0] + 10, B1[1] - 3, CR[0] - 10, CR[1] + 3, '#ffffff');
-    arrow(svg, CS[0] - 4, CS[1] - 10, 138, 16, '#a8e63d');
-    arrow(svg, D0[0] + 10, D0[1] + 1, 152, 144, '#93c5fd', true);
-    arrow(svg, B1[0] - 10, B1[1] - 4, 62, 150, 'rgba(252,165,165,0.6)', true);
-    arrow(svg, 62, 146, 82, 96, 'rgba(252,165,165,0.6)', true);
+    arrow(svg, D0[0] + 10, D0[1] + 3, 166, 152, '#93c5fd', true);
+    arrow(svg, B1[0] - 10, B1[1] - 4, 62, 150, 'rgba(252,165,165,0.85)', true);
+    arrow(svg, 62, 146, BS[0] - 6, BS[1] + 6, 'rgba(252,165,165,0.85)', true);
+    arrow(svg, CR[0] - 10, CR[1] - 8, TB[0] + 10, TB[1] + 4, '#ffffff');
+    arrow(svg, TB[0] + 6, TB[1] - 8, 162, 16, '#a8e63d');
     svg.appendChild(playerCircle(svg, GK0[0], GK0[1], 'GK', '#ffd23f', '#a07800', 8));
     pl(B1, 'B'); pl(A0, 'A'); pl(C0, 'C'); pl(Q1, ''); pl(Q2, '');
     svg.appendChild(playerCircle(svg, D0[0], D0[1], 'D', BLUE, BRING, 8));
     drawBall(svg, A0[0] - 7, A0[1] - 5, 3.5);
-    captionText(svg, w, h, 'Pass, lay-off, shoot with the defender pressing', h - 6);
+    captionText(svg, w, h, 'Lay-off, spin, through ball, B shoots', h - 6);
     return;
   }
 
   var P = function(keys) { return kfPos(keys, t); };
-  var b = P([K(0,B0[0],B0[1]),K(0.12,B1[0],B1[1]),K(0.3,B1[0],B1[1]),K(0.42,64,156),K(0.54,72,110),K(0.64,104,74),K(0.72,104,74),K(0.97,Q2[0],Q2[1])]);
+  var b = P([K(0,B0[0],B0[1]),K(0.12,B1[0],B1[1]),K(0.28,B1[0],B1[1]),K(0.38,64,156),K(0.46,68,118),K(0.54,BS[0],BS[1]),K(0.66,BS[0]+2,BS[1]-2),K(0.97,Q2[0],Q2[1])]);
   var a = P([K(0,A0[0],A0[1]),K(0.2,A0[0],A0[1]),K(0.28,124,210),K(0.66,124,210),K(0.94,B0[0],B0[1])]);
-  var c = P([K(0,C0[0],C0[1]),K(0.12,C0[0],C0[1]),K(0.34,CR[0],CR[1]),K(0.46,CS[0],CS[1]),K(0.56,CS[0]-2,CS[1]-4),K(0.68,CS[0]-2,CS[1]-4),K(0.97,Q1[0],Q1[1])]);
+  var c = P([K(0,C0[0],C0[1]),K(0.12,C0[0],C0[1]),K(0.34,CR[0],CR[1]),K(0.68,CR[0],CR[1]),K(0.97,Q1[0],Q1[1])]);
   var q1 = P([K(0,Q1[0],Q1[1]),K(0.62,Q1[0],Q1[1]),K(0.82,A0[0],A0[1])]);
   var q2 = P([K(0,Q2[0],Q2[1]),K(0.62,Q2[0],Q2[1]),K(0.86,C0[0],C0[1])]);
-  var d = P([K(0,D0[0],D0[1]),K(0.3,D0[0],D0[1]),K(0.48,152,144),K(0.6,156,142),K(0.72,156,142),K(0.92,D0[0],D0[1])]);
-  var gk = P([K(0,GK0[0],GK0[1]),K(0.44,GK0[0],GK0[1]),K(0.5,154,34),K(0.56,140,30),K(0.66,140,30),K(0.8,GK0[0],GK0[1])]);
+  var d = P([K(0,D0[0],D0[1]),K(0.3,D0[0],D0[1]),K(0.46,170,152),K(0.56,172,154),K(0.72,172,154),K(0.92,D0[0],D0[1])]);
+  var gk = P([K(0,GK0[0],GK0[1]),K(0.44,GK0[0],GK0[1]),K(0.52,140,32),K(0.6,160,30),K(0.7,160,30),K(0.82,GK0[0],GK0[1])]);
 
   var ball = null;
   if (t < 0.1) ball = [A0[0] - 7, A0[1] - 5];
   else if (t < 0.22) ball = P([K(0.1,A0[0]-7,A0[1]-5),K(0.22,B1[0]+9,B1[1]-3)]);
   else if (t < 0.25) ball = [B1[0] + 9, B1[1] - 3];
   else if (t < 0.36) ball = P([K(0.25,B1[0]+9,B1[1]-3),K(0.36,CR[0]-4,CR[1]-4)]);
-  else if (t < 0.46) ball = P([K(0.36,CR[0]-4,CR[1]-4),K(0.46,CS[0]-5,CS[1]-6)]);
-  else if (t < 0.56) ball = P([K(0.46,CS[0]-5,CS[1]-6),K(0.56,136,15)]);
-  else if (t < 0.66) ball = [136, 15];
+  else if (t < 0.42) ball = [CR[0] - 4, CR[1] - 4];
+  else if (t < 0.54) ball = P([K(0.42,CR[0]-4,CR[1]-4),K(0.54,TB[0],TB[1])]);
+  else if (t < 0.56) ball = [TB[0], TB[1]];
+  else if (t < 0.64) ball = P([K(0.56,TB[0],TB[1]),K(0.64,162,15)]);
+  else if (t < 0.72) ball = [162, 15];
   svg.appendChild(playerCircle(svg, gk[0], gk[1], 'GK', '#ffd23f', '#a07800', 8));
   pl(b, 'B'); pl(a, 'A'); pl(c, 'C'); pl(q1, ''); pl(q2, '');
   svg.appendChild(playerCircle(svg, d[0], d[1], 'D', BLUE, BRING, 8));
@@ -6228,9 +6232,9 @@ function animShootPress(svg, t, animated, state, w, h) {
   if (t > 0.82) drawBall(svg, A0[0] - 7, A0[1] - 5, 3.5);
 
   var msg = t < 0.24 ? 'A passes into B, C makes the run'
-    : t < 0.36 ? 'B lays it across first time'
-    : t < 0.46 ? 'D steps out to press, C touches inside'
-    : t < 0.66 ? 'Shoot before the defender arrives'
+    : t < 0.36 ? 'B lays it across and spins off'
+    : t < 0.54 ? 'D presses C, C plays B in behind'
+    : t < 0.72 ? 'B shoots first time'
     : 'A becomes the wall, B and C to the back';
   captionText(svg, w, h, msg, h - 6);
 }
